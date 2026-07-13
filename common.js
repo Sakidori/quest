@@ -1,6 +1,6 @@
 // Array of SHA-256 hashes for your 10 answers
 const answerHashes = [
-    "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", // Placeholder Q1
+    "873ac9ffea4dd04fa719e8920cd6938f0c23cd678af330939cff53c3d2855f34", // Placeholder Q1
     "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", // Placeholder Q2
     "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", // Placeholder Q3
     "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", // ... add others
