@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
   <title>Summer Quest</title>
   <style>
     :root {
@@ -17,39 +17,21 @@
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       color: #fff;
     }
-    #controls {
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 40px;
-    z-index: 100; /* Force it above everything */
-    pointer-events: none; /* Let clicks pass through empty space */
+    
+   #game-shell {
+    position: relative;
+    width: 100vw;
+    height: 50vw; /* Maintains 2:1 aspect ratio (400/800) */
+    max-height: 100vh;
+    max-width: 200vh; /* Keeps it within screen bounds */
+    margin: auto;
 }
 
-.control-btn {
-    pointer-events: auto; /* Only buttons receive touch */
-    width: 80px; height: 80px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 30px;
-    user-select: none;
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
-    #game-shell {
-      position: relative;
-      border: 4px solid #4f3720;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
-    }
-    canvas {
-      display: block;
-      background: #8fd4ff;
-      image-rendering: pixelated;
-    }
     #overlay {
       position: absolute;
       inset: 0;
@@ -87,36 +69,85 @@
       color: #567;
       margin-top: 10px;
     }
+
+    input {
+    font-size: 16px !important; /* Browsers zoom if font is < 16px */
+}
 /* Hide controls and warning by default on Desktop */
 #controls, #orientation-gate {
     display: none;
 }
 
-/* Only show them if the screen is narrow (Mobile/Tablet) */
-@media (max-width: 900px) {
+#controls {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    height: 100px;
+    pointer-events: none; /* Let touches pass through */
+    z-index: 1000;
+}
 
+.left-controls {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    gap: 10px;
+}
+
+.right-controls {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    gap: 10px;
+}
+
+.control-btn {
+    pointer-events: auto; /* Buttons are clickable */
+    width: 70px; 
+    height: 70px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 15px; /* Rounded square looks more like a controller */
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-size: 24px;
+    user-select: none;
+    color: white;
+    touch-action: none; /* Prevents browser scroll/zoom on these */
+}
+
+/* Only show them if the screen is narrow (Mobile/Tablet) */
+#orientation-gate {
+    display: none; /* Default hidden */
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: #000;
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Only show on phones in Portrait mode */
+@media (max-width: 900px) and (orientation: portrait) {
     #orientation-gate {
-        display: flex; /* Shows the "Please Rotate" screen */
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: #000; color: white;
-        z-index: 9999;
-        align-items: center; justify-content: center;
-        text-align: center;
+        display: flex;
     }
 }
 
-/* Hide the warning when it's actually in landscape */
-@media (max-width: 900px) and (orientation: landscape) {
-    #orientation-gate {
-        display: none;
-    }
+html, body {
+    touch-action: manipulation; /* Prevents double-tap to zoom */
+    overflow: hidden;           /* Stops page scrolling/bouncing */
 }
   </style>
 </head>
 <body>
   <div id="game-shell">
-    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <canvas id="gameCanvas"></canvas>
+    </div>
     <div id="overlay">
       <div class="panel">
         <h1>Super Summer Quest</h1>
@@ -143,12 +174,28 @@
 
 <!-- Virtual Controls -->
 <div id="controls">
-    <div id="btn-left" class="control-btn">◀</div>
-    <div id="btn-right" class="control-btn">▶</div>
-    <div id="btn-jump" class="control-btn">▲</div>
+    <div id="dpad" class="left-controls">
+        <div id="btn-left" class="control-btn">◀</div>
+        <div id="btn-right" class="control-btn">▶</div>
+    </div>
+    <div id="action-buttons" class="right-controls">
+        <div id="btn-jump" class="control-btn">▲</div>
+        <div id="btn-attack" class="control-btn">X</div>
+    </div>
 </div>
 
   <script>
+
+    function resizeCanvas() {
+    const canvas = document.getElementById("gameCanvas");
+    // Set internal resolution to match physical display size
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+}
+// Run once on load and whenever the screen rotates
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const overlay = document.getElementById("overlay");
@@ -265,7 +312,7 @@ platforms = [
     { x: 950, y: 100, w: 150, h: 20 },
     { x: 1300, y: 150, w: 100, h: 20 }
 ];
-spikes = [
+let spikes = [
     { x: 450, y: 340, w: 30, h: 10 },
     { x: 750, y: 340, w: 30, h: 10 }
 ];
@@ -303,6 +350,7 @@ mobs = [
     }
 
     function startGame() {
+      lockLandscape();
       resetGame();
       running = true;
       lastTime = performance.now();
@@ -506,12 +554,12 @@ if (goal.active) {
     ) {
       finishGame("You Win!", "You reached the goal!");
     }
-}
-
-if (!goal.active && letterPool.length === 0) {
-  goal.active = true;
-  console.log("Goal Unlocked!");
-  spawnDamageText(goal.x, goal.y - 20, "UNLOCKED!");
+} else {
+    // Optional: Check if all mobs are dead to unlock
+    if (mobs.every(m => m.isDead)) {
+        goal.active = true;
+        spawnDamageText(goal.x, goal.y - 20, "UNLOCKED!");
+    }
 }
     }
 
@@ -822,20 +870,45 @@ function restartGame() {
     document.getElementById("passwordInput").value = "";
     startGame();
 }
+// 1. Update your map
 const btnMap = {
     "btn-left": "ArrowLeft",
     "btn-right": "ArrowRight",
-    "btn-jump": "Space"
+    "btn-jump": "Space",
+    "btn-attack": "KeyX" // Added X
 };
 
+// 2. Updated Event Logic
 document.querySelectorAll('.control-btn').forEach(btn => {
+    // Helper to trigger the attack
+    const triggerInput = (code, state) => {
+        keys[code] = state;
+        // If it's the attack button being pressed, trigger the logic immediately
+        if (code === "KeyX" && state === true) {
+            if (!player.isAttacking) {
+                player.isAttacking = true;
+                player.playerFrameIndex = 0;
+            }
+        }
+    };
+
     btn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        keys[btnMap[btn.id]] = true;
+        triggerInput(btnMap[btn.id], true);
     });
+
     btn.addEventListener('touchend', (e) => {
         e.preventDefault();
-        keys[btnMap[btn.id]] = false;
+        // Don't set Attack (KeyX) to false immediately on end, 
+        // as it's a "trigger" not a "hold" key
+        if (btnMap[btn.id] !== "KeyX") {
+            keys[btnMap[btn.id]] = false;
+        }
+    });
+
+btn.addEventListener('touchcancel', (e) => {
+        e.preventDefault();
+        keys[btnMap[btn.id]] = false; // Stop movement if touch is cancelled
     });
 });
 
