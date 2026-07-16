@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Summer Quest</title>
   <style>
     :root {
@@ -73,8 +73,8 @@
     <canvas id="gameCanvas" width="800" height="400"></canvas>
     <div id="overlay">
       <div class="panel">
-        <h1>School Adventure</h1>
-        <p>Run across the platforms, leap to the flag, and reach the school entrance.</p>
+        <h1>Super Summer Quest</h1>
+        <p>Complete the level.</p>
         <button id="startButton">Start Game</button>
         <div class="hint">Controls: Arrow keys or A/D to move, Space/Up/W to jump.</div>
       </div>
@@ -82,7 +82,7 @@
     <div id="goalPopup" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 10;">
     <div class="panel">
         <h2>Level Complete!</h2>
-    <p>Enter the secret word to proceed:</p>
+    <p>秘密の言葉を入れてください:</p>
     <input type="text" id="passwordInput" placeholder="Type here..." style="padding: 10px; font-size: 18px; color: white;">
     <br><br>
     <button onclick="restartGame()" style="padding: 10px 20px; background: #c0392b; cursor: pointer;">Restart</button>
@@ -765,6 +765,34 @@ function restartGame() {
     document.getElementById("passwordInput").value = "";
     startGame();
 }
+function handleTouch(e) {
+    e.preventDefault(); // Prevents scrolling/zooming while playing
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    const y = touch.clientY;
+
+    // Reset movement keys
+    keys["ArrowLeft"] = false;
+    keys["ArrowRight"] = false;
+    keys["Space"] = false;
+
+    // Define button areas (adjust these based on your screen size)
+    if (x < window.innerWidth / 3) {
+        keys["ArrowLeft"] = true; // Left third of screen
+    } else if (x > (window.innerWidth / 3) * 2) {
+        keys["ArrowRight"] = true; // Right third of screen
+    } else {
+        keys["Space"] = true; // Middle third of screen (jump)
+    }
+}
+
+canvas.addEventListener("touchstart", handleTouch, { passive: false });
+canvas.addEventListener("touchmove", handleTouch, { passive: false });
+canvas.addEventListener("touchend", () => {
+    keys["ArrowLeft"] = false;
+    keys["ArrowRight"] = false;
+    keys["Space"] = false;
+}, { passive: false });
 
   </script>
 </body>
