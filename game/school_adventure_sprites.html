@@ -2,53 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-  <title>Summer Quest</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">  <title>Summer Quest</title>
   <style>
     :root {
       color-scheme: dark;
     }
-body {
+html, body {
     margin: 0;
     padding: 0;
     width: 100vw;
-    height: 100vh;
     height: 100dvh;
-    background: linear-gradient(180deg, #1a2f4d 0%, #4a7db3 100%);
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    color: #fff;
     overflow: hidden;
-    /* Use flex to center the container precisely */
+    background: #1a2f4d;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
 }
-    
+
 #game-shell {
-    position: relative;
-    /* This forces the element to fit inside the screen without exceeding it */
+    /* Set dimensions based on the smaller of the two viewport constraints */
     width: 100vw;
-    height: 100vh;
-    height: 100dvh;
+    height: calc(100vw * 9 / 16);
     
-    /* This ensures it stays 16:9 while scaling down */
-    aspect-ratio: 16 / 9;
+    /* Ensure it never exceeds the screen height */
+    max-height: 100dvh;
+    max-width: calc(100dvh * 16 / 9);
     
-    /* CRITICAL: These two lines prevent the box from growing larger than the screen */
-    max-width: 100vw;
-    max-height: calc(100vw * 9 / 16);
-    
-    margin: auto;
+    position: relative;
     overflow: hidden;
-    display: flex;
 }
 
 canvas {
     width: 100%;
     height: 100%;
-    display: block;
-    /* Ensure the browser doesn't try to stretch the canvas */
-    object-fit: contain;
+    object-fit: contain; /* Keeps the aspect ratio without cropping */
 }
     #overlay {
       position: absolute;
