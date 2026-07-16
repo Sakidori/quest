@@ -537,20 +537,37 @@ mobs.forEach(mob => {
         mob.frame = 0;
     }
 
+    // Check for collision
     if (!mob.isDead && 
         player.x < mob.x + mob.w &&
         player.x + player.hitboxW > mob.x &&
         player.y < mob.y + mob.h &&
         player.y + player.hitboxH > mob.y
     ) {
-        if (!player.isInvulnerable) {
+        // STOMP CHECK: Falling + hitting top half of mob
+        if (player.dy > 0 && (player.y + player.hitboxH) < (mob.y + mob.h / 2)) {
+            mob.health -= 1;
+            player.dy = -8; // Bounce
+            player.onGround = false;
+
+            // Trigger same reward logic as an attack
+            if (letterPool.length > 0) {
+                const randomIndex = Math.floor(Math.random() * letterPool.length);
+                const letter = letterPool.splice(randomIndex, 1)[0];
+                collectedLetters.push(letter);
+                spawnDamageText(mob.x, mob.y - 20, letter.toUpperCase());
+            } else {
+                spawnDamageText(mob.x, mob.y - 20, "!");
+            }
+        } 
+        // NORMAL DAMAGE: If not stomping, take damage
+        else if (!player.isInvulnerable) {
             lives -= 1;
             if (lives <= 0) {
                 finishGame("Game Over", "You ran out of lives!");
             } else {
                 player.isInvulnerable = true;
-                player.invulnerableTimer = 120; // INCREASED: Now 2 seconds (120 frames)
-                
+                player.invulnerableTimer = 120;
                 const playerCenterX = player.x + player.w / 2;
                 const mobCenterX = mob.x + mob.w / 2;
                 player.dx = (playerCenterX < mobCenterX ? -1 : 1) * 8;
