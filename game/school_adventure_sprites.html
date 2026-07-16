@@ -286,6 +286,8 @@ const FLAG_FRAME_DURATION = 150; // Milliseconds per frame
 
     function resetGame() {
         lives = 3;
+        letterPool = ["s", "u", "m", "m", "e", "r"]; 
+        collectedLetters = [];
       player = {
         x: 0,
         y: 15,
@@ -923,6 +925,10 @@ document.querySelectorAll('.control-btn').forEach(btn => {
         if (btnMap[btn.id] !== "KeyX") {
             keys[btnMap[btn.id]] = false;
         }
+    });
+
+btn.addEventListener('touchcancel', (e) => {
+        keys[btnMap[btn.id]] = false;
     });
 });
 
