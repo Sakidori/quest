@@ -11,7 +11,7 @@
     body {
     margin: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     display: flex; /* Change from grid */
     align-items: center; /* Centers vertically */
     justify-content: center; /* Centers horizontally */
@@ -29,7 +29,7 @@
     /* Prevent the shell from ever being wider than the screen */
     max-width: 100vw;
     /* This allows the height to be determined by the aspect ratio */
-    max-height: 56.25vw; 
+    max-height: 100dvh; 
     margin: auto;
     overflow: hidden;
     display: flex;
@@ -369,16 +369,27 @@ mobs = [
 
     }
 
-    function startGame() {
-      lockLandscape();
-      resetGame();
-      running = true;
-      lastTime = performance.now();
-      
-      overlay.style.display = "none";
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      animationFrameId = requestAnimationFrame(loop);
+function startGame() {
+    // Attempt full screen first
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen().then(() => {
+            // Lock orientation only after entering fullscreen
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            }
+        }).catch((err) => {
+            console.log("Fullscreen failed", err);
+        });
     }
+    
+    resetGame();
+    running = true;
+    lastTime = performance.now();
+    overlay.style.display = "none";
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    animationFrameId = requestAnimationFrame(loop);
+}
 
     function showOverlay(title, text, hint) {
       running = false;
