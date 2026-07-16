@@ -901,35 +901,36 @@ const btnMap = {
 
 // 2. Updated Event Logic
 document.querySelectorAll('.control-btn').forEach(btn => {
-    // Helper to trigger the attack
-    const triggerInput = (code, state) => {
-        keys[code] = state;
-        // If it's the attack button being pressed, trigger the logic immediately
-        if (code === "KeyX" && state === true) {
-            if (!player.isAttacking) {
-                player.isAttacking = true;
-                player.playerFrameIndex = 0;
-            }
-        }
-    };
+    // 1. MAPPING: Connect the button to the key code
+    const keyCode = btnMap[btn.id];
 
+    // 2. PRESSING: When finger goes down, set key to true
     btn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        triggerInput(btnMap[btn.id], true);
-    });
+        keys[keyCode] = true;
+        
+        // Special case for attack: trigger only once per press
+        if (keyCode === "KeyX" && !player.isAttacking) {
+            player.isAttacking = true;
+            player.playerFrameIndex = 0;
+        }
+    }, { passive: false });
 
+    // 3. RELEASING: When finger goes up, set key to false
     btn.addEventListener('touchend', (e) => {
         e.preventDefault();
-        // Don't set Attack (KeyX) to false immediately on end, 
-        // as it's a "trigger" not a "hold" key
-        if (btnMap[btn.id] !== "KeyX") {
-            keys[btnMap[btn.id]] = false;
+        // Do NOT stop movement for Attack (KeyX)
+        if (keyCode !== "KeyX") {
+            keys[keyCode] = false;
         }
-    });
+    }, { passive: false });
 
-btn.addEventListener('touchcancel', (e) => {
-        keys[btnMap[btn.id]] = false;
-    });
+    // 4. CANCEL: If the finger slides off the button, stop movement
+    btn.addEventListener('touchcancel', (e) => {
+        if (keyCode !== "KeyX") {
+            keys[keyCode] = false;
+        }
+    }, { passive: false });
 });
 
 function lockLandscape() {
