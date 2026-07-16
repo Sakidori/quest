@@ -17,6 +17,27 @@
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       color: #fff;
     }
+    #controls {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 40px;
+    z-index: 100; /* Force it above everything */
+    pointer-events: none; /* Let clicks pass through empty space */
+}
+
+.control-btn {
+    pointer-events: auto; /* Only buttons receive touch */
+    width: 80px; height: 80px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px;
+    user-select: none;
+}
     #game-shell {
       position: relative;
       border: 4px solid #4f3720;
@@ -73,16 +94,6 @@
 
 /* Only show them if the screen is narrow (Mobile/Tablet) */
 @media (max-width: 900px) {
-    #controls {
-        display: flex; /* Or whatever your layout is */
-        position: absolute;
-        bottom: 20px;
-        width: 100%;
-        justify-content: space-between;
-        padding: 0 20px;
-        pointer-events: none;
-        z-index: 1000;
-    }
 
     #orientation-gate {
         display: flex; /* Shows the "Please Rotate" screen */
@@ -124,8 +135,9 @@
     <button onclick="checkWord()" style="margin-top: 10px; padding: 10px 20px; cursor: pointer;">Submit</button>
 <p id="errorMessage" style="color:red; margin-top: 10px; font-weight: bold;"></p>
 </div>
+  </div>
 
-<div id="orientation-gate">
+  <div id="orientation-gate">
     <p>Please rotate your device to landscape mode!</p>
 </div>
 
@@ -135,7 +147,6 @@
     <div id="btn-right" class="control-btn">▶</div>
     <div id="btn-jump" class="control-btn">▲</div>
 </div>
-  </div>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
@@ -811,34 +822,22 @@ function restartGame() {
     document.getElementById("passwordInput").value = "";
     startGame();
 }
-function handleTouch(e) {
-    e.preventDefault(); // Prevents scrolling/zooming while playing
-    const touch = e.touches[0];
-    const x = touch.clientX;
-    const y = touch.clientY;
+const btnMap = {
+    "btn-left": "ArrowLeft",
+    "btn-right": "ArrowRight",
+    "btn-jump": "Space"
+};
 
-    // Reset movement keys
-    keys["ArrowLeft"] = false;
-    keys["ArrowRight"] = false;
-    keys["Space"] = false;
-
-    // Define button areas (adjust these based on your screen size)
-    if (x < window.innerWidth / 3) {
-        keys["ArrowLeft"] = true; // Left third of screen
-    } else if (x > (window.innerWidth / 3) * 2) {
-        keys["ArrowRight"] = true; // Right third of screen
-    } else {
-        keys["Space"] = true; // Middle third of screen (jump)
-    }
-}
-
-canvas.addEventListener("touchstart", handleTouch, { passive: false });
-canvas.addEventListener("touchmove", handleTouch, { passive: false });
-canvas.addEventListener("touchend", () => {
-    keys["ArrowLeft"] = false;
-    keys["ArrowRight"] = false;
-    keys["Space"] = false;
-}, { passive: false });
+document.querySelectorAll('.control-btn').forEach(btn => {
+    btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        keys[btnMap[btn.id]] = true;
+    });
+    btn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        keys[btnMap[btn.id]] = false;
+    });
+});
 
 function lockLandscape() {
     if (document.documentElement.requestFullscreen) {
