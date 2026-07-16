@@ -79,14 +79,14 @@ canvas {
 }
 
 #controls {
-    display: none;
-    position: fixed;
+    display: none; 
+    position: absolute; /* Changed from fixed */
     bottom: 20px;
     left: 20px;
     right: 20px;
     height: 100px;
-    pointer-events: none; /* Let touches pass through */
-    z-index: 1000;
+    pointer-events: none; 
+    z-index: 5; /* Lower than overlay (which is z-index: 10) */
 }
 
 .left-controls {
@@ -148,6 +148,16 @@ html, body {
 <body>
   <div id="game-shell">
     <canvas id="gameCanvas"></canvas>
+    <div id="controls">
+    <div id="dpad" class="left-controls">
+        <div id="btn-left" class="control-btn">◀</div>
+        <div id="btn-right" class="control-btn">▶</div>
+    </div>
+    <div id="action-buttons" class="right-controls">
+        <div id="btn-jump" class="control-btn">▲</div>
+        <div id="btn-attack" class="control-btn">X</div>
+    </div>
+</div>
     </div>
     <div id="overlay">
       <div class="panel">
@@ -171,18 +181,6 @@ html, body {
 
   <div id="orientation-gate">
     <p>Please rotate your device to landscape mode!</p>
-</div>
-
-<!-- Virtual Controls -->
-<div id="controls">
-    <div id="dpad" class="left-controls">
-        <div id="btn-left" class="control-btn">◀</div>
-        <div id="btn-right" class="control-btn">▶</div>
-    </div>
-    <div id="action-buttons" class="right-controls">
-        <div id="btn-jump" class="control-btn">▲</div>
-        <div id="btn-attack" class="control-btn">X</div>
-    </div>
 </div>
 
   <script>
