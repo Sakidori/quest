@@ -79,6 +79,7 @@ canvas {
 }
 
 #controls {
+    display: none;
     position: fixed;
     bottom: 20px;
     left: 20px;
@@ -354,6 +355,9 @@ mobs = [
       resetGame();
       running = true;
       lastTime = performance.now();
+
+      document.getElementById("controls").style.display = "block";
+
       overlay.style.display = "none";
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       animationFrameId = requestAnimationFrame(loop);
@@ -361,6 +365,7 @@ mobs = [
 
     function showOverlay(title, text, hint) {
       running = false;
+      document.getElementById("controls").style.display = "none";
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       overlay.style.display = "flex";
       panelTitle.textContent = title;
