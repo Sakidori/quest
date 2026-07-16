@@ -403,14 +403,18 @@ function startGame() {
     }
 }
 
-    function loop(time) {
-      if (!running) return;
-      const delta = Math.min(2, (time - lastTime) / 16.67);
-      lastTime = time;
-      update(delta);
-      render();
-      animationFrameId = requestAnimationFrame(loop);
-    }
+  function loop(time) {
+    if (!running) return;
+    
+    // Clamp delta between 0.5 and 2.0 to prevent physics "explosions"
+    let delta = (time - lastTime) / 16.67;
+    delta = Math.max(0.5, Math.min(2.0, delta)); 
+    
+    lastTime = time;
+    update(delta);
+    render();
+    animationFrameId = requestAnimationFrame(loop);
+}
 
     function update(delta) {
 
@@ -437,8 +441,8 @@ if (moveInput !== 0) {
       }
 
       player.dy += GRAVITY * delta;
-      player.x += player.dx;
-      player.y += player.dy;
+      player.x += player.dx * delta;
+      player.y += player.dy * delta;
 
       let landed = false;
       const playerHitboxX = player.x + (player.w - player.hitboxW) / 2;
@@ -901,36 +905,35 @@ const btnMap = {
 
 // 2. Updated Event Logic
 document.querySelectorAll('.control-btn').forEach(btn => {
-    // 1. MAPPING: Connect the button to the key code
-    const keyCode = btnMap[btn.id];
+    // Helper to trigger the attack
+    const triggerInput = (code, state) => {
+        keys[code] = state;
+        // If it's the attack button being pressed, trigger the logic immediately
+        if (code === "KeyX" && state === true) {
+            if (!player.isAttacking) {
+                player.isAttacking = true;
+                player.playerFrameIndex = 0;
+            }
+        }
+    };
 
-    // 2. PRESSING: When finger goes down, set key to true
     btn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        keys[keyCode] = true;
-        
-        // Special case for attack: trigger only once per press
-        if (keyCode === "KeyX" && !player.isAttacking) {
-            player.isAttacking = true;
-            player.playerFrameIndex = 0;
-        }
-    }, { passive: false });
+        triggerInput(btnMap[btn.id], true);
+    });
 
-    // 3. RELEASING: When finger goes up, set key to false
     btn.addEventListener('touchend', (e) => {
         e.preventDefault();
-        // Do NOT stop movement for Attack (KeyX)
-        if (keyCode !== "KeyX") {
-            keys[keyCode] = false;
+        // Don't set Attack (KeyX) to false immediately on end, 
+        // as it's a "trigger" not a "hold" key
+        if (btnMap[btn.id] !== "KeyX") {
+            keys[btnMap[btn.id]] = false;
         }
-    }, { passive: false });
+    });
 
-    // 4. CANCEL: If the finger slides off the button, stop movement
-    btn.addEventListener('touchcancel', (e) => {
-        if (keyCode !== "KeyX") {
-            keys[keyCode] = false;
-        }
-    }, { passive: false });
+btn.addEventListener('touchcancel', (e) => {
+        keys[btnMap[btn.id]] = false;
+    });
 });
 
 function lockLandscape() {
