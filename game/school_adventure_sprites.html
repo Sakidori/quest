@@ -8,40 +8,47 @@
     :root {
       color-scheme: dark;
     }
-    body {
+body {
     margin: 0;
+    padding: 0;
     width: 100vw;
+    height: 100vh;
     height: 100dvh;
-    display: flex; /* Change from grid */
-    align-items: center; /* Centers vertically */
-    justify-content: center; /* Centers horizontally */
     background: linear-gradient(180deg, #1a2f4d 0%, #4a7db3 100%);
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     color: #fff;
-    overflow: hidden; /* Prevents bounce-scroll */
+    overflow: hidden;
+    /* Use flex to center the container precisely */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
     
 #game-shell {
     position: relative;
+    /* This forces the element to fit inside the screen without exceeding it */
     width: 100vw;
-    /* Force 16:9 aspect ratio */
-    aspect-ratio: 16 / 9; 
-    /* Prevent the shell from ever being wider than the screen */
+    height: 100vh;
+    height: 100dvh;
+    
+    /* This ensures it stays 16:9 while scaling down */
+    aspect-ratio: 16 / 9;
+    
+    /* CRITICAL: These two lines prevent the box from growing larger than the screen */
     max-width: 100vw;
-    /* This allows the height to be determined by the aspect ratio */
-    max-height: 100dvh; 
+    max-height: calc(100vw * 9 / 16);
+    
     margin: auto;
     overflow: hidden;
     display: flex;
-    /* Center it vertically if there is extra space */
-    align-self: center; 
 }
 
 canvas {
     width: 100%;
     height: 100%;
     display: block;
-    object-fit: contain; /* Ensures the game is not stretched */
+    /* Ensure the browser doesn't try to stretch the canvas */
+    object-fit: contain;
 }
     #overlay {
       position: absolute;
@@ -203,7 +210,17 @@ html, body {
 </div>
 
   <script>
+window.addEventListener("orientationchange", () => {
+    setTimeout(() => {
+        window.scrollTo(0, 0);
+        resizeCanvas();
+    }, 200);
+});
 
+// For browsers that don't support orientationchange well
+window.addEventListener("resize", () => {
+    resizeCanvas();
+});
 function resizeCanvas() {
     const canvas = document.getElementById("gameCanvas");
     // Match the canvas coordinate system to the actual display size
