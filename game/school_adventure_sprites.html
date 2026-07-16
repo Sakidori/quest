@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summer Quest</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #1a2f4d 0%, #4a7db3 100%);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
+    }
+    #game-shell {
+      position: relative;
+      border: 4px solid #4f3720;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    }
+    canvas {
+      display: block;
+      background: #8fd4ff;
+      image-rendering: pixelated;
+    }
+    #overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(3px);
+      z-index: 10;
+    }
+    .panel {
+      width: min(80vw, 420px);
+      padding: 24px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #23324a;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    .panel h1 { margin: 0 0 8px; font-size: 24px; }
+    .panel p { margin: 8px 0 16px; line-height: 1.5; }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #2d8f5c;
+      color: white;
+      font-weight: 600;
+    }
+    button:hover { background: #23784a; }
+    .hint {
+      font-size: 13px;
+      color: #567;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-shell">
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div id="overlay">
+      <div class="panel">
+        <h1>School Adventure</h1>
+        <p>Run across the platforms, leap to the flag, and reach the school entrance.</p>
+        <button id="startButton">Start Game</button>
+        <div class="hint">Controls: Arrow keys or A/D to move, Space/Up/W to jump.</div>
+      </div>
+    </div>
+    <div id="goalPopup" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 10;">
+    <div class="panel">
+        <h2>Level Complete!</h2>
+    <p>Enter the secret word to proceed:</p>
+    <input type="text" id="passwordInput" placeholder="Type here..." style="padding: 10px; font-size: 18px; color: white;">
+    <br><br>
+    <button onclick="restartGame()" style="padding: 10px 20px; background: #c0392b; cursor: pointer;">Restart</button>
+    <button onclick="checkWord()" style="margin-top: 10px; padding: 10px 20px; cursor: pointer;">Submit</button>
+<p id="errorMessage" style="color:red; margin-top: 10px; font-weight: bold;"></p>
+</div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const overlay = document.getElementById("overlay");
+    const startButton = document.getElementById("startButton");
+    const panelTitle = overlay.querySelector("h1");
+    const panelText = overlay.querySelector("p");
+    const panelHint = overlay.querySelector(".hint");
+    
+    const clouds = [
+    { x: 100, y: 90, size: 40 },
+    { x: 300, y: 100, size: 30 },
+    { x: 600, y: 30, size: 40 },
+    { x: 900, y: 80, size: 45 }
+];
+    const spriteFiles = {
+      idle: "male_hero-idle.png",
+      run: "male_hero-run.png",
+      jump: "male_hero-jump.png",
+      fall: "male_hero-fall.png",
+      walk: "male_hero-walk.png",
+      attack: "male_hero-combo_1.png",
+      attack_end: "male_hero-combo_1_end.png",
+      booger: "Booger Buddy.png"
+    };
+
+    const sprites = {};
+    const goalImage = new Image();
+    let loadedAssets = 0;
+    const totalAssets = Object.keys(spriteFiles).length + 1;
+
+const BOOGER_SIZE = 32;
+const BOOGER_ANIM = {
+    moveRight: { row: 5, frames: 4 },
+    moveLeft:  { row: 6, frames: 4 },
+    hitRight:  { row: 13, frames: 2 },
+    hitLeft:   { row: 15, frames: 2 },
+    dying:     { row: 21, frames: 5 }
+};
+
+    function assetLoaded() {
+      loadedAssets += 1;
+      if (loadedAssets >= totalAssets) {
+        startGame();
+      }
+    }
+
+    Object.entries(spriteFiles).forEach(([key, src]) => {
+      const img = new Image();
+      img.onload = assetLoaded;
+      img.onerror = assetLoaded;
+      img.src = src;
+      sprites[key] = img;
+    });
+
+    goalImage.onload = assetLoaded;
+    goalImage.onerror = assetLoaded;
+    goalImage.src = "goal_flag.png";
+
+    const GRAVITY = 0.6;
+    const MOVE_SPEED = 4.8;
+    const JUMP_FORCE = -12.4;
+    const FRICTION = 0.8;
+    const WORLD_WIDTH = 1600; // Total width of your new long level
+    let camera = { x: 0 };
+
+    let player;
+    let platforms;
+    let goal;
+    let mobs;
+    let floatingTexts = [];
+    let keys = {};
+    let animationFrameId = null;
+    let running = false;
+    let lastTime = 0;
+    let frameIndex = 0;
+    let flagTimer = 0;
+    let letterPool = ["s", "u", "m", "m", "e", "r"];
+    let collectedLetters = [];
+    let lives = 3;
+const FLAG_FRAME_DURATION = 150; // Milliseconds per frame
+
+    function resetGame() {
+        lives = 3;
+      player = {
+        x: 0,
+        y: 15,
+        w: 108,
+        h: 135,
+        hitboxW: 25,
+        hitboxH: 100, // Physics hitbox is smaller than sprite
+        yOffset: 17,  // Visual correction to shift sprite down
+        dx: 0,
+        dy: 0,
+        onGround: false,
+        facing: 1,
+        alive: true,
+        playerFrameIndex: 0,
+        isAttacking: false,
+        isInvulnerable: false,
+        invulnerableTimer: 0
+      };
+
+platforms = [
+    // The ground segments from your drawing
+    { x: -1, y: 350, w: 200, h: 50 },
+    { x: 300, y: 350, w: 200, h: 50 },
+    { x: 600, y: 350, w: 200, h: 50 },
+    { x: 950, y: 350, w: 200, h: 50 },
+    
+    // Floating platforms
+    { x: 200, y: 220, w: 80, h: 20 },
+    { x: 520, y: 220, w: 80, h: 20 },
+    { x: 780, y: 180, w: 100, h: 20 },
+    { x: 950, y: 100, w: 150, h: 20 },
+    { x: 1300, y: 150, w: 100, h: 20 }
+];
+spikes = [
+    { x: 450, y: 340, w: 30, h: 10 },
+    { x: 750, y: 340, w: 30, h: 10 }
+];
+
+goal = {
+  x: 1330, 
+  y: 92, 
+  w: 44, 
+  h: 58,
+  hitboxW: 16, 
+  hitboxH: 45,
+  hitboxOffsetX: 14, 
+  hitboxOffsetY: 8,
+  frameCount: 5,
+  frameIndex: 0,
+  // This is the only distance that matters
+  frameWidth: 60,
+  active: false
+};
+      keys = {};
+
+mobs = [
+  { 
+    x: 350, y: 288, w: 50, h: 40, dx: 1.5, health: 3, frame: 0, facing: 1, 
+    minX: 300, maxX: 500, // Restricted to the first platform
+    wasHit: false, isDead: false, deathTimer: 0 
+  },
+  { 
+    x: 650, y: 288, w: 50, h: 40, dx: -1.5, health: 3, frame: 0, facing: -1, 
+    minX: 600, maxX: 800, // Restricted to the second platform
+    wasHit: false, isDead: false, deathTimer: 0 
+  }
+];
+
+    }
+
+    function startGame() {
+      resetGame();
+      running = true;
+      lastTime = performance.now();
+      overlay.style.display = "none";
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(loop);
+    }
+
+    function showOverlay(title, text, hint) {
+      running = false;
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      overlay.style.display = "flex";
+      panelTitle.textContent = title;
+      panelText.textContent = text;
+      panelHint.textContent = hint || "操作方法:矢印キーまたはA/Dで移動、スペース//Wでジャンプ、Xで攻撃";
+      startButton.textContent = title === "You Win!" ? "Play Again" : "Restart";
+    }
+
+    function finishGame(title, text) {
+    if (title === "You Win!") {
+        // Show the secret word popup instead of the standard overlay
+        const popup = document.getElementById("goalPopup");
+        popup.style.display = "flex";
+        document.getElementById("passwordInput").focus();
+    } else {
+        // Default behavior for "Try Again"
+        showOverlay(title, text);
+    }
+}
+
+    function loop(time) {
+      if (!running) return;
+      const delta = Math.min(2, (time - lastTime) / 16.67);
+      lastTime = time;
+      update(delta);
+      render();
+      animationFrameId = requestAnimationFrame(loop);
+    }
+
+    function update(delta) {
+
+        if (player.isInvulnerable) {
+        player.invulnerableTimer -= delta;
+        if (player.invulnerableTimer <= 0) {
+            player.isInvulnerable = false;
+            player.invulnerableTimer = 0;
+        }
+    }
+// Inside update(delta)
+const moveInput = (keys["ArrowRight"] || keys["KeyD"] ? 1 : 0) - (keys["ArrowLeft"] || keys["KeyA"] ? 1 : 0);
+
+if (moveInput !== 0) {
+  player.dx = moveInput * MOVE_SPEED; // Remove * delta here for smoother horizontal movement
+  player.facing = moveInput;
+} else {
+  player.dx *= FRICTION; // This slows the player down gradually
+}
+
+      if ((keys["Space"] || keys["ArrowUp"] || keys["KeyW"]) && player.onGround) {
+        player.dy = JUMP_FORCE;
+        player.onGround = false;
+      }
+
+      player.dy += GRAVITY * delta;
+      player.x += player.dx;
+      player.y += player.dy;
+
+      let landed = false;
+      const playerHitboxX = player.x + (player.w - player.hitboxW) / 2;
+      
+      platforms.forEach((platform) => {
+        if (
+          playerHitboxX < platform.x + platform.w &&
+          playerHitboxX + player.hitboxW > platform.x &&
+          player.y + player.hitboxH >= platform.y &&
+          player.y + player.hitboxH <= platform.y + 20
+        ) {
+          if (player.dy >= 0) {
+            player.y = platform.y - player.hitboxH;
+            player.dy = 0;
+            player.onGround = true;
+            landed = true;
+          }
+        }
+      });
+
+spikes.forEach(spike => {
+    if (
+        player.x < spike.x + spike.w &&
+        player.x + player.hitboxW > spike.x &&
+        player.y + player.hitboxH > spike.y
+    ) {
+        lives = 0;
+        finishGame("Try Again", "You hit the spikes! Be more careful.");
+    }
+});
+
+      if (!landed) player.onGround = false;
+
+     const hitboxPadding = (player.w - player.hitboxW) / 2;
+
+if (player.x + hitboxPadding < 0) {
+  player.x = -hitboxPadding;
+}
+if (player.x + hitboxPadding + player.hitboxW > WORLD_WIDTH) {
+  player.x = WORLD_WIDTH - player.hitboxW - hitboxPadding;
+}
+      if (player.y > 450) { 
+        lives = 0;
+    finishGame("Game Over", "You fell into the abyss!");
+}
+
+mobs.forEach(mob => {
+    if (mob.removed) return; 
+
+    // 1. Movement & Boundary Constraints
+    if (mob.health > 0) {
+        mob.x += mob.dx * delta;
+        if (mob.x < mob.minX || (mob.x + mob.w) > mob.maxX) {
+            mob.dx *= -1;
+        }
+    }
+
+    // 2. Combat Logic
+    if (player.isAttacking) {
+        const comboFrame = Math.floor(player.playerFrameIndex / 4);
+        
+        if (comboFrame >= 2 && comboFrame <= 4 && !mob.wasHit) {
+            const hitBoxX = player.facing === 1 ? player.x + 40 : player.x - 40;
+            
+            if (Math.abs(mob.x - hitBoxX) < 75) { 
+                mob.health -= 1;
+                mob.wasHit = true; // Flag that this swing hit THIS mob
+
+                // Only try to collect if there are letters left
+                if (letterPool.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * letterPool.length);
+                    const letter = letterPool.splice(randomIndex, 1)[0];
+                    collectedLetters.push(letter);
+                    spawnDamageText(mob.x, mob.y - 20, letter.toUpperCase());
+                } else {
+                    // Optional: Visual feedback if empty
+                    spawnDamageText(mob.x, mob.y - 20, "!"); 
+                }
+                
+            
+            }
+        }
+    } else {
+        // This is crucial: only reset wasHit when the attack is finished
+        mob.wasHit = false; 
+    }
+
+    // 3. Death & Damage Logic
+    if (mob.health <= 0 && !mob.isDead) {
+        mob.isDead = true;
+        mob.frame = 0;
+    }
+
+    if (!mob.isDead && 
+        player.x < mob.x + mob.w &&
+        player.x + player.hitboxW > mob.x &&
+        player.y < mob.y + mob.h &&
+        player.y + player.hitboxH > mob.y
+    ) {
+        if (!player.isInvulnerable) {
+            lives -= 1;
+            if (lives <= 0) {
+                finishGame("Game Over", "You ran out of lives!");
+            } else {
+                player.isInvulnerable = true;
+                player.invulnerableTimer = 120; // INCREASED: Now 2 seconds (120 frames)
+                
+                const playerCenterX = player.x + player.w / 2;
+                const mobCenterX = mob.x + mob.w / 2;
+                player.dx = (playerCenterX < mobCenterX ? -1 : 1) * 8;
+                player.dy = -5;
+                player.onGround = false;
+            }
+        }
+    }
+});
+  mobs = mobs.filter(m => !m.removed);    
+
+    flagTimer += delta * 16.67; // Convert frames to milliseconds
+if (flagTimer >= FLAG_FRAME_DURATION) {
+    goal.frameIndex = (goal.frameIndex + 1) % goal.frameCount;
+    flagTimer = 0;
+}
+
+const goalHitboxX = goal.x + goal.hitboxOffsetX;
+const goalHitboxY = goal.y + goal.hitboxOffsetY;
+
+// Add the 'if (goal.active)' check here
+if (goal.active) { 
+    if (
+      player.x < goalHitboxX + goal.hitboxW &&
+      player.x + player.hitboxW > goalHitboxX &&
+      player.y < goalHitboxY + goal.hitboxH &&
+      player.y + player.hitboxH > goalHitboxY
+    ) {
+      finishGame("You Win!", "You reached the goal!");
+    }
+}
+
+if (!goal.active && letterPool.length === 0) {
+  goal.active = true;
+  console.log("Goal Unlocked!");
+  spawnDamageText(goal.x, goal.y - 20, "UNLOCKED!");
+}
+    }
+
+   
+
+function render() {
+    // 1. Calculate camera
+    camera.x = Math.max(0, Math.min(player.x - canvas.width / 2, WORLD_WIDTH - canvas.width));
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // --- A. Draw Static Background (No Translation) ---
+    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    sky.addColorStop(0, "#8fd4ff");
+    sky.addColorStop(1, "#dff6ff");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "white";
+    clouds.forEach(cloud => {
+        // Parallax effect: cloud moves at 20% of the camera speed
+        const cloudX = cloud.x - (camera.x * 0.2);
+        
+        ctx.beginPath();
+        ctx.arc(cloudX, cloud.y, cloud.size-10, 0, Math.PI * 2);
+        ctx.arc(cloudX + 30, cloud.y, cloud.size-10, 0, Math.PI * 2);
+        ctx.arc(cloudX + 60, cloud.y, cloud.size-10, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    // --- B. Start Camera Translation ---
+    ctx.save();
+    ctx.translate(-camera.x, 0);
+
+spikes.forEach(s => {
+    ctx.fillStyle = "#ff0000"; // Bright deadly red
+    ctx.strokeStyle = "#8b0000"; // Dark red outline
+    ctx.lineWidth = 2;
+
+    const triWidth = s.w / 3; // Divide the area into 3 parts
+
+    for (let i = 0; i < 3; i++) {
+        const startX = s.x + (i * triWidth);
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, s.y + s.h);                 // Bottom Left
+        ctx.lineTo(startX + (triWidth / 2), s.y);       // Tip
+        ctx.lineTo(startX + triWidth, s.y + s.h);       // Bottom Right
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+});
+
+platforms.forEach((platform) => {
+    // 1. Draw the main brown dirt block
+    ctx.fillStyle = "#7a4b29";
+    ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
+
+    // 2. Draw the slither of grass on top
+    // We draw it at the same x/width, but only 5-10 pixels high
+    ctx.fillStyle = "#8ddf7d"; // Grass green
+    ctx.fillRect(platform.x, platform.y, platform.w, 8); 
+
+    // 3. Optional: Add a dark dirt trim just below the grass
+    ctx.fillStyle = "#5b331a";
+    ctx.fillRect(platform.x, platform.y + 8, platform.w, 4);
+});
+    // Draw Mobs
+    mobs.forEach(m => {
+        if (m.health >= 0) {
+            m.facing = m.dx > 0 ? 1 : -1;
+            drawBooger(m);
+        }
+    });
+
+    // Draw Goal
+    ctx.drawImage(goalImage, goal.frameIndex * 60, 0, 32, 50, goal.x, goal.y, goal.w, goal.h);
+    if (!goal.active) {
+        ctx.font = "24px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("🔒", goal.x + goal.w / 2, goal.y - 10);
+    }
+
+    // Draw Player
+    drawPlayer();
+
+    ctx.restore(); // --- C. End Camera Translation ---
+
+ // --- D. Draw UI (No Translation - Pinned to Screen) ---
+for (let i = floatingTexts.length - 1; i >= 0; i--) {
+    let ft = floatingTexts[i];
+    ft.y -= 0.5; 
+    ft.timer -= 1;
+    ctx.save();
+    ctx.globalAlpha = ft.timer / 60;
+    ctx.fillStyle = "#FFD700";
+    
+    // CHANGE THIS: Use a more robust font definition
+    // If it's a single letter, make it big. If it's a big phrase, make it small.
+    ctx.font = ft.text.length > 1 ? "bold 16px Arial, sans-serif" : "bold 30px Arial, sans-serif";
+    
+    ctx.textAlign = "center";
+    ctx.fillText(ft.text, ft.x - camera.x, ft.y);
+    ctx.restore();
+    if (ft.timer <= 0) floatingTexts.splice(i, 1);
+}
+
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.font = "20px Segoe UI"; // Slightly larger font for better visibility
+    ctx.textAlign = "left";
+    
+
+    // Draw "Lives: ❤️❤️❤️"
+    let hearts = "";
+    for (let i = 0; i < lives; i++) {
+        hearts += "❤️";
+    }
+    ctx.fillText(`Lives: ${hearts}`, 30, 30);
+
+}
+
+ function drawPlayer() {
+  let img = sprites.idle;
+  let frame = 0;
+  let frameCount = 10;
+  
+  const isMoving = Math.abs(player.dx) > 0.5;
+  const isJumping = player.dy < -1;
+  const isFalling = player.dy > 2 && !player.onGround;
+
+  // 1. Always increment the frame counter
+  player.playerFrameIndex++;
+
+  // 2. Handle Attack Logic
+  if (player.isAttacking) {
+    const comboFrame = Math.floor(player.playerFrameIndex / 4); // Kept faster speed (4)
+    
+    if (comboFrame >= 7) {
+      player.isAttacking = false;
+      player.playerFrameIndex = 0; // Reset for next use
+    } else {
+      if (comboFrame < 3) {
+        img = sprites.attack;
+        frame = comboFrame;
+        frameCount = 3;
+      } else {
+        img = sprites.attack_end;
+        frame = comboFrame - 3;
+        frameCount = 4;
+      }
+    }
+  }
+
+  // 3. Handle Movement Logic
+  // We use an "else if" here so we don't accidentally draw movement 
+  // frames while the attack is still playing.
+  if (!player.isAttacking) {
+    if (isJumping) {
+      img = sprites.jump;
+      frameCount = 6;
+    } else if (isFalling) {
+      img = sprites.fall;
+      frameCount = 4;
+    } else if (isMoving) {
+      img = sprites.run;
+      frameCount = 10;
+    } else {
+      img = sprites.idle;
+      frameCount = 10;
+    }
+    frame = Math.floor(player.playerFrameIndex / 8) % frameCount;
+  }
+
+// 4. Drawing code...
+if (!img || img.width === 0) return;
+const frameWidth = img.width / frameCount;
+const frameHeight = img.height;
+const srcX = frame * frameWidth;
+
+ctx.save();
+
+// --- NEW FLASHING LOGIC ---
+if (player.isInvulnerable) {
+    // Flash every 6 frames (adjust the modulo for speed)
+    if (Math.floor(player.invulnerableTimer / 6) % 2 === 0) {
+        ctx.globalAlpha = 0.3; // Make character semi-transparent
+    } else {
+        ctx.globalAlpha = 0.85; // Slightly faded but more visible
+    }
+}
+// --------------------------
+
+if (player.facing < 0) {
+  ctx.translate(player.x + player.w, player.y + player.yOffset);
+  ctx.scale(-1, 1);
+  ctx.drawImage(img, srcX, 0, frameWidth, frameHeight, 0, 0, player.w, player.h);
+} else {
+  ctx.drawImage(img, srcX, 0, frameWidth, frameHeight, player.x, player.y + player.yOffset, player.w, player.h);
+}
+
+ctx.restore(); // This automatically restores the globalAlpha back to 1.0
+}
+    function handleKeyDown(event) {
+      if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
+        event.preventDefault();
+      }
+      keys[event.code] = true;
+
+if (event.code === "KeyX") {
+    if (!player.isAttacking) { // Prevents re-triggering while already attacking
+        player.isAttacking = true;
+        player.playerFrameIndex = 0;
+    }
+}
+  
+      if (event.code === "Enter" && !running) {
+        startGame();
+      }
+    }
+
+    function handleKeyUp(event) {
+      keys[event.code] = false;
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    startButton.addEventListener("click", startGame);
+
+    showOverlay("School Adventure", "Use the sprites in the folder to run, jump, and reach the flag.", "Controls: Arrow keys or A/D to move, Space/Up/W to jump.");
+  
+function spawnDamageText(x, y, text) {
+  floatingTexts.push({
+    x: x,
+    y: y,
+    text: text,
+    timer: 60 
+  });
+}
+
+function checkAllMobsDefeated() {
+  // Returns true if every mob has health <= 0
+  return mobs.every(mob => mob.health <= 0);
+}
+
+function drawBooger(mob) {
+    if (mob.removed) return; 
+
+    // 1. Determine Animation State
+    let animName = "moveRight";
+    if (mob.isDead) {
+        animName = "dying";
+    } else if (mob.wasHit) {
+        animName = (mob.facing === -1) ? "hitLeft" : "hitRight";
+    } else {
+        animName = (mob.facing === -1) ? "moveLeft" : "moveRight";
+    }
+
+    const anim = BOOGER_ANIM[animName];
+    const sy = (anim.row - 1) * BOOGER_SIZE;
+    const sx = Math.floor(Math.floor(mob.frame) * BOOGER_SIZE);
+
+    const padding = 1;
+ctx.drawImage(
+    sprites.booger, 
+    sx, sy + padding, BOOGER_SIZE, BOOGER_SIZE - padding, 
+    mob.x, mob.y, 64, 64
+);
+    // 3. Update logic (Handle Frame + Removal Timer)
+    if (mob.isDead) {
+        // Increment frame only if we haven't reached the end
+        if (mob.frame < anim.frames - 1) {
+            mob.frame += 0.1;
+        } else {
+            // Reached the end: freeze frame and increment the death timer
+            mob.frame = anim.frames - 1;
+            mob.deathTimer++;
+            
+            // Mark for removal after timer
+            if (mob.deathTimer > 60) {
+                mob.removed = true;
+            }
+        }
+    } else {
+        // Normal looping animation
+        mob.frame = (mob.frame + 0.1) % anim.frames;
+    }
+}
+
+function checkWord() {
+    const input = document.getElementById("passwordInput").value.toLowerCase();
+    const errorDisplay = document.getElementById("errorMessage");
+
+    if (input === "summer") {
+        window.location.href = "next_level.html"; 
+    } else {
+        // Show the message inline instead of an alert
+        errorDisplay.textContent = "Incorrect word! Please try again.";
+        
+        // Optional: Clear the input so they can type again
+        document.getElementById("passwordInput").value = ""; 
+    }
+}
+
+function restartGame() {
+    const popup = document.getElementById("goalPopup");
+    popup.style.display = "none";
+    document.getElementById("errorMessage").textContent = "";
+    document.getElementById("passwordInput").value = "";
+    startGame();
+}
+
+  </script>
+</body>
+</html>
