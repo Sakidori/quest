@@ -18,19 +18,22 @@
       color: #fff;
     }
     
-   #game-shell {
+#game-shell {
     position: relative;
     width: 100vw;
-    height: 50vw; /* Maintains 2:1 aspect ratio (400/800) */
+    /* Use a fixed aspect ratio container */
+    aspect-ratio: 16 / 9; 
+    max-width: 100vw;
     max-height: 100vh;
-    max-width: 200vh; /* Keeps it within screen bounds */
     margin: auto;
+    overflow: hidden;
 }
 
 canvas {
     width: 100%;
     height: 100%;
     display: block;
+    object-fit: contain; /* Ensures the game is not stretched */
 }
     #overlay {
       position: absolute;
@@ -193,15 +196,26 @@ html, body {
 
   <script>
 
-    function resizeCanvas() {
+function resizeCanvas() {
     const canvas = document.getElementById("gameCanvas");
-    // Set internal resolution to match physical display size
+    const shell = document.getElementById("game-shell");
+    
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    // Update the canvas internal resolution to match the display size
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
+    
+    // Force a re-render if the game is running so the game scales immediately
+    if (typeof render === 'function') {
+        render();
+    }
 }
-// Run once on load and whenever the screen rotates
+
+// Ensure this listener is active
 window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+// Call it once on startup
+window.addEventListener('load', resizeCanvas);
 
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
