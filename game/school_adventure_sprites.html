@@ -27,6 +27,7 @@
     max-height: 100vh;
     margin: auto;
     overflow: hidden;
+    display: flex;
 }
 
 canvas {
@@ -198,18 +199,9 @@ html, body {
 
 function resizeCanvas() {
     const canvas = document.getElementById("gameCanvas");
-    const shell = document.getElementById("game-shell");
-    
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
-    // Update the canvas internal resolution to match the display size
+    // This tells the browser the internal resolution
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
-    
-    // Force a re-render if the game is running so the game scales immediately
-    if (typeof render === 'function') {
-        render();
-    }
 }
 
 // Ensure this listener is active
