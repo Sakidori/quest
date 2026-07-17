@@ -47,35 +47,36 @@
 
         /* Sword Shine CSS */
         .sword-box { width: 45%; top: 36%; right: 22%; opacity: 0; animation: swordFly 1s ease-out 1.5s forwards; }
-        .sword-wrapper { position: relative; width: 100%; }
-        sword-shine {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none;
+.sword-wrapper { 
+    position: relative; 
+    width: 100%; 
+    overflow: hidden; /* This clips the shine to the sword container */
+}
+
+.sword-shine {
+    position: absolute; 
+    top: 0; 
+    left: -100%; /* Start off-screen to the left */
+    width: 50%; /* The beam width */
+    height: 100%;
     
-    /* Using the sword as a mask */
-    -webkit-mask-image: url('sword.png');
-    mask-image: url('sword.png');
-    -webkit-mask-size: contain; mask-size: contain;
-    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-    
-    /* The key: narrow the color stops to create a thin slither */
+    /* A thin white slither beam */
     background: linear-gradient(
-        45deg, 
-        transparent 48%, 
-        rgba(255, 255, 255, 0.9) 50%, 
-        transparent 52%
+        to right, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.8) 50%, 
+        transparent 100%
     );
     
-    /* Increase background size to make the slither travel a longer distance */
-    background-size: 300% 300%;
+    transform: skewX(-25deg); /* Slant the beam */
+    pointer-events: none;
     animation: shine-animation 4s infinite linear;
 }
 
 @keyframes shine-animation { 
-    0% { background-position: -100% -100%; } 
-    100% { background-position: 200% 200%; } 
+    0% { left: -50%; } 
+    100% { left: 150%; } 
 }
-
         .btn {
             position: absolute; left: 50%; transform: translateX(-50%);
             padding: 15px 40px; font-size: 24px; font-family: sans-serif;
