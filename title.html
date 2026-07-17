@@ -7,52 +7,55 @@
     <style>
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #000; }
         
-        .background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000; z-index: 20000;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            transition: opacity 1s ease;
+        }
+        .enter-btn { padding: 20px 50px; font-size: 30px; cursor: pointer; background-color: #2a7ae2; color: white; border: none; border-radius: 50px; }
 
+        .background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
         .item-container { position: absolute; display: inline-block; }
         .item-container img { display: block; width: 100%; }
-
         .text-box { width: 65%; top: 25%; left: 17%; animation: floatIn 1.5s ease-out forwards; }
+
+        /* Sword Shine CSS */
         .sword-box { width: 45%; top: 36%; right: 22%; opacity: 0; animation: swordFly 1s ease-out 1.5s forwards; }
+        .sword-wrapper { position: relative; width: 100%; }
+        .sword-shine {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            -webkit-mask-image: url('sword.png');
+            mask-image: url('sword.png');
+            -webkit-mask-size: contain; mask-size: contain;
+            -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+            background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.7) 50%, transparent 60%);
+            background-size: 200% 200%;
+            animation: shine-animation 3s infinite linear;
+        }
+        @keyframes shine-animation { 0% { background-position: -100% -100%; } 100% { background-position: 200% 200%; } }
 
         .btn {
             position: absolute; left: 50%; transform: translateX(-50%);
             padding: 15px 40px; font-size: 24px; font-family: sans-serif;
             border: none; border-radius: 25px; cursor: pointer; color: white;
-            font-weight: 500; opacity: 0; animation: fadeIn 1s ease-out 2.5s forwards;
-            transition: transform 0.2s ease; z-index: 10;
+            font-weight: 500; transition: transform 0.2s ease; z-index: 10;
         }
-        .start-btn { top: 70%; background-color: #2a7ae2; }
-        .rules-btn { top: 82%; background-color: #555; }
+        .start-btn { top: 70%; background-color: #2a7ae2; display: none; }
+        .rules-btn { top: 82%; background-color: #555; opacity: 0; animation: fadeIn 1s ease-out 1s forwards; }
         .btn:hover { transform: translateX(-50%) scale(1.05); }
 
-        /* Modal Styles */
-        .modal {
-            display: none; position: fixed; z-index: 10000;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.9);
-        }
-        
-        /* The "Book" Styling */
+        .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
         .modal-content {
-    margin: 5% auto;
-    width: 80vw;
-    height: 80vh;
-    background-image: url('book.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    padding: 20px 140px 100px 120px;
-    box-sizing: border-box;
-    color: #333;
-    font-family: 'Segoe UI', sans-serif;
-    overflow-y: auto;
-}
-
-        .close-btn {
-            color: white; font-size: 50px; cursor: pointer; 
-            position: absolute; top: 20px; right: 40px;
+            margin: 5% auto; width: 80vw; height: 80vh;
+            background-image: url('book.png'); background-size: contain;
+            background-repeat: no-repeat; background-position: center;
+            padding: 50px 120px 80px 120px; box-sizing: border-box;
+            color: #333; font-family: sans-serif; overflow-y: auto;
         }
+        .close-btn { color: white; font-size: 50px; cursor: pointer; position: absolute; top: 20px; right: 40px; }
 
         @keyframes floatIn { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes swordFly { from { opacity: 0; transform: translate(400px, -400px) rotate(45deg); } to { opacity: 1; transform: translate(0, 0) rotate(-20deg); } }
@@ -60,9 +63,21 @@
     </style>
 </head>
 <body>
+
+    <div id="splash-screen">
+        <button class="enter-btn" onclick="enterSite()">ENTER</button>
+    </div>
+
     <img src="background.png" class="background" alt="Background">
     <div class="item-container text-box"><img src="text.png" alt="Title"></div>
-    <div class="item-container sword-box"><img src="sword.png" alt="Sword"></div>
+    
+    <!-- Sword with Shine Overlay -->
+    <div class="item-container sword-box">
+        <div class="sword-wrapper">
+            <img src="sword.png" alt="Sword">
+            <div class="sword-shine"></div>
+        </div>
+    </div>
 
     <button class="btn start-btn" onclick="startExperience()">START</button>
     <button class="btn rules-btn" onclick="openRules()">RULES</button>
@@ -70,12 +85,13 @@
     <div id="rules-modal" class="modal">
         <span class="close-btn" onclick="closeRules()">&times;</span>
         <div class="modal-content">
-            <h1>Game Rules</h1>
+            <h1>Rules</h1>
             <p>Welcome to the English Quest!</p>
             <ul>
-                <li>Explore the map to find hidden items.</li>
-                <li>Answer the questions correctly to earn points.</li>
-                <li>Watch out for time limits!</li>
+                <li>A new quest will be available every week.</li>
+                <li>Collect the words after each quest and keep a memo of them!</li>
+                <li>You will need the words for the final quest.</li>
+                <li>If you complete the summer quest, you can get stamps and be entered in a prize draw!</li>
                 <li>Have fun and good luck!</li>
             </ul>
         </div>
@@ -84,9 +100,21 @@
     <audio id="bg-music" loop><source src="kaisen.mp3" type="audio/mpeg"></audio>
 
     <script>
+        function enterSite() {
+            var splash = document.getElementById('splash-screen');
+            splash.style.opacity = '0';
+            setTimeout(() => { splash.style.display = 'none'; }, 1000);
+            document.getElementById('bg-music').play();
+        }
+
+        function openRules() { 
+            document.getElementById("rules-modal").style.display = "block";
+            document.querySelector(".start-btn").style.display = "block";
+        }
+        
+        function closeRules() { document.getElementById("rules-modal").style.display = "none"; }
+
         function startExperience() {
-            var music = document.getElementById('bg-music');
-            music.play().catch(e => console.log("Audio prevented:", e));
             var iframe = document.createElement("iframe");
             iframe.id = "tour-embeded";
             iframe.src = "https://tour.panoee.net/iframe/6a59cd8d10863f0008ada757";
@@ -95,8 +123,6 @@
             iframe.setAttribute("allowFullScreen", "true");
             document.body.appendChild(iframe);
         }
-        function openRules() { document.getElementById("rules-modal").style.display = "block"; }
-        function closeRules() { document.getElementById("rules-modal").style.display = "none"; }
     </script>
 </body>
 </html>
