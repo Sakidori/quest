@@ -515,7 +515,7 @@ spikes.forEach(spike => {
         player.y + player.hitboxH > spike.y
     ) {
         lives = 0;
-        finishGame("Try Again", "You hit the spikes! Be more careful.");
+        finishGame("Try Again", "スパイクにぶつかってしまったね。もっと気をつけてね！");
     }
 });
 
@@ -898,7 +898,7 @@ if (event.code === "KeyX") {
     window.addEventListener("keyup", handleKeyUp);
     startButton.addEventListener("click", startGame);
 
-    showOverlay("School Adventure", "Use the sprites in the folder to run, jump, and reach the flag.", "Controls: Arrow keys or A/D to move, Space/Up/W to jump.");
+    showOverlay("Summer Quest", "Use the sprites in the folder to run, jump, and reach the flag.", "Controls: Arrow keys or A/D to move, Space/Up/W to jump.");
   
 function spawnDamageText(x, y, text) {
   floatingTexts.push({
