@@ -27,8 +27,25 @@
         #enter-container { display: block; }
 
         @media screen and (orientation: portrait) {
-            #rotate-msg { display: block; }
-            #enter-container { display: none; }
+            /* Title (adjusted for better mobile fit) */
+            .text-box { 
+                width: 120% !important; 
+                top: 10% !important; 
+                left: -10% !important; 
+            }
+            .text-box img { width: 100% !important; }
+
+            /* Sword (adjusted for better mobile fit) */
+            .sword-box { 
+                width: 70% !important; 
+                top: 35% !important; 
+                right: -5% !important; 
+            }
+            .sword-box img { width: 100% !important; }
+
+            /* Orientation Message */
+            #rotate-msg { display: block !important; }
+            #enter-container { display: none !important; }
         }
 
         .enter-btn { 
