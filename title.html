@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Optimized for mobile: prevents zoom and enforces landscape-friendly scaling -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Summer Challenge - English Quest</title>
     <style>
-        /* Base Styles */
         body, html { 
             margin: 0; padding: 0; height: 100%; overflow: hidden; 
             background-image: url('background.png');
@@ -16,19 +14,7 @@
             background-attachment: fixed;
         }
 
-        /* Portrait Orientation Overlay */
-        #orientation-overlay {
-            display: none;
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000; z-index: 999999;
-            color: white; text-align: center;
-            justify-content: center; align-items: center;
-            font-family: sans-serif;
-        }
-        @media screen and (orientation: portrait) {
-            #orientation-overlay { display: flex !important; }
-        }
-        
+        /* Combined Splash & Orientation Screen */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #000; z-index: 20000;
@@ -36,7 +22,22 @@
             justify-content: center; align-items: center;
             transition: opacity 1s ease;
         }
-        .enter-btn { padding: 20px 50px; font-size: 30px; cursor: pointer; background-color: #2a7ae2; color: white; border: none; border-radius: 50px; }
+
+        .splash-content { text-align: center; color: white; font-family: sans-serif; }
+        
+        #rotate-msg { display: none; font-size: 24px; }
+        #enter-container { display: block; }
+
+        @media screen and (orientation: portrait) {
+            #rotate-msg { display: block; }
+            #enter-container { display: none; }
+        }
+
+        .enter-btn { 
+            padding: 20px 50px; font-size: 30px; cursor: pointer; 
+            background-color: #2a7ae2; color: white; border: none; border-radius: 50px; 
+            margin-top: 20px;
+        }
 
         /* Sparkles */
         #sparkle-container {
@@ -60,7 +61,7 @@
         .item-container img { display: block; width: 100%; }
         .text-box { width: 65%; top: 25%; left: 17%; animation: floatIn 1.5s ease-out forwards; }
 
-        /* Isolated Sword Shine */
+        /* Sword Shine */
         .sword-box { width: 45%; top: 36%; right: 22%; opacity: 0; animation: swordFly 1s ease-out 1.5s forwards; }
         .sword-wrapper { position: relative; width: 100%; display: inline-block; }
         .sword-shine {
@@ -75,7 +76,7 @@
         }
         @keyframes shine-animation { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* UI Elements */
+        /* Buttons */
         .btn {
             position: absolute; left: 50%; transform: translateX(-50%);
             padding: 15px 40px; font-size: 24px; font-family: sans-serif;
@@ -84,8 +85,8 @@
         }
         .start-btn { top: 70%; background-color: #2a7ae2; display: none; }
         .rules-btn { top: 82%; background-color: #555; opacity: 0; animation: fadeIn 1s ease-out 1s forwards; }
-        .btn:hover { transform: translateX(-50%) scale(1.05); }
 
+        /* Modal */
         .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
         .modal-content {
             margin: 5% auto; width: 80vw; height: 80vh;
@@ -103,19 +104,17 @@
 </head>
 <body>
 
-    <!-- Orientation Warning -->
-    <div id="orientation-overlay">
-        <h1>Please rotate your device to landscape</h1>
-    </div>
-
     <div id="splash-screen">
-        <button class="enter-btn" onclick="enterSite()">ENTER</button>
+        <div class="splash-content">
+            <div id="rotate-msg"><h1>Please rotate your device to landscape mode</h1></div>
+            <div id="enter-container">
+                <button class="enter-btn" onclick="enterSite()">ENTER</button>
+            </div>
+        </div>
     </div>
 
     <div id="sparkle-container"></div>
-    
     <div class="item-container text-box"><img src="text.png" alt="Title"></div>
-    
     <div class="item-container sword-box">
         <div class="sword-wrapper">
             <img src="sword.png" alt="Sword">
@@ -143,7 +142,6 @@
     <audio id="bg-music" loop><source src="kaisen.mp3" type="audio/mpeg"></audio>
 
     <script>
-        // Generate Sparkles
         const container = document.getElementById('sparkle-container');
         for(let i = 0; i < 40; i++) {
             let s = document.createElement('div');
@@ -159,14 +157,13 @@
             var splash = document.getElementById('splash-screen');
             splash.style.opacity = '0';
             setTimeout(() => { splash.style.display = 'none'; }, 1000);
-            document.getElementById('bg-music').play().catch(e => console.log("Interaction required for audio"));
+            document.getElementById('bg-music').play().catch(e => console.log("Audio requires interaction"));
         }
 
         function openRules() { 
             document.getElementById("rules-modal").style.display = "block";
             document.querySelector(".start-btn").style.display = "block";
         }
-        
         function closeRules() { document.getElementById("rules-modal").style.display = "none"; }
 
         function startExperience() {
