@@ -14,19 +14,57 @@ html, body {
     height: 100dvh;
     overflow: hidden;
     background: #1a2f4d;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 #game-shell {
     position: relative;
     width: 100vw;
     height: 100dvh;
-    background: black;
-    display: flex;
+    display: flex;       /* Keep this to center the canvas */
     justify-content: center;
     align-items: center;
+}
+
+#overlay, #goalPopup {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Dim the game underneath */
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+/* The rounded, stylized box */
+.panel {
+    background: #2c3e50; /* Dark blue/grey background */
+    color: white;
+    padding: 30px;
+    border-radius: 20px; /* Rounded corners */
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5); /* Soft shadow */
+    border: 2px solid #34495e;
+    max-width: 80%;
+}
+
+/* Consistent button style for all popups */
+button {
+    padding: 12px 25px;
+    margin: 10px;
+    background: #e67e22; /* Vibrant orange */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #d35400;
 }
 
 canvas {
@@ -113,7 +151,28 @@ html, body {
 <body>
   <div id="game-shell">
     <canvas id="gameCanvas"></canvas>
-    
+
+     <div id="overlay">
+      <div class="panel">
+        <h1>Super Summer Quest</h1>
+        <p>Complete the level.</p>
+        <button id="startButton">Start Game</button>
+        <div class="hint">Controls: Arrow keys or A/D to move, Space/Up/W to jump.</div>
+      </div>
+    </div>
+
+<div id="goalPopup">
+    <div class="panel">
+        <h2>Level Complete!</h2>
+        <p>秘密の言葉を入れてください:</p>
+        <input type="text" id="passwordInput" placeholder="Type here..." style="padding: 10px; border-radius: 5px; border: none; font-size: 16px;">
+        <br><br>
+        <button onclick="checkWord()">Submit</button>
+        <button onclick="restartGame()">Restart</button>
+        <p id="errorMessage" style="color:#ff7675; margin-top: 10px; font-weight: bold;"></p>
+    </div>
+</div>
+
     <!-- Controls MUST be inside game-shell to follow its scaling -->
     <div id="controls">
         <div id="dpad" class="left-controls">
@@ -126,25 +185,7 @@ html, body {
         </div>
     </div>
 </div>
-    <div id="overlay">
-      <div class="panel">
-        <h1>Super Summer Quest</h1>
-        <p>Complete the level.</p>
-        <button id="startButton">Start Game</button>
-        <div class="hint">Controls: Arrow keys or A/D to move, Space/Up/W to jump.</div>
-      </div>
-    </div>
-    <div id="goalPopup" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 10;">
-    <div class="panel">
-        <h2>Level Complete!</h2>
-    <p>秘密の言葉を入れてください:</p>
-    <input type="text" id="passwordInput" placeholder="Type here..." style="padding: 10px; font-size: 18px; color: white;">
-    <br><br>
-    <button onclick="restartGame()" style="padding: 10px 20px; background: #c0392b; cursor: pointer;">Restart</button>
-    <button onclick="checkWord()" style="margin-top: 10px; padding: 10px 20px; cursor: pointer;">Submit</button>
-<p id="errorMessage" style="color:red; margin-top: 10px; font-weight: bold;"></p>
-</div>
-  </div>
+   
 
   <div id="orientation-gate">
     <p>Please rotate your device to landscape mode!</p>
@@ -360,17 +401,21 @@ mobs = [
     }
 
 function startGame() {
-    // Attempt full screen first
-    const elem = document.documentElement;
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen().then(() => {
-            // Lock orientation only after entering fullscreen
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(() => {});
-            }
-        }).catch((err) => {
-            console.log("Fullscreen failed", err);
-        });
+    // Check if the device is likely mobile
+    // It checks if the screen width is small (under 900px) AND it has touch capabilities
+    const isMobile = window.innerWidth <= 900 && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+    if (isMobile) {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().then(() => {
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(() => {});
+                }
+            }).catch((err) => {
+                console.log("Fullscreen failed", err);
+            });
+        }
     }
     
     resetGame();
@@ -440,7 +485,10 @@ if (moveInput !== 0) {
         player.dy = JUMP_FORCE;
         player.onGround = false;
       }
-
+const MAX_FALL_SPEED = 15; 
+if (player.dy > MAX_FALL_SPEED) {
+    player.dy = MAX_FALL_SPEED;
+}
       player.dy += GRAVITY * delta;
       player.x += player.dx * delta;
       player.y += player.dy * delta;
@@ -491,7 +539,7 @@ if (player.x + hitboxPadding + player.hitboxW > WORLD_WIDTH) {
 }
 
 mobs.forEach(mob => {
-    if (mob.removed) return; 
+    if (mob.removed) return;
 
     // 1. Movement & Boundary Constraints
     if (mob.health > 0) {
@@ -501,86 +549,77 @@ mobs.forEach(mob => {
         }
     }
 
-    // 2. Combat Logic
+    // 2. Combat Logic (Sword)
     if (player.isAttacking) {
         const comboFrame = Math.floor(player.playerFrameIndex / 4);
-        
         if (comboFrame >= 2 && comboFrame <= 4 && !mob.wasHit) {
             const hitBoxX = player.facing === 1 ? player.x + 40 : player.x - 40;
-            
-            if (Math.abs(mob.x - hitBoxX) < 75) { 
+            if (Math.abs(mob.x - hitBoxX) < 75) {
                 mob.health -= 1;
-                mob.wasHit = true; // Flag that this swing hit THIS mob
-
-                // Only try to collect if there are letters left
-                if (letterPool.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * letterPool.length);
-                    const letter = letterPool.splice(randomIndex, 1)[0];
+                mob.wasHit = true;
+                
+                // Reward Logic
+                const letter = letterPool.length > 0 ? letterPool.splice(Math.floor(Math.random() * letterPool.length), 1)[0] : null;
+                if (letter) {
                     collectedLetters.push(letter);
                     spawnDamageText(mob.x, mob.y - 20, letter.toUpperCase());
                 } else {
-                    // Optional: Visual feedback if empty
-                    spawnDamageText(mob.x, mob.y - 20, "!"); 
+                    spawnDamageText(mob.x, mob.y - 20, "!");
                 }
-                
-            
             }
         }
     } else {
-        // This is crucial: only reset wasHit when the attack is finished
-        mob.wasHit = false; 
+        mob.wasHit = false;
     }
+const MOB_Y_OFFSET = 25;
+if (!mob.isDead &&
+    player.x < mob.x + mob.w &&
+    player.x + player.hitboxW > mob.x &&
+    player.y + player.hitboxH > (mob.y + 25) &&
+    player.y < (mob.y + 25) + mob.h
+) {
+    // We define "Feet" as the bottom of your player
+    const playerFeet = player.y + player.hitboxH;
+    const mobTop = mob.y + 25; // Adjusted for your visual offset
 
-    // 3. Death & Damage Logic
+    // STOMP: If we are falling AND our feet are above the center of the mob
+    // I increased the threshold from 20 to 30 to make it easier to hit.
+    if (player.dy > 0 && playerFeet < mobTop + 30) {
+        mob.health -= 1;
+        player.dy = -8; // Bounce off
+        player.onGround = false;
+        
+        // Reward Logic
+        const letter = letterPool.length > 0 ? letterPool.splice(Math.floor(Math.random() * letterPool.length), 1)[0] : null;
+        spawnDamageText(mob.x, mob.y, letter ? letter.toUpperCase() : "!");
+    } 
+    // DAMAGE: Only triggers if the stomp condition was NOT met
+    else if (!player.isInvulnerable) {
+        lives -= 1;
+        if (lives <= 0) {
+            finishGame("Game Over", "You ran out of lives!");
+        } else {
+            player.isInvulnerable = true;
+            player.invulnerableTimer = 120; // 2 seconds of invulnerability
+            player.dx = (player.x < mob.x ? -1 : 1) * 8;
+            player.dy = -5;
+        }
+    }
+}
+
+    // 4. Death Check
     if (mob.health <= 0 && !mob.isDead) {
         mob.isDead = true;
         mob.frame = 0;
     }
-
-    // Check for collision
-    if (!mob.isDead && 
-        player.x < mob.x + mob.w &&
-        player.x + player.hitboxW > mob.x &&
-        player.y < mob.y + mob.h &&
-        player.y + player.hitboxH > mob.y
-    ) {
-        // STOMP CHECK: Falling + hitting top half of mob
-        if (player.dy > 0 && (player.y + player.hitboxH) < (mob.y + mob.h / 2)) {
-            mob.health -= 1;
-            player.dy = -8; // Bounce
-            player.onGround = false;
-
-            // Trigger same reward logic as an attack
-            if (letterPool.length > 0) {
-                const randomIndex = Math.floor(Math.random() * letterPool.length);
-                const letter = letterPool.splice(randomIndex, 1)[0];
-                collectedLetters.push(letter);
-                spawnDamageText(mob.x, mob.y - 20, letter.toUpperCase());
-            } else {
-                spawnDamageText(mob.x, mob.y - 20, "!");
-            }
-        } 
-        // NORMAL DAMAGE: If not stomping, take damage
-        else if (!player.isInvulnerable) {
-            lives -= 1;
-            if (lives <= 0) {
-                finishGame("Game Over", "You ran out of lives!");
-            } else {
-                player.isInvulnerable = true;
-                player.invulnerableTimer = 120;
-                const playerCenterX = player.x + player.w / 2;
-                const mobCenterX = mob.x + mob.w / 2;
-                player.dx = (playerCenterX < mobCenterX ? -1 : 1) * 8;
-                player.dy = -5;
-                player.onGround = false;
-            }
-        }
-    }
 });
-  mobs = mobs.filter(m => !m.removed);    
 
-    flagTimer += delta * 16.67; // Convert frames to milliseconds
-if (flagTimer >= FLAG_FRAME_DURATION) {
+// Cleanup removed mobs
+mobs = mobs.filter(m => !m.removed);
+
+// Goal Animation Timer
+flagTimer += delta; 
+if (flagTimer >= 10) { // Adjust '10' based on how fast you want the animation
     goal.frameIndex = (goal.frameIndex + 1) % goal.frameCount;
     flagTimer = 0;
 }
@@ -678,6 +717,7 @@ platforms.forEach((platform) => {
         }
     });
 
+    
     // Draw Goal
     ctx.drawImage(goalImage, goal.frameIndex * 60, 0, 32, 50, goal.x, goal.y, goal.w, goal.h);
     if (!goal.active) {
@@ -781,6 +821,7 @@ if (!img || img.width === 0) return;
 const frameWidth = img.width / frameCount;
 const frameHeight = img.height;
 const srcX = frame * frameWidth;
+
 
 ctx.save();
 
@@ -959,6 +1000,25 @@ function lockLandscape() {
         document.documentElement.requestFullscreen();
         screen.orientation.lock('landscape').catch(() => {});
     }
+}
+
+function drawHitboxDebug() {
+    ctx.save();
+    ctx.translate(-camera.x, 0);
+
+    // Player
+    ctx.strokeStyle = 'red';
+    ctx.strokeRect(player.x + (player.w - player.hitboxW)/2, player.y, player.hitboxW, player.hitboxH);
+
+    // Mobs (Must use + 25 offset to match the collision logic above)
+    ctx.strokeStyle = 'yellow';
+    mobs.forEach(mob => {
+        if (!mob.removed) {
+            ctx.strokeRect(mob.x, mob.y + 25, mob.w, mob.h);
+        }
+    });
+
+    ctx.restore();
 }
 
   </script>
