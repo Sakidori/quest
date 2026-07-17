@@ -50,32 +50,41 @@
 .sword-wrapper { 
     position: relative; 
     width: 100%; 
-    overflow: hidden; /* This clips the shine to the sword container */
+    /* Force the container to be the exact shape of the sword */
+    -webkit-mask-image: url('sword.png');
+    mask-image: url('sword.png');
+    -webkit-mask-size: contain; 
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat; 
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
 }
 
 .sword-shine {
     position: absolute; 
     top: 0; 
-    left: -100%; /* Start off-screen to the left */
-    width: 50%; /* The beam width */
+    left: -100%; 
+    width: 200%; /* Wider than the container to allow for the skew */
     height: 100%;
     
-    /* A thin white slither beam */
+    /* Razor thin white slither */
     background: linear-gradient(
         to right, 
-        transparent 0%, 
-        rgba(255, 255, 255, 0.8) 50%, 
-        transparent 100%
+        transparent 45%, 
+        rgba(255, 255, 255, 0.9) 50%, 
+        transparent 55%
     );
     
-    transform: skewX(-25deg); /* Slant the beam */
+    transform: skewX(-25deg);
     pointer-events: none;
     animation: shine-animation 4s infinite linear;
 }
 
 @keyframes shine-animation { 
-    0% { left: -50%; } 
-    100% { left: 150%; } 
+    0% { transform: skewX(-25deg) translateX(-50%); } 
+    100% { transform: skewX(-25deg) translateX(50%); } 
+}
 }
         .btn {
             position: absolute; left: 50%; transform: translateX(-50%);
