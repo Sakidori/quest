@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        
+        .background { 
+            position: fixed; width: 100%; height: 100%; object-fit: cover; z-index: -1; 
+        }
+
+        .item-container {
+            position: absolute;
+            display: inline-block;
+        }
+
+        .item-container img {
+            display: block;
+            width: 100%;
+        }
+
+        .shine-beam {
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-size: contain;
+            mask-size: contain;
+            
+            animation: shineMove 3s infinite linear;
+            pointer-events: none;
+        }
+
+        .text-mask { -webkit-mask-image: url('text-mask.png'); mask-image: url('text-mask.png'); }
+        .sword-mask { -webkit-mask-image: url('sword-mask.png'); mask-image: url('sword-mask.png'); }
+
+        .text-box { width: 65%; top: 25%; left: 17%; animation: floatIn 1.5s ease-out forwards; }
+        
+        /* Updated: Sword starts invisible and delays 1.5s to wait for text */
+        .sword-box { 
+            width: 45%; top: 36%; right: 22%; 
+            opacity: 0; 
+            animation: swordFly 1s ease-out 1.5s forwards; 
+        }
+
+        @keyframes floatIn { 
+            from { opacity: 0; transform: translateY(50px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Updated: Sword fades in as it flies */
+        @keyframes swordFly { 
+            from { opacity: 0; transform: translate(400px, -400px) rotate(45deg); } 
+            to { opacity: 1; transform: translate(0, 0) rotate(-20deg); } 
+        }
+        
+        @keyframes shineMove { 
+            from { left: -100%; }
+            to { left: 100%; } 
+        }
+    </style>
+</head>
+<body>
+    <img src="background.png" class="background" alt="Background">
+
+    <div class="item-container text-box">
+        <img src="text.png" alt="Title Text">
+        <div class="shine-beam text-mask"></div>
+    </div>
+
+    <div class="item-container sword-box">
+        <img src="sword.png" alt="Sword">
+        <div class="shine-beam sword-mask"></div>
+    </div>
+</body>
+</html>
