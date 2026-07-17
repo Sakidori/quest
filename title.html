@@ -26,33 +26,6 @@
         #rotate-msg { display: none; font-size: 24px; }
         #enter-container { display: block; }
 
-       @media screen and (orientation: portrait) {
-            /* Force the title (text-box) to be larger and higher */
-            .text-box { 
-                width: 150% !important; 
-                top: 15% !important;   /* Pushes it closer to the very top */
-                left: -23% !important; 
-            }
-            /* Force the image inside the title (text-box img) to fill its box */
-            .text-box img {
-                width: 100% !important;
-            }
-
-            /* Force the sword (sword-box) to be smaller and positioned differently */
-            .sword-box { 
-                width: 90% !important; 
-                top: 25% !important; /* Places it lower down so it doesn't cover text */
-                right: -15% !important; 
-            }
-             /* Force the image inside the sword (sword-box img) to fill its box */
-             .sword-box img {
-                width: 100% !important;
-            }
-
-            /* Keep your orientation message logic */
-            #rotate-msg { display: block !important; }
-            #enter-container { display: none !important; }
-        }
         .enter-btn { 
             padding: 20px 50px; font-size: 30px; cursor: pointer; 
             background-color: #2a7ae2; color: white; border: none; border-radius: 50px; 
@@ -76,7 +49,7 @@
             100% { opacity: 0; transform: translateY(-40px) scale(0.5); }
         }
 
-        /* Items */
+        /* Items (Default Landscape) */
         .item-container { position: absolute; display: inline-block; z-index: 1; }
         .item-container img { display: block; width: 100%; }
         .text-box { width: 60%; top: 15%; left: 20%; animation: floatIn 1.5s ease-out forwards; }
@@ -98,64 +71,46 @@
 
         /* Button Layout */
         .button-group {
-            position: absolute;
-            bottom: 10%;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: row; /* Force side-by-side */
-            gap: 20px;
-            z-index: 10;
+            position: absolute; bottom: 10%; left: 50%;
+            transform: translateX(-50%); display: flex;
+            flex-direction: row; gap: 20px; z-index: 10;
         }
-        .btn {
+        .btn { 
             padding: 15px 40px; font-size: 20px; font-family: sans-serif;
             border: none; border-radius: 25px; cursor: pointer; color: white;
             font-weight: 500; transition: transform 0.2s ease;
         }
-        .start-btn { 
-            background-color: #2a7ae2; 
-            visibility: hidden; /* Reserved space */
-        }
-        .start-visible { visibility: visible !important; }
-        .rules-btn { background-color: #555; }
-        .btn:hover { transform: scale(1.05); }
+        /* Start button is now always centered and visible immediately */
+        .start-btn { background-color: #2a7ae2; }
+        /* RULES button has been removed entirely from HTML below */
 
-        /* Modal */
-        .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
-        .modal-content {
-            margin: 5% auto; width: 80vw; height: 80vh;
-            background-image: url('book.png'); background-size: contain;
-            background-repeat: no-repeat; background-position: center;
-            padding: 50px 120px 80px 120px; box-sizing: border-box;
-            color: #333; font-family: sans-serif; overflow-y: auto;
-        }
-        .close-btn { color: white; font-size: 50px; cursor: pointer; position: absolute; top: 20px; right: 40px; }
+        .btn:hover { transform: scale(1.05); }
 
         @keyframes floatIn { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes swordFly { from { opacity: 0; transform: translate(400px, -400px) rotate(45deg); } to { opacity: 1; transform: translate(0, 0) rotate(-20deg); } }
 
-        @media screen and (max-width: 768px) {
-    .modal-content {
-        /* Drastically reduce padding on sides so text fills the screen */
-        padding: 30px 40px !important; 
-        
-        /* Make font size smaller so it's readable on small screens */
-        font-size: 14px !important; 
-        
-        /* Optional: Adjust line height for better readability */
-        line-height: 1.5; 
-        
-        /* Ensure the book image still fits correctly */
-        background-size: contain !important;
-    }
+        /* --- PORTRAIT MEDIA QUERY --- */
+        @media screen and (orientation: portrait) {
+            /* Title (adjusted for better mobile fit) */
+            .text-box { 
+                width: 120% !important; 
+                top: 10% !important; 
+                left: -10% !important; 
+            }
+            .text-box img { width: 100% !important; }
 
-    /* Adjust the heading size inside the book */
-    .modal-content h1 {
-        font-size: 24px !important;
-        margin-bottom: 15px !important;
-    }
-}
-        
+            /* Sword (adjusted for better mobile fit) */
+            .sword-box { 
+                width: 70% !important; 
+                top: 35% !important; 
+                right: -5% !important; 
+            }
+            .sword-box img { width: 100% !important; }
+
+            /* Orientation Message */
+            #rotate-msg { display: block !important; }
+            #enter-container { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -179,9 +134,11 @@
     </div>
 
     <div class="button-group">
+        <!-- The RULES button has been deleted from here -->
         <button class="btn start-btn" onclick="startExperience()">START</button>
-        <button class="btn rules-btn" onclick="openRules()">RULES</button>
     </div>
+
+    <!-- The entire RULES MODAL HTML block has been deleted from here -->
 
     <audio id="bg-music" loop><source src="kaisen.mp3" type="audio/mpeg"></audio>
 
@@ -204,11 +161,7 @@
             document.getElementById('bg-music').play().catch(e => console.log("Audio started"));
         }
 
-        function openRules() { 
-            document.getElementById("rules-modal").style.display = "block";
-            document.querySelector(".start-btn").classList.add("start-visible");
-        }
-        function closeRules() { document.getElementById("rules-modal").style.display = "none"; }
+        /* The old openRules and closeRules JavaScript functions have been deleted */
 
         function startExperience() {
             var iframe = document.createElement("iframe");
