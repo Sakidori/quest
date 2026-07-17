@@ -27,10 +27,19 @@
         #enter-container { display: block; }
 
         @media screen and (orientation: portrait) {
-            #rotate-msg { display: block; }
-            #enter-container { display: none; }
-        }
-
+    .text-box { 
+        width: 80%;    /* Reduced from 100% to prevent overflow */
+        top: 10%;      
+        left: 10%; 
+    }
+    .sword-box { 
+        width: 50%;    /* Keeps the sword manageable on a vertical screen */
+        top: 45%;      
+        right: 25%; 
+    }
+    #rotate-msg { display: block; }
+    #enter-container { display: none; }
+}
         .enter-btn { 
             padding: 20px 50px; font-size: 30px; cursor: pointer; 
             background-color: #2a7ae2; color: white; border: none; border-radius: 50px; 
@@ -60,7 +69,7 @@
         .text-box { width: 60%; top: 15%; left: 20%; animation: floatIn 1.5s ease-out forwards; }
 
         /* Sword Shine */
-        .sword-box { width: 35%; top: 30%; right: 15%; opacity: 0; animation: swordFly 1s ease-out 1.5s forwards; }
+        .sword-box { width: 35%; top: 30%; right: 25%; opacity: 0; animation: swordFly 1s ease-out 1.5s forwards; }
         .sword-wrapper { position: relative; width: 100%; display: inline-block; }
         .sword-shine {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
