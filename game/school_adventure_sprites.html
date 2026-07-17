@@ -84,6 +84,8 @@ canvas {
     height: 100%;
     pointer-events: none; /* Let touches pass through to the game */
     z-index: 20;          /* Ensure they are on top of the canvas */
+    justify-content: space-between; /* Pushes left/right groups to the edges */
+    align-items: flex-end;          /* Pushes them to the bottom */
 }
 
 @media (max-width: 900px) {
@@ -93,7 +95,7 @@ canvas {
 }
 .left-controls {
     position: absolute;
-    left: 40px;
+    left: 10px;
     bottom: 20px;
     display: flex;
     gap: 10px;
@@ -102,7 +104,7 @@ canvas {
 
 .right-controls {
     position: absolute;
-    right: 40px;
+    right: 10px;
     bottom: 20px;
     display: flex;
     gap: 10px;
@@ -188,7 +190,7 @@ html, body {
    
 
   <div id="orientation-gate">
-    <p>Please rotate your device to landscape mode!</p>
+    <p>端末を横向きにしてください！</p>
 </div>
 
 <!-- Virtual Controls -->
@@ -529,7 +531,7 @@ if (player.x + hitboxPadding + player.hitboxW > WORLD_WIDTH) {
 }
       if (player.y > 450) { 
         lives = 0;
-    finishGame("Game Over", "You fell into the abyss!");
+    finishGame("Game Over", "君は深淵に落ちてしまった！");
 }
 
 mobs.forEach(mob => {
