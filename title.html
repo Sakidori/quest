@@ -26,20 +26,33 @@
         #rotate-msg { display: none; font-size: 24px; }
         #enter-container { display: block; }
 
-        @media screen and (orientation: portrait) {
-    .text-box { 
-        width: 140% !important;    /* Reduced from 100% to prevent overflow */
-        top: 10% !important;      
-        left: 1% !important; 
-    }
-    .sword-box { 
-        width:100% !important;    /* Keeps the sword manageable on a vertical screen */
-        top: 22% !important;      
-        right: 10% !important; 
-    }
-    #rotate-msg { display: block; }
-    #enter-container { display: none; }
-}
+       @media screen and (orientation: portrait) {
+            /* Force the title (text-box) to be larger and higher */
+            .text-box { 
+                width: 80% !important; 
+                top: 5% !important;   /* Pushes it closer to the very top */
+                left: 10% !important; 
+            }
+            /* Force the image inside the title (text-box img) to fill its box */
+            .text-box img {
+                width: 100% !important;
+            }
+
+            /* Force the sword (sword-box) to be smaller and positioned differently */
+            .sword-box { 
+                width: 40% !important; 
+                top: 30% !important; /* Places it lower down so it doesn't cover text */
+                right: 30% !important; 
+            }
+             /* Force the image inside the sword (sword-box img) to fill its box */
+             .sword-box img {
+                width: 100% !important;
+            }
+
+            /* Keep your orientation message logic */
+            #rotate-msg { display: block !important; }
+            #enter-container { display: none !important; }
+        }
         .enter-btn { 
             padding: 20px 50px; font-size: 30px; cursor: pointer; 
             background-color: #2a7ae2; color: white; border: none; border-radius: 50px; 
