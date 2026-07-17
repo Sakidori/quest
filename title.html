@@ -7,6 +7,7 @@
     <style>
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #000; }
         
+        /* Splash Screen */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #000; z-index: 20000;
@@ -16,26 +17,25 @@
         }
         .enter-btn { padding: 20px 50px; font-size: 30px; cursor: pointer; background-color: #2a7ae2; color: white; border: none; border-radius: 50px; }
 
-        .background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        .background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
         .item-container { position: absolute; display: inline-block; }
         .item-container img { display: block; width: 100%; }
-        .text-box { width: 65%; top: 25%; left: 17%; animation: floatIn 1.5s ease-out forwards; }
 
-        /* Sword Shine CSS */
-        .sword-box { width: 45%; top: 36%; right: 22%; opacity: 0; animation: swordFly 1s ease-out 1.5s forwards; }
-        .sword-wrapper { position: relative; width: 100%; }
-        .sword-shine {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            -webkit-mask-image: url('sword.png');
-            mask-image: url('sword.png');
+        /* Shimmer Logic */
+        .shimmer-wrapper { position: relative; display: inline-block; }
+        .shimmer-effect {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
             -webkit-mask-size: contain; mask-size: contain;
             -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
             background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.7) 50%, transparent 60%);
             background-size: 200% 200%;
-            animation: shine-animation 3s infinite linear;
+            animation: shine-animation 7s infinite linear;
         }
         @keyframes shine-animation { 0% { background-position: -100% -100%; } 100% { background-position: 200% 200%; } }
+
+        /* Positioning */
+        .text-box { width: 65%; top: 25%; left: 17%; animation: floatIn 1.5s ease-out forwards; }
+        .sword-box { width: 45%; top: 36%; right: 22%; opacity: 0; animation: swordFly 1s ease-out 1.5s forwards; }
 
         .btn {
             position: absolute; left: 50%; transform: translateX(-50%);
@@ -47,6 +47,7 @@
         .rules-btn { top: 82%; background-color: #555; opacity: 0; animation: fadeIn 1s ease-out 1s forwards; }
         .btn:hover { transform: translateX(-50%) scale(1.05); }
 
+        /* Modal */
         .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
         .modal-content {
             margin: 5% auto; width: 80vw; height: 80vh;
@@ -69,14 +70,17 @@
     </div>
 
     <img src="background.png" class="background" alt="Background">
-    <div class="item-container text-box"><img src="text.png" alt="Title"></div>
-    
-    <!-- Sword with Shine Overlay -->
-    <div class="item-container sword-box">
-        <div class="sword-wrapper">
-            <img src="sword.png" alt="Sword">
-            <div class="sword-shine"></div>
-        </div>
+
+    <!-- Title with Shine -->
+    <div class="item-container text-box shimmer-wrapper" style="-webkit-mask-image: url('text.png'); mask-image: url('text.png');">
+        <img src="text.png" alt="Title">
+        <div class="shimmer-effect"></div>
+    </div>
+
+    <!-- Sword with Shine -->
+    <div class="item-container sword-box shimmer-wrapper" style="-webkit-mask-image: url('sword.png'); mask-image: url('sword.png');">
+        <img src="sword.png" alt="Sword">
+        <div class="shimmer-effect"></div>
     </div>
 
     <button class="btn start-btn" onclick="startExperience()">START</button>
@@ -86,7 +90,6 @@
         <span class="close-btn" onclick="closeRules()">&times;</span>
         <div class="modal-content">
             <h1>Rules</h1>
-            <p>Welcome to the English Quest!</p>
             <ul>
                 <li>A new quest will be available every week.</li>
                 <li>Collect the words after each quest and keep a memo of them!</li>
