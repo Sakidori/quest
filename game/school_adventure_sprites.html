@@ -253,12 +253,6 @@ window.addEventListener("orientationchange", () => {
     const panelText = overlay.querySelector("p");
     const panelHint = overlay.querySelector(".hint");
     
-    const clouds = [
-    { x: 100, y: 90, size: 40 },
-    { x: 300, y: 100, size: 30 },
-    { x: 600, y: 30, size: 40 },
-    { x: 900, y: 80, size: 45 }
-];
     const spriteFiles = {
       idle: "male_hero-idle.png",
       run: "male_hero-run.png",
@@ -654,23 +648,54 @@ camera.x = Math.max(0, Math.min(player.x - VIRTUAL_WIDTH / 2, WORLD_WIDTH - VIRT
 ctx.clearRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
     // --- A. Draw Static Background (No Translation) ---
-    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    sky.addColorStop(0, "#8fd4ff");
-    sky.addColorStop(1, "#dff6ff");
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+sky.addColorStop(0, "#2d5a27");
+sky.addColorStop(1, "#1a3317");
+ctx.fillStyle = sky;
+ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "white";
-    clouds.forEach(cloud => {
-        // Parallax effect: cloud moves at 20% of the camera speed
-        const cloudX = cloud.x - (camera.x * 0.2);
+// 2. Forest Layering Function
+function drawForestTrees(alpha, scale, speed, yOffset) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    const trunkSpacing = 300 * scale; 
+    
+    for (let i = 0; i < WORLD_WIDTH / trunkSpacing; i++) {
+        const treeX = (i * trunkSpacing) - (camera.x * speed);
         
-        ctx.beginPath();
-        ctx.arc(cloudX, cloud.y, cloud.size-10, 0, Math.PI * 2);
-        ctx.arc(cloudX + 30, cloud.y, cloud.size-10, 0, Math.PI * 2);
-        ctx.arc(cloudX + 60, cloud.y, cloud.size-10, 0, Math.PI * 2);
-        ctx.fill();
-    });
+        if (treeX > -100 && treeX < VIRTUAL_WIDTH + 100) {
+            // Trunk: Increased height from 270 to 400 to reach the floor
+            ctx.fillStyle = "#3d2b1f";
+            ctx.fillRect(treeX + (15 * scale), 50 + yOffset, 30 * scale, 400 * scale);
+            
+            // Foliage: Remains at the top
+            ctx.fillStyle = "#2d5a27";
+            ctx.beginPath();
+            ctx.arc(treeX + (30 * scale), 50 + yOffset, 45 * scale, 0, Math.PI * 2);
+            ctx.arc(treeX, 80 + yOffset, 35 * scale, 0, Math.PI * 2);
+            ctx.arc(treeX + (60 * scale), 80 + yOffset, 35 * scale, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Highlight
+            ctx.fillStyle = "#3e7a37";
+            ctx.beginPath();
+            ctx.arc(treeX + (30 * scale), 50 + yOffset, 25 * scale, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    ctx.restore();
+}
+
+// 3. Draw layers from Back to Front
+drawForestTrees(0.3, 0.6, 0.1, 50); 
+drawForestTrees(0.6, 0.9, 0.3, 20); 
+drawForestTrees(1.0, 1.3, 0.6, 0);  
+
+// 4. Forest Floor
+ctx.fillStyle = "#0f1f0e";
+ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+
+
     // --- B. Start Camera Translation ---
     ctx.save();
     ctx.translate(-camera.x, 0);
@@ -696,18 +721,17 @@ spikes.forEach(s => {
 });
 
 platforms.forEach((platform) => {
-    // 1. Draw the main brown dirt block
-    ctx.fillStyle = "#7a4b29";
+    // 1. Draw the "Trunk/Earth" base
+    ctx.fillStyle = "#5d3a1a"; // Darker brown
     ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
 
-    // 2. Draw the slither of grass on top
-    // We draw it at the same x/width, but only 5-10 pixels high
-    ctx.fillStyle = "#8ddf7d"; // Grass green
-    ctx.fillRect(platform.x, platform.y, platform.w, 8); 
-
-    // 3. Optional: Add a dark dirt trim just below the grass
-    ctx.fillStyle = "#5b331a";
-    ctx.fillRect(platform.x, platform.y + 8, platform.w, 4);
+    // 2. Draw the mossy grass on top
+    ctx.fillStyle = "#4a7c44"; // Forest green
+    ctx.fillRect(platform.x, platform.y, platform.w, 10); 
+    
+    // 3. Add a highlight trim
+    ctx.fillStyle = "#6b9a65"; 
+    ctx.fillRect(platform.x, platform.y, platform.w, 4);
 });
     // Draw Mobs
     mobs.forEach(m => {
