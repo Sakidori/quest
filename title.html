@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summer Challenge - Title Screen</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #000; }
         
         .background { 
             position: fixed; width: 100%; height: 100%; object-fit: cover; z-index: -1; 
@@ -27,6 +29,32 @@
             animation: swordFly 1s ease-out 1.5s forwards; 
         }
 
+        /* Blue, soft Start Button */
+        .start-btn {
+            position: absolute;
+            top: 75%; left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 40px;
+            font-size: 24px;
+            background-color: #2a7ae2;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 2.5s forwards;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            z-index: 10;
+        }
+
+        .start-btn:hover { 
+            background-color: #1e5db0; 
+            transform: translateX(-50%) scale(1.05); 
+        }
+
         @keyframes floatIn { 
             from { opacity: 0; transform: translateY(50px); } 
             to { opacity: 1; transform: translateY(0); } 
@@ -35,6 +63,11 @@
         @keyframes swordFly { 
             from { opacity: 0; transform: translate(400px, -400px) rotate(45deg); } 
             to { opacity: 1; transform: translate(0, 0) rotate(-20deg); } 
+        }
+
+        @keyframes fadeIn { 
+            from { opacity: 0; } 
+            to { opacity: 1; } 
         }
     </style>
 </head>
@@ -48,5 +81,63 @@
     <div class="item-container sword-box">
         <img src="sword.png" alt="Sword">
     </div>
+
+    <!-- Start Button triggers JavaScript function on click -->
+    <button class="start-btn" onclick="startExperience()">START</button>
+
+    <!-- Invisible Audio Player -->
+    <audio id="bg-music" loop>
+        <source src="kaisen.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Your Panoee Embed Iframe (Hidden by default using display:none) -->
+    <iframe 
+        id="tour-embeded" 
+        name="Summer Challenge - English Quest" 
+        src="https://tour.panoee.net/iframe/6a59cd8d10863f0008ada757" 
+        frameBorder="0" 
+        scrolling="no" 
+        allowvr="yes" 
+        allow="vr; xr; accelerometer; gyroscope; autoplay;" 
+        allowFullScreen="true" 
+        webkitallowfullscreen="true" 
+        mozallowfullscreen="true" 
+        loading="eager"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; border: none; z-index: 9999; display: none;">
+    </iframe>
+
+    <script>
+        // 1. Play music and show Panoee Iframe
+        function startExperience() {
+            // Play the background music
+            var music = document.getElementById('bg-music');
+            music.play().catch(function(error) {
+                console.log("Audio play failed: ", error);
+            });
+
+            // Show the tour iframe
+            var iframe = document.getElementById('tour-embeded');
+            iframe.style.display = 'block';
+        }
+
+        // 2. Your Panoee Gyroscope / Device Motion Script
+        var pano_iframe_name = "tour-embeded";
+        window.addEventListener("devicemotion", function(e){ 
+            var iframe = document.getElementById(pano_iframe_name); 
+            // Only send device motion events if the iframe is active and visible
+            if (iframe && iframe.style.display !== 'none') { 
+                iframe.contentWindow.postMessage({ 
+                    type: "devicemotion", 
+                    deviceMotionEvent: { 
+                        acceleration: { x: e.acceleration.x, y: e.acceleration.y, z: e.acceleration.z }, 
+                        accelerationIncludingGravity: { x: e.accelerationIncludingGravity.x, y: e.accelerationIncludingGravity.y, z: e.accelerationIncludingGravity.z }, 
+                        rotationRate: { alpha: e.rotationRate.alpha, beta: e.rotationRate.beta, gamma: e.rotationRate.gamma }, 
+                        interval: e.interval, 
+                        timeStamp: e.timeStamp 
+                    } 
+                }, "*"); 
+            }
+        });
+    </script>
 </body>
 </html>
