@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #000; }
         
-        .background { 
-            position: fixed; width: 100%; height: 100%; object-fit: cover; z-index: -1; 
-        }
+        .background { position: fixed; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
 
+        /* The containers act as "frames". Shine cannot escape these. */
         .item-container {
             position: absolute;
             display: inline-block;
+            overflow: hidden; /* This kills the shine the moment it leaves the PNG bounds */
+            z-index: 10;
         }
 
         .item-container img {
@@ -19,47 +20,30 @@
             width: 100%;
         }
 
+        /* The shine sits inside the container. 
+           Because of 'overflow: hidden' on the container, 
+           the shine is physically impossible to see outside the image. */
         .shine-beam {
             position: absolute;
-            top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
-            
-            -webkit-mask-repeat: no-repeat;
-            mask-repeat: no-repeat;
-            -webkit-mask-size: contain;
-            mask-size: contain;
-            
+            top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+            transform: skewX(-25deg);
             animation: shineMove 3s infinite linear;
             pointer-events: none;
         }
 
-        .text-mask { -webkit-mask-image: url('text-mask.png'); mask-image: url('text-mask.png'); }
-        .sword-mask { -webkit-mask-image: url('sword-mask.png'); mask-image: url('sword-mask.png'); }
-
         .text-box { width: 65%; top: 25%; left: 17%; animation: floatIn 1.5s ease-out forwards; }
-        
-        /* Updated: Sword starts invisible and delays 1.5s to wait for text */
-        .sword-box { 
-            width: 45%; top: 36%; right: 22%; 
-            opacity: 0; 
-            animation: swordFly 1s ease-out 1.5s forwards; 
-        }
+        .sword-box { width: 45%; top: 36%; right: 22%; opacity: 0; animation: swordFly 1s ease-out 1.5s forwards; }
 
         @keyframes floatIn { 
             from { opacity: 0; transform: translateY(50px); } 
             to { opacity: 1; transform: translateY(0); } 
         }
-
-        /* Updated: Sword fades in as it flies */
         @keyframes swordFly { 
             from { opacity: 0; transform: translate(400px, -400px) rotate(45deg); } 
             to { opacity: 1; transform: translate(0, 0) rotate(-20deg); } 
         }
-        
-        @keyframes shineMove { 
-            from { left: -100%; }
-            to { left: 100%; } 
-        }
+        @keyframes shineMove { from { left: -100%; } to { left: 150%; } }
     </style>
 </head>
 <body>
@@ -67,12 +51,12 @@
 
     <div class="item-container text-box">
         <img src="text.png" alt="Title Text">
-        <div class="shine-beam text-mask"></div>
+        <div class="shine-beam"></div>
     </div>
 
     <div class="item-container sword-box">
         <img src="sword.png" alt="Sword">
-        <div class="shine-beam sword-mask"></div>
+        <div class="shine-beam"></div>
     </div>
 </body>
 </html>
