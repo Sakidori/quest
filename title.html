@@ -81,6 +81,7 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
+            flex-direction: row; /* Force side-by-side */
             gap: 20px;
             z-index: 10;
         }
@@ -89,7 +90,11 @@
             border: none; border-radius: 25px; cursor: pointer; color: white;
             font-weight: 500; transition: transform 0.2s ease;
         }
-        .start-btn { background-color: #2a7ae2; display: none; }
+        .start-btn { 
+            background-color: #2a7ae2; 
+            visibility: hidden; /* Reserved space */
+        }
+        .start-visible { visibility: visible !important; }
         .rules-btn { background-color: #555; }
         .btn:hover { transform: scale(1.05); }
 
@@ -170,7 +175,7 @@
 
         function openRules() { 
             document.getElementById("rules-modal").style.display = "block";
-            document.querySelector(".start-btn").style.display = "block";
+            document.querySelector(".start-btn").classList.add("start-visible");
         }
         function closeRules() { document.getElementById("rules-modal").style.display = "none"; }
 
