@@ -9,9 +9,32 @@
             position: fixed; width: 100%; height: 100%; object-fit: cover; z-index: -1; 
         }
 
+        /* NEW: Sparkle Overlay Layer */
+        .sparkle-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; /* Sits above the background but below text/sword */
+            pointer-events: none; /* Ensures clicks pass through to elements below */
+            
+            /* Generates random sparkle dots using box-shadow */
+            background: 
+                radial-gradient(white, transparent 2px) 5% 10% / 1px 1px,
+                radial-gradient(white, transparent 2px) 15% 80% / 1px 1px,
+                radial-gradient(white, transparent 2px) 30% 40% / 1px 1px,
+                radial-gradient(white, transparent 2px) 50% 20% / 2px 2px,
+                radial-gradient(white, transparent 2px) 60% 65% / 1px 1px,
+                radial-gradient(white, transparent 2px) 75% 90% / 2px 2px,
+                radial-gradient(white, transparent 2px) 85% 30% / 1px 1px,
+                radial-gradient(white, transparent 2px) 95% 70% / 1px 1px;
+            background-repeat: repeat;
+            animation: twinkle 2s infinite ease-in-out;
+            opacity: 0.6;
+        }
+
         .item-container {
             position: absolute;
             display: inline-block;
+            z-index: 10; /* Ensures elements are above the sparkles */
         }
 
         .item-container img {
@@ -19,22 +42,21 @@
             width: 100%;
         }
 
-        /* The shine layer - constrained by the SVG mask below */
         .shine-beam {
             position: absolute;
             top: 0; left: -100%; width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+            -webkit-mask-size: contain; mask-size: contain;
             animation: shineMove 3s infinite linear;
             pointer-events: none;
         }
 
+        .text-mask { -webkit-mask-image: url('text-mask.png'); mask-image: url('text-mask.png'); }
+        .sword-mask { -webkit-mask-image: url('sword-mask.png'); mask-image: url('sword-mask.png'); }
+
         .text-box { width: 65%; top: 25%; left: 17%; animation: floatIn 1.5s ease-out forwards; }
-        
-        .sword-box { 
-            width: 45%; top: 36%; right: 22%; 
-            opacity: 0; 
-            animation: swordFly 1s ease-out 1.5s forwards; 
-        }
+        .sword-box { width: 45%; top: 36%; right: 22%; opacity: 0; animation: swordFly 1s ease-out 1.5s forwards; }
 
         @keyframes floatIn { 
             from { opacity: 0; transform: translateY(50px); } 
@@ -50,35 +72,28 @@
             from { left: -100%; }
             to { left: 100%; } 
         }
+
+        /* NEW: Twinkle animation for background dots */
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
     </style>
 </head>
 <body>
     <img src="background.png" class="background" alt="Background">
+    
+    <!-- NEW: The Sparkle Layer -->
+    <div class="sparkle-overlay"></div>
 
-    <!-- Text with SVG Mask -->
     <div class="item-container text-box">
         <img src="text.png" alt="Title Text">
-        <svg style="position:absolute; top:0; left:0; width:0; height:0;">
-            <defs>
-                <mask id="text-mask">
-                    <image href="text.png" width="100%" height="100%" />
-                </mask>
-            </defs>
-        </svg>
-        <div class="shine-beam" style="mask: url(#text-mask); -webkit-mask: url(#text-mask);"></div>
+        <div class="shine-beam text-mask"></div>
     </div>
 
-    <!-- Sword with SVG Mask -->
     <div class="item-container sword-box">
         <img src="sword.png" alt="Sword">
-        <svg style="position:absolute; top:0; left:0; width:0; height:0;">
-            <defs>
-                <mask id="sword-mask">
-                    <image href="sword.png" width="100%" height="100%" />
-                </mask>
-            </defs>
-        </svg>
-        <div class="shine-beam" style="mask: url(#sword-mask); -webkit-mask: url(#sword-mask);"></div>
+        <div class="shine-beam sword-mask"></div>
     </div>
 </body>
 </html>
