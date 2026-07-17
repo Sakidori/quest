@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Optimized for mobile: prevents zoom and scales correctly -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Summer Challenge - English Quest</title>
     <style>
         /* Base Styles */
@@ -13,6 +14,19 @@
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
+        }
+
+        /* Portrait Orientation Overlay */
+        #orientation-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 99999;
+            color: white; text-align: center;
+            justify-content: center; align-items: center;
+            font-family: sans-serif;
+        }
+        @media screen and (orientation: portrait) {
+            #orientation-overlay { display: flex; }
         }
         
         #splash-screen {
@@ -52,11 +66,9 @@
         .sword-shine {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
-            /* Mask applied ONLY to this element */
             -webkit-mask-image: url('sword.png'); mask-image: url('sword.png');
             -webkit-mask-size: contain; mask-size: contain;
             -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-            /* Sharp Slither Gradient */
             background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.8) 50%, transparent 60%);
             background-size: 200% 100%;
             animation: shine-animation 7s infinite linear;
@@ -91,6 +103,11 @@
 </head>
 <body>
 
+    <!-- Orientation Warning -->
+    <div id="orientation-overlay">
+        <h1>Please rotate your device to landscape</h1>
+    </div>
+
     <div id="splash-screen">
         <button class="enter-btn" onclick="enterSite()">ENTER</button>
     </div>
@@ -115,11 +132,9 @@
             <h1>Rules</h1>
             <ul>
                 <li>A new quest will be available every week.</li>
-                <li>Collect the words after each quest</li>
-                <dl>and keep a memo of them!</dl>
+                <li>Collect the words after each quest and keep a memo of them!</li>
                 <li>You will need the words for the final quest.</li>
-                <li>If you complete the summer quest, you can</li>
-                <dl>get stamps and be entered in a prize draw!</dl>
+                <li>If you complete the summer quest, you can get stamps and be entered in a prize draw!</li>
                 <li>Have fun and good luck!</li>
             </ul>
         </div>
@@ -144,7 +159,7 @@
             var splash = document.getElementById('splash-screen');
             splash.style.opacity = '0';
             setTimeout(() => { splash.style.display = 'none'; }, 1000);
-            document.getElementById('bg-music').play();
+            document.getElementById('bg-music').play().catch(e => console.log("Audio requires interaction"));
         }
 
         function openRules() { 
