@@ -50,8 +50,8 @@
             width: 100vw;
             height: 100vh;
             max-width: 1400px;
-            padding: 16px;
-            gap: 12px;
+            padding: 12px;
+            gap: 8px;
         }
 
         header {
@@ -60,19 +60,19 @@
         }
 
         h1 {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             text-transform: uppercase;
-            letter-spacing: 4px;
+            letter-spacing: 3px;
             color: #fff;
-            text-shadow: 0 0 15px var(--neon-purple);
-            margin-bottom: 4px;
+            text-shadow: 0 0 12px var(--neon-purple);
+            margin-bottom: 2px;
             line-height: 1.1;
         }
 
         .subtitle {
-            font-size: 0.95rem;
+            font-size: 0.8rem;
             color: #9ca3af;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             text-transform: uppercase;
         }
 
@@ -80,66 +80,68 @@
             background: var(--panel-bg);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            padding: 20px 24px;
+            border-radius: 16px;
+            padding: 12px 16px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 40px rgba(157, 0, 255, 0.25);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
+            gap: 10px;
             width: 100%;
             flex-grow: 1;
-            max-height: calc(100vh - 100px);
+            max-height: calc(100vh - 70px);
             justify-content: space-between;
         }
 
         .top-bar {
             display: flex;
+            flex-direction: column;
             width: 100%;
-            justify-content: space-between;
             align-items: center;
-            gap: 16px;
+            gap: 8px;
             flex-shrink: 0;
         }
 
         .memo-bar {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             background: rgba(11, 15, 25, 0.85);
             border: 1px solid rgba(157, 0, 255, 0.4);
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 10px;
-            font-size: 1rem;
-            margin: 0 auto;
+            font-size: 0.9rem;
+            width: 100%;
+            justify-content: center;
         }
 
         .memo-title {
             color: #9ca3af;
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             flex-shrink: 0;
         }
 
         .memo-slots {
             display: flex;
-            gap: 6px;
+            gap: 4px;
+            justify-content: center;
         }
 
         .memo-slot {
-            width: 34px;
-            height: 40px;
+            width: 28px;
+            height: 32px;
             background: #111827;
             border: 1px solid #374151;
-            border-radius: 6px;
+            border-radius: 5px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
             color: var(--neon-blue);
-            text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
-            font-size: 1.2rem;
+            text-shadow: 0 0 6px rgba(0, 243, 255, 0.5);
+            font-size: 1rem;
             text-transform: uppercase;
             flex-shrink: 0;
         }
@@ -148,15 +150,16 @@
             background: rgba(31, 41, 55, 0.9);
             border: 1px solid var(--neon-pink);
             color: var(--neon-pink);
-            padding: 10px 24px;
-            border-radius: 10px;
+            padding: 6px 16px;
+            border-radius: 8px;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
             cursor: pointer;
-            box-shadow: 0 0 12px rgba(255, 0, 127, 0.2);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.2);
             flex-shrink: 0;
             transition: all 0.2s;
+            align-self: center;
         }
 
         .action-btn:hover {
@@ -176,8 +179,8 @@
         }
 
         canvas {
-            border-radius: 10px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(0, 0, 0, 0.8);
+            border-radius: 8px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(0, 0, 0, 0.8);
             display: block;
             background: #05070c;
             max-width: 100%;
@@ -186,7 +189,7 @@
         }
 
         .controls-hint {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: #9ca3af;
             text-align: center;
             flex-shrink: 0;
@@ -196,7 +199,7 @@
             background: #1f2937;
             border: 1px solid #374151;
             border-radius: 4px;
-            padding: 3px 8px;
+            padding: 2px 6px;
             color: #d1d5db;
             font-family: monospace;
         }
@@ -206,7 +209,7 @@
             flex-direction: column;
             width: 100%;
             height: 100%;
-            gap: 16px;
+            gap: 10px;
             align-items: center;
             justify-content: center;
             flex-grow: 1;
@@ -218,23 +221,23 @@
             grid-template-areas: 
                 ". up ."
                 "left down right";
-            gap: 8px;
+            gap: 6px;
             flex-shrink: 0;
-            padding-bottom: 5px;
+            padding-bottom: 2px;
         }
 
         .touch-btn {
             background: rgba(31, 41, 55, 0.9);
             border: 1px solid var(--neon-purple);
             color: #fff;
-            width: 64px;
-            height: 48px;
-            border-radius: 10px;
-            font-size: 1.2rem;
+            width: 56px;
+            height: 40px;
+            border-radius: 8px;
+            font-size: 1.1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
             user-select: none;
             cursor: pointer;
         }
@@ -262,11 +265,11 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            gap: 16px;
             z-index: 10;
-            border-radius: 20px;
+            border-radius: 16px;
             transition: opacity 0.2s ease;
-            padding: 24px;
+            padding: 20px;
         }
 
         .overlay.hidden {
@@ -275,36 +278,36 @@
         }
 
         .overlay h2 {
-            font-size: 2.5rem;
+            font-size: 2rem;
             color: var(--neon-green);
-            text-shadow: 0 0 15px var(--neon-green);
+            text-shadow: 0 0 12px var(--neon-green);
             text-align: center;
         }
 
         .overlay p {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             color: #d1d5db;
             text-align: center;
-            max-width: 500px;
-            line-height: 1.5;
+            max-width: 450px;
+            line-height: 1.4;
         }
 
         /* Landscape Warning Overlay Specifics */
         #landscape-warning {
             z-index: 100;
-            display: none; /* Controlled strictly by JS orientation & touch check */
+            display: none;
             background: rgba(11, 15, 25, 0.98);
         }
 
         #landscape-warning h2 {
             color: var(--neon-pink);
-            text-shadow: 0 0 15px var(--neon-pink);
+            text-shadow: 0 0 12px var(--neon-pink);
         }
 
         .rotate-icon {
-            font-size: 4rem;
+            font-size: 3.5rem;
             animation: rotatePhone 2s infinite ease-in-out;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         @keyframes rotatePhone {
@@ -317,28 +320,28 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .input-group input {
             background: #111827;
             border: 2px solid var(--neon-purple);
-            border-radius: 10px;
-            padding: 14px 20px;
+            border-radius: 8px;
+            padding: 10px 16px;
             color: #fff;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             text-align: center;
-            letter-spacing: 5px;
+            letter-spacing: 4px;
             text-transform: uppercase;
             outline: none;
-            box-shadow: 0 0 20px rgba(157, 0, 255, 0.3);
-            width: 320px;
+            box-shadow: 0 0 15px rgba(157, 0, 255, 0.3);
+            width: 280px;
         }
 
         .error-msg {
             color: var(--neon-pink);
-            font-size: 0.95rem;
-            height: 18px;
+            font-size: 0.85rem;
+            height: 16px;
             text-align: center;
         }
 
@@ -346,14 +349,14 @@
             background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
             color: #fff;
             border: none;
-            padding: 14px 36px;
-            font-size: 1.2rem;
+            padding: 12px 30px;
+            font-size: 1.1rem;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border-radius: 35px;
+            border-radius: 30px;
             cursor: pointer;
-            box-shadow: 0 0 20px rgba(157, 0, 255, 0.4);
+            box-shadow: 0 0 15px rgba(157, 0, 255, 0.4);
             transition: transform 0.2s;
         }
 
@@ -362,11 +365,39 @@
         }
 
         .win-image {
-            max-width: 220px;
-            max-height: 180px;
-            border-radius: 10px;
+            max-width: 180px;
+            max-height: 140px;
+            border-radius: 8px;
             border: 1px solid var(--neon-blue);
             object-fit: cover;
+        }
+
+        /* Desktop Layout Override (Side-by-side or standard horizontal top-bar if width allows) */
+        @media (min-width: 650px) {
+            .top-bar {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            .memo-bar {
+                width: auto;
+                justify-content: flex-start;
+                padding: 8px 16px;
+            }
+            .memo-slot {
+                width: 34px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+            h1 {
+                font-size: 2.2rem;
+            }
+            .container {
+                padding: 16px;
+                gap: 12px;
+            }
+            .game-panel {
+                padding: 20px 24px;
+            }
         }
 
         /* Enable Touch Controls on Touch Devices */
@@ -382,7 +413,7 @@
 </head>
 <body>
 
-    <!-- Landscape Warning Screen (Pops up automatically if a phone user is in landscape mode) -->
+    <!-- Landscape Warning Screen -->
     <div id="landscape-warning" class="overlay">
         <div class="rotate-icon">📱</div>
         <h2>Portrait Mode Required</h2>
@@ -396,9 +427,9 @@
         </header>
 
         <div class="game-panel">
-            <!-- Top Bar with Memo and Reset Button -->
+            <!-- Top Bar with Reset Button stacked above the Memo Bar for Compact Mobile Fit -->
             <div class="top-bar">
-                <div style="width: 95px;"></div> <!-- Spacer to balance layout -->
+                <button class="action-btn" id="reset-btn">Reset</button>
                 <div class="memo-bar">
                     <span class="memo-title">Memo:</span>
                     <div class="memo-slots" id="memo-slots">
@@ -413,7 +444,6 @@
                         <div class="memo-slot"></div>
                     </div>
                 </div>
-                <button class="action-btn" id="reset-btn">Reset</button>
             </div>
 
             <!-- Game Layout Container -->
@@ -478,12 +508,10 @@
         const errorMsg = document.getElementById('error-msg');
         const memoSlotsContainer = document.getElementById('memo-slots');
 
-        // Check if device is primarily touch/mobile
         function isMobileDevice() {
             return (window.matchMedia("(pointer: coarse)").matches || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
         }
 
-        // Orientation Check Function (Enforces Portrait ONLY for mobile/touch devices)
         function checkOrientation() {
             if (isMobileDevice() && window.innerWidth > window.innerHeight) {
                 landscapeWarning.style.display = 'flex';
