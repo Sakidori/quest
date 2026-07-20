@@ -218,11 +218,74 @@
         #btn-right { grid-area: right; }
 
         @media (pointer: coarse), (max-width: 600px) {
+            body {
+                justify-content: flex-start;
+                overflow-y: auto;
+                padding: 4px;
+            }
+            header {
+                margin-bottom: -4px;
+            }
+            h1 {
+                font-size: 1.2rem;
+                letter-spacing: 2px;
+            }
+            .subtitle {
+                font-size: 0.6rem;
+                letter-spacing: 1px;
+            }
+            .game-panel {
+                padding: 6px;
+                gap: 6px;
+                max-width: 100vw;
+            }
+            .top-bar {
+                gap: 6px;
+            }
+            .memo-bar {
+                padding: 4px 8px;
+                font-size: 0.75rem;
+            }
+            .memo-slot {
+                width: 16px;
+                height: 20px;
+                font-size: 0.7rem;
+            }
+            .action-btn {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+            }
+            canvas {
+                width: min(82vw, 360px);
+                height: min(82vw, 360px);
+            }
             .touch-controls {
                 display: grid;
+                gap: 4px;
+                margin-top: 2px;
+            }
+            .touch-btn {
+                width: 48px;
+                height: 38px;
+                font-size: 1rem;
             }
             .controls-hint {
                 display: none;
+            }
+            .overlay h2 {
+                font-size: 1.3rem;
+            }
+            .overlay p {
+                font-size: 0.8rem;
+            }
+            .input-group input {
+                width: 180px;
+                font-size: 0.95rem;
+                padding: 6px 10px;
+            }
+            .win-image {
+                max-width: 140px;
+                max-height: 110px;
             }
         }
 
