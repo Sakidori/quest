@@ -240,11 +240,16 @@
                 max-width: 100vw;
             }
             .top-bar {
+                display: flex;
+                flex-direction: column-reverse; /* Puts reset button above the memo bar */
+                align-items: stretch;
                 gap: 6px;
+                width: 100%;
             }
             .memo-bar {
                 padding: 4px 8px;
                 font-size: 0.75rem;
+                width: 100%;
             }
             .memo-slot {
                 width: 16px;
@@ -252,8 +257,11 @@
                 font-size: 0.7rem;
             }
             .action-btn {
-                padding: 6px 10px;
-                font-size: 0.7rem;
+                display: block;
+                width: 100%;
+                text-align: center;
+                padding: 8px 10px;
+                font-size: 0.75rem;
             }
             canvas {
                 width: min(94vw, 420px);
@@ -424,7 +432,6 @@
             line-height: 1.4;
         }
 
-        /* Show warning only on mobile/touch devices when in landscape orientation */
         @media screen and (max-height: 500px) and (orientation: landscape) {
             #landscape-warning {
                 display: flex;
@@ -452,7 +459,6 @@
                 <div class="memo-bar">
                     <span class="memo-title">Memo:</span>
                     <div class="memo-slots" id="memo-slots">
-                        <div class="memo-slot"></div>
                         <div class="memo-slot"></div>
                         <div class="memo-slot"></div>
                         <div class="memo-slot"></div>
@@ -930,32 +936,7 @@
             renderMazeToBuffer();
             needsRedraw = true;
         });
-
-        submitBtn.addEventListener('click', () => {
-            let val = answerInput.value.trim().toUpperCase();
-            if (val === targetWord) {
-                puzzleScreen.classList.add('hidden');
-                winScreen.classList.remove('hidden');
-                gameState = 'WON';
-            } else {
-                errorMsg.innerText = "Incorrect answer! Check your collected letters.";
-                answerInput.style.borderColor = "var(--neon-pink)";
-                setTimeout(() => {
-                    answerInput.style.borderColor = "var(--neon-purple)";
-                }, 500);
-            }
-        });
-
-        answerInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                submitBtn.click();
-            }
-        });
-
-        generateMaze();
-        renderMazeToBuffer();
-        pathHistory = [{ r: 0, c: 0 }];
-        draw();
+        
         requestAnimationFrame(gameLoop);
     </script>
 </body>
