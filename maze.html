@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Labyrinthine Grid-Lock</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: rgba(17, 24, 39, 0.7);
+            --neon-pink: #ff007f;
+            --neon-blue: #00f3ff;
+            --neon-green: #00ff66;
+            --neon-purple: #9d00ff;
+            --text-color: #f3f4f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: manipulation;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.8) 0%, rgba(11, 15, 25, 1) 100%),
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            max-width: 100%;
+        }
+
+        header {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #fff;
+            text-shadow: 0 0 10px var(--neon-purple), 0 0 20px var(--neon-purple), 0 0 40px var(--neon-purple);
+            margin-bottom: 2px;
+        }
+
+        .subtitle {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .game-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(157, 0, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            max-width: 100%;
+        }
+
+        .top-bar {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .memo-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(11, 15, 25, 0.6);
+            border: 1px solid rgba(157, 0, 255, 0.3);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            overflow-x: auto;
+            flex-grow: 1;
+        }
+
+        .memo-title {
+            color: #9ca3af;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            margin-right: 2px;
+        }
+
+        .memo-slots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .memo-slot {
+            width: 22px;
+            height: 26px;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--neon-blue);
+            text-shadow: 0 0 6px rgba(0, 243, 255, 0.5);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .action-btn {
+            background: rgba(31, 41, 55, 0.8);
+            border: 1px solid var(--neon-pink);
+            color: var(--neon-pink);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--neon-pink);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
+        }
+
+        canvas {
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 0, 0, 0.8);
+            display: block;
+            background: #05070c;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .controls-hint {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .controls-hint kbd {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 4px;
+            padding: 2px 5px;
+            color: #d1d5db;
+            font-family: monospace;
+            box-shadow: 0 2px 0 #374151;
+        }
+
+        /* On-Screen Touch D-Pad */
+        .touch-controls {
+            display: none;
+            grid-template-areas: 
+                ". up ."
+                "left down right";
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .touch-btn {
+            background: rgba(31, 41, 55, 0.8);
+            border: 1px solid var(--neon-purple);
+            color: #fff;
+            width: 55px;
+            height: 45px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            user-select: none;
+            cursor: pointer;
+            transition: background 0.1s, transform 0.1s;
+        }
+
+        .touch-btn:active {
+            background: var(--neon-purple);
+            transform: scale(0.95);
+        }
+
+        #btn-up { grid-area: up; }
+        #btn-left { grid-area: left; }
+        #btn-down { grid-area: down; }
+        #btn-right { grid-area: right; }
+
+        @media (pointer: coarse), (max-width: 600px) {
+            .touch-controls {
+                display: grid;
+            }
+            .controls-hint {
+                display: none;
+            }
+        }
+
+        /* Overlay Screens */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.9);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            z-index: 10;
+            border-radius: 16px;
+            transition: opacity 0.3s ease;
+            padding: 15px;
+        }
+
+        .overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .overlay h2 {
+            font-size: 1.6rem;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+            text-align: center;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group input {
+            background: #111827;
+            border: 2px solid var(--neon-purple);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 1.1rem;
+            text-align: center;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            outline: none;
+            box-shadow: 0 0 15px rgba(157, 0, 255, 0.3);
+            width: 220px;
+        }
+
+        .input-group input:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+        }
+
+        .error-msg {
+            color: var(--neon-pink);
+            font-size: 0.8rem;
+            height: 18px;
+            text-shadow: 0 0 5px rgba(255,0,127,0.5);
+            text-align: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(157, 0, 255, 0.5);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 0, 127, 0.8);
+            background: linear-gradient(135deg, #fff, var(--neon-purple));
+            color: #000;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Win Screen Image styling */
+        .win-image {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 8px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Labyrinthine</h1>
+            <div class="subtitle">Grid Step Navigation</div>
+        </header>
+
+        <div class="game-panel">
+            <!-- Top Bar with Memo and Reset Button -->
+            <div class="top-bar">
+                <div class="memo-bar">
+                    <span class="memo-title">Memo:</span>
+                    <div class="memo-slots" id="memo-slots">
+                        <div class="memo-slot"></div>
+                        <div class="memo-slot"></div>
+                        <div class="memo-slot"></div>
+                        <div class="memo-slot"></div>
+                        <div class="memo-slot"></div>
+                        <div class="memo-slot"></div>
+                        <div class="memo-slot"></div>
+                        <div class="memo-slot"></div>
+                        <div class="memo-slot"></div>
+                    </div>
+                </div>
+                <button class="action-btn" id="reset-btn">Reset</button>
+            </div>
+
+            <div style="position: relative;">
+                <canvas id="mazeCanvas" width="450" height="450"></canvas>
+                
+                <!-- Start Screen Overlay -->
+                <div id="start-screen" class="overlay">
+                    <h2>The Mega Maze</h2>
+                    <p style="color: #9ca3af; text-align: center; max-width: 280px; font-size: 0.9rem;">No backtracking allowed! Collect only the right letters along the correct path to the exit.</p>
+                    <button class="btn" id="start-btn">Enter Labyrinth</button>
+                </div>
+
+                <!-- Answer Dialog Overlay -->
+                <div id="puzzle-screen" class="overlay hidden">
+                    <h2>Core Reached!</h2>
+                    <p style="color: #d1d5db; text-align: center; max-width: 280px; font-size: 0.9rem;">Type the secret word collected from your journey:</p>
+                    <div class="input-group">
+                        <input type="text" id="answer-input" maxlength="9" placeholder="_________" autocomplete="off">
+                        <div class="error-msg" id="error-msg"></div>
+                        <button class="btn" id="submit-btn">Unlock Core</button>
+                    </div>
+                </div>
+
+                <!-- Win Screen Overlay -->
+                <div id="win-screen" class="overlay hidden">
+                    <h2>Access Granted!</h2>
+                    <img src="maze_answer.jpg" alt="Maze Answer" class="win-image" onerror="this.style.display='none'">
+                    <p style="color: #d1d5db; text-align: center; font-size: 0.85rem;">You successfully bypassed security and escaped the labyrinth!</p>
+                    <button class="btn" id="restart-win-btn">Play Again</button>
+                </div>
+            </div>
+
+            <!-- Touch Controls D-Pad for Phone Users -->
+            <div class="touch-controls">
+                <button class="touch-btn" id="btn-up">▲</button>
+                <button class="touch-btn" id="btn-left">◀</button>
+                <button class="touch-btn" id="btn-down">▼</button>
+                <button class="touch-btn" id="btn-right">▶</button>
+            </div>
+
+            <div class="controls-hint">
+                Press <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or <kbd>Arrow Keys</kbd> to step block-by-block
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mazeCanvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('start-screen');
+        const puzzleScreen = document.getElementById('puzzle-screen');
+        const winScreen = document.getElementById('win-screen');
+        const startBtn = document.getElementById('start-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const restartWinBtn = document.getElementById('restart-win-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const answerInput = document.getElementById('answer-input');
+        const errorMsg = document.getElementById('error-msg');
+        const memoSlotsContainer = document.getElementById('memo-slots');
+
+        const gridCols = 35;
+        const gridRows = 35;
+        const cellSize = canvas.width / gridCols;
+        
+        let grid = [];
+        let player = { r: 0, c: 0 };
+        let goal = { r: gridRows - 1, c: gridCols - 1 };
+        
+        const targetWord = "DIFFICULT";
+        let lettersOnBoard = {}; 
+        let collectedLetters = [];
+        let pathHistory = []; 
+        let gameState = 'START';
+        let needsRedraw = true;
+
+        function handlePlayerMove(direction) {
+            if (gameState !== 'PLAYING') return;
+
+            let currentCell = grid[player.c + player.r * gridCols];
+            let nextR = player.r;
+            let nextC = player.c;
+            let moved = false;
+
+            if (direction === 'up' && !currentCell.walls.top) {
+                nextR--;
+                moved = true;
+            } else if (direction === 'down' && !currentCell.walls.bottom) {
+                nextR++;
+                moved = true;
+            } else if (direction === 'left' && !currentCell.walls.left) {
+                nextC--;
+                moved = true;
+            } else if (direction === 'right' && !currentCell.walls.right) {
+                nextC++;
+                moved = true;
+            }
+
+            if (moved) {
+                if (pathHistory.length >= 2) {
+                    let prevStep = pathHistory[pathHistory.length - 2];
+                    if (prevStep.r === nextR && prevStep.c === nextC) {
+                        return; 
+                    }
+                }
+
+                let existingIndex = pathHistory.findIndex(p => p.r === nextR && p.c === nextC);
+                if (existingIndex !== -1) {
+                    return; 
+                }
+
+                player.r = nextR;
+                player.c = nextC;
+                pathHistory.push({ r: player.r, c: player.c });
+
+                let keyStr = `${player.r},${player.c}`;
+                if (lettersOnBoard[keyStr]) {
+                    collectedLetters.push(lettersOnBoard[keyStr]);
+                    delete lettersOnBoard[keyStr];
+                    updateMemoBar();
+                }
+
+                if (player.r === goal.r && player.c === goal.c) {
+                    triggerPuzzleDialog();
+                }
+                needsRedraw = true;
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) {
+                e.preventDefault();
+            }
+            
+            if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') handlePlayerMove('up');
+            else if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') handlePlayerMove('down');
+            else if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') handlePlayerMove('left');
+            else if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') handlePlayerMove('right');
+        });
+
+        document.getElementById('btn-up').addEventListener('click', () => handlePlayerMove('up'));
+        document.getElementById('btn-down').addEventListener('click', () => handlePlayerMove('down'));
+        document.getElementById('btn-left').addEventListener('click', () => handlePlayerMove('left'));
+        document.getElementById('btn-right').addEventListener('click', () => handlePlayerMove('right'));
+
+        class Cell {
+            constructor(r, c) {
+                this.r = r;
+                this.c = c;
+                this.walls = { top: true, right: true, bottom: true, left: true };
+                this.visited = false;
+                this.parent = null;
+            }
+
+            checkNeighbors() {
+                let neighbors = [];
+                let top = grid[(this.c) + (this.r - 1) * gridCols];
+                let right = grid[(this.c + 1) + (this.r) * gridCols];
+                let bottom = grid[(this.c) + (this.r + 1) * gridCols];
+                let left = grid[(this.c - 1) + (this.r) * gridCols];
+
+                if (this.r > 0 && !top.visited) neighbors.push(top);
+                if (this.c < gridCols - 1 && !right.visited) neighbors.push(right);
+                if (this.r < gridRows - 1 && !bottom.visited) neighbors.push(bottom);
+                if (this.c > 0 && !left.visited) neighbors.push(left);
+
+                if (neighbors.length > 0) {
+                    return neighbors[Math.floor(Math.random() * neighbors.length)];
+                }
+                return undefined;
+            }
+        }
+
+        function generateMaze() {
+            grid = new Array(gridRows * gridCols);
+            for (let r = 0; r < gridRows; r++) {
+                for (let c = 0; c < gridCols; c++) {
+                    grid[c + r * gridCols] = new Cell(r, c);
+                }
+            }
+
+            let current = grid[0];
+            current.visited = true;
+            let stack = [];
+
+            do {
+                let next = current.checkNeighbors();
+                if (next) {
+                    next.visited = true;
+                    stack.push(current);
+                    removeWalls(current, next);
+                    current = next;
+                } else if (stack.length > 0) {
+                    current = stack.pop();
+                }
+            } while (stack.length > 0);
+        }
+
+        function removeWalls(a, b) {
+            let x = a.c - b.c;
+            if (x === 1) { a.walls.left = false; b.walls.right = false; }
+            else if (x === -1) { a.walls.right = false; b.walls.left = false; }
+            
+            let y = a.r - b.r;
+            if (y === 1) { a.walls.top = false; b.walls.bottom = false; }
+            else if (y === -1) { a.walls.bottom = false; b.walls.top = false; }
+        }
+
+        function findSolutionPath() {
+            for (let cell of grid) cell.visited = false;
+            let startCell = grid[0];
+            let endCell = grid[(gridCols - 1) + (gridRows - 1) * gridCols];
+
+            let queue = [startCell];
+            startCell.visited = true;
+            let parentMap = new Map();
+
+            while (queue.length > 0) {
+                let curr = queue.shift();
+                if (curr === endCell) break;
+
+                let neighbors = getConnectedNeighbors(curr);
+                for (let n of neighbors) {
+                    if (!n.visited) {
+                        n.visited = true;
+                        parentMap.set(n, curr);
+                        queue.push(n);
+                    }
+                }
+            }
+
+            let path = [];
+            let curr = endCell;
+            while (curr !== startCell && parentMap.has(curr)) {
+                path.push(curr);
+                curr = parentMap.get(curr);
+            }
+            return path;
+        }
+
+        function getConnectedNeighbors(cell) {
+            let list = [];
+            let r = cell.r, c = cell.c;
+            if (!cell.walls.top && r > 0) list.push(grid[c + (r - 1) * gridCols]);
+            if (!cell.walls.right && c < gridCols - 1) list.push(grid[(c + 1) + r * gridCols]);
+            if (!cell.walls.bottom && r < gridRows - 1) list.push(grid[c + (r + 1) * gridCols]);
+            if (!cell.walls.left && c > 0) list.push(grid[(c - 1) + r * gridCols]);
+            return list;
+        }
+
+        function setupLetters() {
+            lettersOnBoard = {};
+            collectedLetters = [];
+            updateMemoBar();
+
+            let solutionPath = findSolutionPath();
+            let solutionKeys = new Set(solutionPath.map(cell => `${cell.r},${cell.c}`));
+            solutionKeys.add("0,0");
+
+            let targetLetters = targetWord.split('');
+            if (solutionPath.length >= targetLetters.length) {
+                let step = Math.floor(solutionPath.length / (targetLetters.length + 1));
+                for (let i = 0; i < targetLetters.length; i++) {
+                    let targetIdx = Math.min((i + 1) * step, solutionPath.length - 1);
+                    let cell = solutionPath[targetIdx];
+                    lettersOnBoard[`${cell.r},${cell.c}`] = targetLetters[i];
+                }
+            }
+
+            const allowedDecoys = "ABEGHJKMNOPQRSVWXYZ";
+            let placedDecoys = 0;
+            let safetyCounter = 0;
+
+            while (placedDecoys < 45 && safetyCounter < 1000) {
+                safetyCounter++;
+                let randCell = grid[Math.floor(Math.random() * grid.length)];
+                let key = `${randCell.r},${randCell.c}`;
+
+                if ((randCell.r === 0 && randCell.c === 0) || (randCell.r === gridRows - 1 && randCell.c === gridCols - 1)) continue;
+                if (solutionKeys.has(key)) continue; 
+                if (lettersOnBoard[key]) continue;
+
+                let dummyChar = allowedDecoys[Math.floor(Math.random() * allowedDecoys.length)];
+                lettersOnBoard[key] = dummyChar;
+                placedDecoys++;
+            }
+        }
+
+        function updateMemoBar() {
+            let slots = memoSlotsContainer.children;
+            for (let i = 0; i < slots.length; i++) {
+                slots[i].innerText = collectedLetters[i] || '';
+            }
+        }
+
+        function resetRun() {
+            player.r = 0;
+            player.c = 0;
+            pathHistory = [{ r: 0, c: 0 }];
+            
+            setupLetters();
+            gameState = 'PLAYING';
+            puzzleScreen.classList.add('hidden');
+            winScreen.classList.add('hidden');
+            answerInput.value = '';
+            errorMsg.innerText = '';
+            needsRedraw = true;
+        }
+
+        function initGame() {
+            generateMaze();
+            player.r = 0;
+            player.c = 0;
+            pathHistory = [{ r: 0, c: 0 }];
+            goal.r = gridRows - 1;
+            goal.c = gridCols - 1;
+
+            setupLetters();
+            gameState = 'PLAYING';
+            startScreen.classList.add('hidden');
+            puzzleScreen.classList.add('hidden');
+            winScreen.classList.add('hidden');
+            answerInput.value = '';
+            errorMsg.innerText = '';
+            needsRedraw = true;
+        }
+
+        function triggerPuzzleDialog() {
+            gameState = 'PUZZLE';
+            puzzleScreen.classList.remove('hidden');
+            answerInput.focus();
+        }
+
+        let mazeBuffer = document.createElement('canvas');
+        mazeBuffer.width = 450;
+        mazeBuffer.height = 450;
+        let bufferCtx = mazeBuffer.getContext('2d');
+
+        function renderMazeToBuffer() {
+            bufferCtx.clearRect(0, 0, 450, 450);
+            bufferCtx.strokeStyle = '#9d00ff';
+            bufferCtx.lineWidth = 1.5;
+            bufferCtx.shadowColor = '#9d00ff';
+            bufferCtx.shadowBlur = 4;
+
+            for (let i = 0; i < grid.length; i++) {
+                let cell = grid[i];
+                let x = cell.c * cellSize;
+                let y = cell.r * cellSize;
+
+                if (cell.walls.top) {
+                    bufferCtx.beginPath(); bufferCtx.moveTo(x, y); bufferCtx.lineTo(x + cellSize, y); bufferCtx.stroke();
+                }
+                if (cell.walls.right) {
+                    bufferCtx.beginPath(); bufferCtx.moveTo(x + cellSize, y); bufferCtx.lineTo(x + cellSize, y + cellSize); bufferCtx.stroke();
+                }
+                if (cell.walls.bottom) {
+                    bufferCtx.beginPath(); bufferCtx.moveTo(x + cellSize, y + cellSize); bufferCtx.lineTo(x, y + cellSize); bufferCtx.stroke();
+                }
+                if (cell.walls.left) {
+                    bufferCtx.beginPath(); bufferCtx.moveTo(x, y + cellSize); bufferCtx.lineTo(x, y); bufferCtx.stroke();
+                }
+            }
+            bufferCtx.shadowBlur = 0;
+        }
+
+        function draw() {
+            if (!needsRedraw) return;
+            needsRedraw = false;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(mazeBuffer, 0, 0);
+
+            if (pathHistory.length > 1) {
+                ctx.save();
+                ctx.strokeStyle = 'rgba(0, 243, 255, 0.4)';
+                ctx.lineWidth = cellSize * 0.4;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.shadowColor = '#00f3ff';
+                ctx.shadowBlur = 10;
+
+                ctx.beginPath();
+                ctx.moveTo(pathHistory[0].c * cellSize + cellSize * 0.5, pathHistory[0].r * cellSize + cellSize * 0.5);
+                for (let i = 1; i < pathHistory.length; i++) {
+                    ctx.lineTo(pathHistory[i].c * cellSize + cellSize * 0.5, pathHistory[i].r * cellSize + cellSize * 0.5);
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            ctx.font = `bold ${cellSize * 0.5}px 'Segoe UI', sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            for (let key in lettersOnBoard) {
+                let [r, c] = key.split(',').map(Number);
+                let x = c * cellSize + cellSize * 0.5;
+                let y = r * cellSize + cellSize * 0.5;
+
+                ctx.save();
+                ctx.shadowColor = '#00f3ff';
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = '#00f3ff';
+                ctx.fillText(lettersOnBoard[key], x, y);
+                ctx.restore();
+            }
+
+            let goalX = goal.c * cellSize + cellSize * 0.5;
+            let goalY = goal.r * cellSize + cellSize * 0.5;
+            
+            ctx.save();
+            ctx.shadowColor = '#00ff66';
+            ctx.shadowBlur = 15;
+            ctx.fillStyle = '#00ff66';
+            ctx.beginPath();
+            ctx.arc(goalX, goalY, cellSize * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(goalX, goalY, cellSize * 0.35 + 3, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+
+            let playerX = player.c * cellSize + cellSize * 0.5;
+            let playerY = player.r * cellSize + cellSize * 0.5;
+            let radius = cellSize * 0.32;
+
+            ctx.save();
+            ctx.shadowColor = '#ff007f';
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = '#ff007f';
+            ctx.beginPath();
+            ctx.arc(playerX, playerY, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(playerX, playerY, radius * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function gameLoop() {
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        startBtn.addEventListener('click', () => {
+            initGame();
+            renderMazeToBuffer();
+            needsRedraw = true;
+        });
+
+        restartWinBtn.addEventListener('click', () => {
+            initGame();
+            renderMazeToBuffer();
+            needsRedraw = true;
+        });
+
+        resetBtn.addEventListener('click', () => {
+            resetRun();
+            renderMazeToBuffer();
+            needsRedraw = true;
+        });
+
+        submitBtn.addEventListener('click', () => {
+            let val = answerInput.value.trim().toUpperCase();
+            if (val === targetWord) {
+                puzzleScreen.classList.add('hidden');
+                winScreen.classList.remove('hidden');
+                gameState = 'WON';
+            } else {
+                errorMsg.innerText = "Incorrect answer! Check your collected letters.";
+                answerInput.style.borderColor = "var(--neon-pink)";
+                setTimeout(() => {
+                    answerInput.style.borderColor = "var(--neon-purple)";
+                }, 500);
+            }
+        });
+
+        answerInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                submitBtn.click();
+            }
+        });
+
+        generateMaze();
+        renderMazeToBuffer();
+        pathHistory = [{ r: 0, c: 0 }];
+        draw();
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
