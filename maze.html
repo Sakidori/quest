@@ -7,7 +7,7 @@
     <style>
         :root {
             --bg-color: #0b0f19;
-            --panel-bg: rgba(17, 24, 39, 0.95);
+            --panel-bg: rgba(17, 24, 39, 0.98);
             --neon-pink: #ff007f;
             --neon-blue: #00f3ff;
             --neon-green: #00ff66;
@@ -27,11 +27,6 @@
             width: 100vw;
             height: 100vh;
             background-color: var(--bg-color);
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.8) 0%, rgba(11, 15, 25, 1) 100%),
-                linear-gradient(rgba(0, 243, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 243, 255, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 30px 30px, 30px 30px;
             color: var(--text-color);
             display: flex;
             align-items: center;
@@ -57,62 +52,43 @@
         header {
             text-align: center;
             flex-shrink: 0;
-        }
-
-        h1 {
-            font-size: 1.25rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #fff;
-            text-shadow: 0 0 8px var(--neon-purple);
-            margin-bottom: 0px;
-            line-height: 1.0;
-        }
-
-        .subtitle {
-            font-size: 0.65rem;
-            color: #9ca3af;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
+            display: none;
         }
 
         .game-panel {
             background: var(--panel-bg);
-            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 6px 10px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 40px rgba(157, 0, 255, 0.25);
+            border-radius: 10px;
+            padding: 6px;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 4px;
             width: 100%;
-            flex-grow: 1;
-            max-height: calc(100vh - 35px);
+            height: 100%;
+            max-height: 100vh;
             justify-content: flex-start;
         }
 
         .top-bar {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             width: 100%;
             align-items: center;
-            gap: 3px;
+            justify-content: space-between;
+            gap: 4px;
             flex-shrink: 0;
         }
 
         .memo-bar {
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: rgba(11, 15, 25, 0.85);
-            border: 1px solid rgba(157, 0, 255, 0.4);
-            padding: 5px 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            width: 100%;
-            max-width: 440px;
+            gap: 4px;
+            background: rgba(11, 15, 25, 0.95);
+            border: 1px solid rgba(157, 0, 255, 0.6);
+            padding: 2px 6px;
+            border-radius: 6px;
+            flex-grow: 1;
             justify-content: center;
         }
 
@@ -120,30 +96,29 @@
             color: #9ca3af;
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.8rem;
+            font-size: 0.65rem;
             flex-shrink: 0;
         }
 
         .memo-slots {
             display: flex;
-            gap: 4px;
+            gap: 2px;
             justify-content: center;
             width: 100%;
         }
 
         .memo-slot {
             flex: 1;
-            height: 34px;
+            height: 22px;
             background: #111827;
             border: 1px solid #374151;
-            border-radius: 5px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
             color: var(--neon-blue);
-            text-shadow: 0 0 6px rgba(0, 243, 255, 0.5);
-            font-size: 1rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             min-width: 0;
         }
@@ -152,22 +127,56 @@
             background: rgba(31, 41, 55, 0.9);
             border: 1px solid var(--neon-pink);
             color: var(--neon-pink);
-            padding: 3px 12px;
+            padding: 4px 10px;
             border-radius: 5px;
             font-weight: bold;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             cursor: pointer;
-            box-shadow: 0 0 6px rgba(255, 0, 127, 0.2);
             flex-shrink: 0;
-            transition: all 0.2s;
-            align-self: center;
         }
 
-        .action-btn:hover {
-            background: var(--neon-pink);
-            color: #fff;
+        /* Touch Controls Moved to Top (Right below Memo bar) */
+        .touch-controls {
+            display: none;
+            grid-template-areas: 
+                ". up ."
+                "left down right";
+            gap: 2px;
+            flex-shrink: 0;
+            justify-content: center;
+            width: 100%;
+            background: rgba(11, 15, 25, 0.6);
+            padding: 2px;
+            border-radius: 8px;
+            border: 1px solid rgba(157, 0, 255, 0.2);
         }
+
+        .touch-btn {
+            background: rgba(31, 41, 55, 0.95);
+            border: 1px solid var(--neon-purple);
+            color: #fff;
+            width: 44px;
+            height: 26px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            cursor: pointer;
+            margin: 0 auto;
+        }
+
+        .touch-btn:active {
+            background: var(--neon-purple);
+            transform: scale(0.95);
+        }
+
+        #btn-up { grid-area: up; }
+        #btn-left { grid-area: left; }
+        #btn-down { grid-area: down; }
+        #btn-right { grid-area: right; }
 
         .canvas-container {
             position: relative;
@@ -178,32 +187,18 @@
             flex-grow: 1;
             overflow: hidden;
             margin: 0;
+            min-height: 0; /* Critical for flex child scaling */
         }
 
         canvas {
-            border-radius: 6px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.9), inset 0 0 10px rgba(0, 0, 0, 0.8);
+            border-radius: 4px;
             display: block;
             background: #05070c;
+            width: 100%;
+            height: 100%;
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-        }
-
-        .controls-hint {
-            font-size: 0.85rem;
-            color: #9ca3af;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .controls-hint kbd {
-            background: #1f2937;
-            border: 1px solid #374151;
-            border-radius: 4px;
-            padding: 2px 6px;
-            color: #d1d5db;
-            font-family: monospace;
         }
 
         .game-layout {
@@ -216,43 +211,8 @@
             justify-content: flex-start;
             flex-grow: 1;
             overflow: hidden;
+            min-height: 0;
         }
-
-        .touch-controls {
-            display: none;
-            grid-template-areas: 
-                ". up ."
-                "left down right";
-            gap: 3px;
-            flex-shrink: 0;
-            padding-bottom: 20px;
-        }
-
-        .touch-btn {
-            background: rgba(31, 41, 55, 0.9);
-            border: 1px solid var(--neon-purple);
-            color: #fff;
-            width: 48px;
-            height: 32px;
-            border-radius: 5px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            user-select: none;
-            cursor: pointer;
-        }
-
-        .touch-btn:active {
-            background: var(--neon-purple);
-            transform: scale(0.95);
-        }
-
-        #btn-up { grid-area: up; }
-        #btn-left { grid-area: left; }
-        #btn-down { grid-area: down; }
-        #btn-right { grid-area: right; }
 
         /* Overlay Screens */
         .overlay {
@@ -267,11 +227,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            gap: 12px;
             z-index: 10;
-            border-radius: 12px;
-            transition: opacity 0.2s ease;
-            padding: 20px;
+            border-radius: 10px;
+            padding: 16px;
         }
 
         .overlay.hidden {
@@ -280,36 +239,28 @@
         }
 
         .overlay h2 {
-            font-size: 2rem;
+            font-size: 1.5rem;
             color: var(--neon-green);
-            text-shadow: 0 0 12px var(--neon-green);
             text-align: center;
         }
 
         .overlay p {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             color: #d1d5db;
             text-align: center;
-            max-width: 450px;
-            line-height: 1.4;
+            max-width: 400px;
         }
 
-        /* Landscape Warning Overlay Specifics */
         #landscape-warning {
             z-index: 100;
             display: none;
             background: rgba(11, 15, 25, 0.98);
         }
 
-        #landscape-warning h2 {
-            color: var(--neon-pink);
-            text-shadow: 0 0 12px var(--neon-pink);
-        }
-
         .rotate-icon {
-            font-size: 3.5rem;
+            font-size: 3rem;
             animation: rotatePhone 2s infinite ease-in-out;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         @keyframes rotatePhone {
@@ -322,28 +273,27 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .input-group input {
             background: #111827;
             border: 2px solid var(--neon-purple);
-            border-radius: 8px;
-            padding: 10px 16px;
+            border-radius: 6px;
+            padding: 8px 12px;
             color: #fff;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             text-align: center;
-            letter-spacing: 4px;
+            letter-spacing: 3px;
             text-transform: uppercase;
             outline: none;
-            box-shadow: 0 0 15px rgba(157, 0, 255, 0.3);
-            width: 280px;
+            width: 240px;
         }
 
         .error-msg {
             color: var(--neon-pink);
-            font-size: 0.85rem;
-            height: 16px;
+            font-size: 0.75rem;
+            height: 14px;
             text-align: center;
         }
 
@@ -351,62 +301,84 @@
             background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
             color: #fff;
             border: none;
-            padding: 12px 30px;
-            font-size: 1.1rem;
+            padding: 10px 24px;
+            font-size: 1rem;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            border-radius: 30px;
+            border-radius: 24px;
             cursor: pointer;
-            box-shadow: 0 0 15px rgba(157, 0, 255, 0.4);
-            transition: transform 0.2s;
-        }
-
-        .btn:hover {
-            transform: scale(1.05);
         }
 
         .win-image {
-            max-width: 180px;
-            max-height: 140px;
-            border-radius: 8px;
+            max-width: 140px;
+            max-height: 100px;
+            border-radius: 6px;
             border: 1px solid var(--neon-blue);
             object-fit: cover;
         }
 
+        .controls-hint {
+            display: none;
+            flex-shrink: 0;
+        }
+
         /* Desktop Layout Override */
         @media (min-width: 650px) {
-            .top-bar {
-                flex-direction: row;
-                justify-content: space-between;
-                max-width: none;
-            }
-            .memo-bar {
-                width: auto;
-                justify-content: flex-start;
-                padding: 8px 16px;
-                max-width: none;
-            }
-            .memo-slot {
-                flex: none;
-                width: 34px;
-                height: 40px;
-                font-size: 1.2rem;
-            }
-            h1 {
-                font-size: 2.2rem;
+            header {
+                display: block;
             }
             .container {
                 padding: 16px;
                 gap: 12px;
+                justify-content: center;
+                height: 100vh;
+                max-width: 750px;
+                margin: auto;
             }
             .game-panel {
-                padding: 20px 24px;
-                gap: 16px;
-            }
-            .game-layout {
+                padding: 16px 20px;
                 gap: 12px;
-                justify-content: center;
+                height: auto;
+                max-height: 90vh;
+            }
+            .top-bar {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            .memo-bar {
+                flex-grow: 0;
+                padding: 6px 12px;
+            }
+            .memo-slot {
+                flex: none;
+                width: 30px;
+                height: 36px;
+                font-size: 1.1rem;
+            }
+            .touch-controls {
+                display: none !important;
+            }
+            .canvas-container {
+                max-width: 550px;
+                max-height: 550px;
+            }
+            canvas {
+                width: 550px !important;
+                height: 550px !important;
+            }
+            .controls-hint {
+                display: block;
+                font-size: 0.85rem;
+                color: #9ca3af;
+                text-align: center;
+            }
+            .controls-hint kbd {
+                background: #1f2937;
+                border: 1px solid #374151;
+                border-radius: 4px;
+                padding: 2px 6px;
+                color: #d1d5db;
+                font-family: monospace;
             }
         }
 
@@ -414,9 +386,6 @@
         @media (pointer: coarse) {
             .touch-controls {
                 display: grid;
-            }
-            .controls-hint {
-                display: none;
             }
         }
     </style>
@@ -432,8 +401,8 @@
 
     <div class="container">
         <header>
-            <h1>Labyrinthine</h1>
-            <div class="subtitle">Grid Step Navigation</div>
+            <h1 style="font-size: 1.8rem; text-transform: uppercase; letter-spacing: 2px; color: #fff; text-shadow: 0 0 8px var(--neon-purple);">Labyrinthine</h1>
+            <div class="subtitle" style="font-size: 0.7rem; color: #9ca3af; letter-spacing: 1.5px; text-transform: uppercase;">Grid Step Navigation</div>
         </header>
 
         <div class="game-panel">
@@ -454,6 +423,14 @@
                         <div class="memo-slot"></div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Touch Controls D-Pad (At top for mobile) -->
+            <div class="touch-controls">
+                <button class="touch-btn" id="btn-up">▲</button>
+                <button class="touch-btn" id="btn-left">◀</button>
+                <button class="touch-btn" id="btn-down">▼</button>
+                <button class="touch-btn" id="btn-right">▶</button>
             </div>
 
             <!-- Game Layout Container -->
@@ -486,14 +463,6 @@
                         <p>You successfully bypassed security and escaped the labyrinth!</p>
                         <button class="btn" id="restart-win-btn">Play Again</button>
                     </div>
-                </div>
-
-                <!-- Touch Controls D-Pad -->
-                <div class="touch-controls">
-                    <button class="touch-btn" id="btn-up">▲</button>
-                    <button class="touch-btn" id="btn-left">◀</button>
-                    <button class="touch-btn" id="btn-down">▼</button>
-                    <button class="touch-btn" id="btn-right">▶</button>
                 </div>
             </div>
 
