@@ -453,13 +453,12 @@
     <!-- Landscape Warning Screen -->
     <div id="landscape-warning">
         <h2>Please Rotate Your Device</h2>
-        <p>This labyrinth requires portrait mode for optimal layout and touch controls. Please rotate your phone upright to play!</p>
     </div>
 
     <div class="container">
         <header>
-            <h1>Labyrinthine</h1>
-            <div class="subtitle">Grid Step Navigation</div>
+            <h1>Summer Maze</h1>
+            <div class="subtitle">Find the exit!</div>
         </header>
 
         <div class="game-panel">
@@ -495,19 +494,19 @@
                 <!-- Answer Dialog Overlay -->
                 <div id="puzzle-screen" class="overlay hidden">
                     <h2>Core Reached!</h2>
-                    <p style="color: #d1d5db; text-align: center; max-width: 280px; font-size: 0.9rem;">Type the secret word collected from your journey:</p>
+                    <p style="color: #d1d5db; text-align: center; max-width: 280px; font-size: 0.9rem;">What is the secret word?</p>
                     <div class="input-group">
                         <input type="text" id="answer-input" maxlength="9" placeholder="_________" autocomplete="off">
                         <div class="error-msg" id="error-msg"></div>
-                        <button class="btn" id="submit-btn">Unlock Core</button>
+                        <button class="btn" id="submit-btn">Enter</button>
                     </div>
                 </div>
 
                 <!-- Win Screen Overlay -->
                 <div id="win-screen" class="overlay hidden">
-                    <h2>Access Granted!</h2>
+                    <h2>Good Job!</h2>
                     <img src="maze_answer.jpg" alt="Maze Answer" class="win-image" onerror="this.style.display='none'">
-                    <p style="color: #d1d5db; text-align: center; font-size: 0.85rem;">You successfully bypassed security and escaped the labyrinth!</p>
+                    <p style="color: #d1d5db; text-align: center; font-size: 0.85rem;">You found the exit!</p>
                     <button class="btn" id="restart-win-btn">Play Again</button>
                 </div>
             </div>
