@@ -256,8 +256,8 @@
                 font-size: 0.7rem;
             }
             canvas {
-                width: min(82vw, 360px);
-                height: min(82vw, 360px);
+                width: min(94vw, 420px);
+                height: min(94vw, 420px);
             }
             .touch-controls {
                 display: grid;
@@ -391,9 +391,54 @@
             box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
             object-fit: cover;
         }
+
+        /* Landscape Orientation Warning Screen */
+        #landscape-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(11, 15, 25, 0.98);
+            backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #landscape-warning h2 {
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink);
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        #landscape-warning p {
+            color: #d1d5db;
+            font-size: 0.95rem;
+            max-width: 320px;
+            line-height: 1.4;
+        }
+
+        /* Show warning only on mobile/touch devices when in landscape orientation */
+        @media screen and (max-height: 500px) and (orientation: landscape) {
+            #landscape-warning {
+                display: flex;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Landscape Warning Screen -->
+    <div id="landscape-warning">
+        <h2>Please Rotate Your Device</h2>
+        <p>This labyrinth requires portrait mode for optimal layout and touch controls. Please rotate your phone upright to play!</p>
+    </div>
 
     <div class="container">
         <header>
