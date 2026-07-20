@@ -194,8 +194,8 @@
             background: rgba(31, 41, 55, 0.8);
             border: 1px solid var(--neon-purple);
             color: #fff;
-            width: 75px;
-            height: 65px;
+            width: 55px;
+            height: 45px;
             border-radius: 8px;
             font-size: 1.2rem;
             display: flex;
@@ -217,7 +217,7 @@
         #btn-down { grid-area: down; }
         #btn-right { grid-area: right; }
 
-@media (pointer: coarse), (max-width: 600px) {
+        @media (pointer: coarse), (max-width: 600px) {
             body {
                 justify-content: flex-start;
                 overflow-y: auto;
@@ -240,32 +240,20 @@
                 max-width: 100vw;
             }
             .top-bar {
-                display: flex;
-                flex-direction: column-reverse; /* Puts the reset button above the memo bar */
-                align-items: stretch;
                 gap: 6px;
-                width: 100%;
             }
-
-            .action-btn {
-                display: block;
-                width: 100%; /* Makes the reset button stretch across the full width */
-                text-align: center;
-                padding: 8px 10px;
-                font-size: 0.75rem;
-            }
-
             .memo-bar {
-                display: flex;
                 padding: 4px 8px;
                 font-size: 0.75rem;
-                width: 100%;
             }
- 
             .memo-slot {
-                width: 26px;
-                height: 30px;
-                font-size: 1.7rem;
+                width: 16px;
+                height: 20px;
+                font-size: 0.7rem;
+            }
+            .action-btn {
+                padding: 6px 10px;
+                font-size: 0.7rem;
             }
             canvas {
                 width: min(94vw, 420px);
@@ -277,8 +265,8 @@
                 margin-top: 2px;
             }
             .touch-btn {
-                width: 68px;
-                height: 58px;
+                width: 58px;
+                height: 48px;
                 font-size: 1rem;
             }
             .controls-hint {
@@ -475,6 +463,7 @@
                         <div class="memo-slot"></div>
                     </div>
                 </div>
+                <button class="action-btn" id="reset-btn">Reset</button>
             </div>
 
             <div style="position: relative;">
