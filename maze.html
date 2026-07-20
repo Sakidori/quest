@@ -59,11 +59,11 @@
             background: var(--panel-bg);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 10px;
-            padding: 6px;
+            padding: 4px 6px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             width: 100%;
             height: 100%;
             max-height: 100vh;
@@ -109,7 +109,7 @@
 
         .memo-slot {
             flex: 1;
-            height: 22px;
+            height: 20px;
             background: #111827;
             border: 1px solid #374151;
             border-radius: 4px;
@@ -118,7 +118,7 @@
             justify-content: center;
             font-weight: bold;
             color: var(--neon-blue);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             min-width: 0;
         }
@@ -127,16 +127,16 @@
             background: rgba(31, 41, 55, 0.9);
             border: 1px solid var(--neon-pink);
             color: var(--neon-pink);
-            padding: 4px 10px;
+            padding: 2px 8px;
             border-radius: 5px;
             font-weight: bold;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
             cursor: pointer;
             flex-shrink: 0;
         }
 
-        /* Touch Controls Moved to Top (Right below Memo bar) */
+        /* TOUCH CONTROLS EXPLICITLY PLACED BEFORE CANVAS IN HTML ORDER */
         .touch-controls {
             display: none;
             grid-template-areas: 
@@ -146,19 +146,19 @@
             flex-shrink: 0;
             justify-content: center;
             width: 100%;
-            background: rgba(11, 15, 25, 0.6);
-            padding: 2px;
-            border-radius: 8px;
-            border: 1px solid rgba(157, 0, 255, 0.2);
+            background: rgba(11, 15, 25, 0.85);
+            padding: 3px;
+            border-radius: 6px;
+            border: 1px solid rgba(157, 0, 255, 0.4);
         }
 
         .touch-btn {
             background: rgba(31, 41, 55, 0.95);
             border: 1px solid var(--neon-purple);
             color: #fff;
-            width: 44px;
-            height: 26px;
-            border-radius: 5px;
+            width: 50px;
+            height: 28px;
+            border-radius: 4px;
             font-size: 0.85rem;
             display: flex;
             align-items: center;
@@ -187,7 +187,7 @@
             flex-grow: 1;
             overflow: hidden;
             margin: 0;
-            min-height: 0; /* Critical for flex child scaling */
+            min-height: 0;
         }
 
         canvas {
@@ -425,7 +425,7 @@
                 </div>
             </div>
 
-            <!-- Touch Controls D-Pad (At top for mobile) -->
+            <!-- TOUCH CONTROLS POSITIONED HERE: Right below the top bar, strictly above the maze -->
             <div class="touch-controls">
                 <button class="touch-btn" id="btn-up">▲</button>
                 <button class="touch-btn" id="btn-left">◀</button>
@@ -433,7 +433,7 @@
                 <button class="touch-btn" id="btn-right">▶</button>
             </div>
 
-            <!-- Game Layout Container -->
+            <!-- Game Layout Container (Maze Canvas) -->
             <div class="game-layout">
                 <div class="canvas-container">
                     <canvas id="mazeCanvas" width="900" height="900"></canvas>
