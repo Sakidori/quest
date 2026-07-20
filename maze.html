@@ -102,7 +102,6 @@
             font-size: 0.85rem;
             letter-spacing: 1px;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-            overflow-x: auto;
             flex-grow: 1;
         }
 
@@ -117,11 +116,13 @@
         .memo-slots {
             display: flex;
             gap: 4px;
+            flex-grow: 1;
+            justify-content: space-between;
         }
 
         .memo-slot {
-            width: 22px;
-            height: 26px;
+            width: 26px;
+            height: 32px;
             background: #111827;
             border: 1px solid #374151;
             border-radius: 4px;
@@ -131,7 +132,7 @@
             font-weight: bold;
             color: var(--neon-blue);
             text-shadow: 0 0 6px rgba(0, 243, 255, 0.5);
-            font-size: 0.85rem;
+            font-size: 1rem;
             text-transform: uppercase;
         }
 
@@ -241,20 +242,28 @@
             }
             .top-bar {
                 display: flex;
-                flex-direction: column-reverse; /* Puts reset button above the memo bar */
+                flex-direction: column-reverse;
                 align-items: stretch;
                 gap: 6px;
                 width: 100%;
             }
             .memo-bar {
-                padding: 4px 8px;
-                font-size: 0.75rem;
+                padding: 6px 10px;
+                width: 100%;
+            }
+            .memo-title {
+                font-size: 0.7rem;
+            }
+            .memo-slots {
+                gap: 3px;
+                justify-content: space-between;
                 width: 100%;
             }
             .memo-slot {
-                width: 16px;
-                height: 20px;
-                font-size: 0.7rem;
+                flex: 1;
+                height: 36px;
+                font-size: 0.95rem;
+                max-width: none;
             }
             .action-btn {
                 display: block;
