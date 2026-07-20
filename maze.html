@@ -812,6 +812,26 @@
             answerInput.focus();
         }
 
+        function checkAnswer() {
+            let val = answerInput.value.trim().toUpperCase();
+            if (val === targetWord) {
+                puzzleScreen.classList.add('hidden');
+                winScreen.classList.remove('hidden');
+                gameState = 'WIN';
+            } else {
+                errorMsg.innerText = "Incorrect code! Try again.";
+                answerInput.classList.add('shake');
+                setTimeout(() => answerInput.classList.remove('shake'), 400);
+            }
+        }
+
+        submitBtn.addEventListener('click', checkAnswer);
+        answerInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
         let mazeBuffer = document.createElement('canvas');
         mazeBuffer.width = 450;
         mazeBuffer.height = 450;
