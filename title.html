@@ -298,6 +298,14 @@
             document.body.appendChild(iframe);
         }
 
+        function requestFullscreen() {
+    var elem = document.documentElement;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) { /* Safari/iOS fallback */
+        elem.webkitRequestFullscreen();
+    }
+}
 // Listen for messages bubbling up from the iframe/tour structure
         window.addEventListener("message", (event) => {
             // Check if the data coming through contains your game's URL
