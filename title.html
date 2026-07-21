@@ -181,7 +181,7 @@
         <div class="splash-content">
             <div id="rotate-msg"><h1>Please rotate your device to landscape</h1></div>
             <div id="enter-container">
-                <button class="enter-btn" onclick="enterSite(); requestFullscreen();">ENTER</button>
+               <button class="enter-btn" onclick="enterSite()">ENTER</button>
             </div>
         </div>
     </div>
@@ -287,6 +287,7 @@
             setTimeout(() => { splash.style.display = 'none'; }, 1000);
             
             // Start the playlist upon entering
+　　　　　　　　　　requestFullscreen();
             playCurrentTrack();
         }
 
