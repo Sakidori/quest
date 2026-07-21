@@ -14,6 +14,13 @@ html, body {
     height: 100dvh;
     overflow: hidden;
     background: #1a2f4d;
+    touch-action: manipulation;
+}
+
+body.modal-open {
+    overflow: auto !important;
+    position: fixed;
+    width: 100%;
 }
 
 #game-shell {
@@ -143,14 +150,19 @@ canvas {
         display: flex;
     }
 }
-
-html, body {
-    touch-action: manipulation; /* Prevents double-tap to zoom */
-    overflow: hidden;           /* Stops page scrolling/bouncing */
-}
   </style>
 </head>
 <body>
+  <!-- Sound Effects -->
+  <audio id="sfx-jump" src="jump.mp3" preload="auto"></audio>
+  <audio id="sfx-attack" src="attack.mp3" preload="auto"></audio>
+  <audio id="sfx-hit" src="hit.mp3" preload="auto"></audio>          <!-- Player getting hit -->
+  <audio id="sfx-mobhit" src="mobhit.mp3" preload="auto"></audio>    <!-- Mob getting hit -->
+  <audio id="sfx-stomp" src="stomp.mp3" preload="auto"></audio>
+  <audio id="sfx-fall" src="fall.mp3" preload="auto"></audio>
+  <audio id="sfx-run" src="run.mp3" preload="auto"></audio>          <!-- Continuous running loop -->
+  <audio id="sfx-flag" src="flag.mp3" preload="auto"></audio>        <!-- Reaching the flag -->
+
   <div id="game-shell">
     <canvas id="gameCanvas"></canvas>
 
@@ -169,7 +181,7 @@ html, body {
         <div id="password-section">
             <h2>Level Complete!</h2>
             <p>秘密の言葉を入れてください:</p>
-            <input type="text" id="passwordInput" placeholder="Type here..." style="padding: 10px; border-radius: 5px; border: none; font-size: 16px;">
+            <input type="text" id="passwordInput" placeholder="Type here..." style="padding: 10px; border-radius: 5px; border: none; font-size: 16px; pointer-events: auto; touch-action: manipulation;">
             <br><br>
             <button onclick="checkWord()">Submit</button>
             <button onclick="restartGame()">Restart</button>
@@ -205,18 +217,6 @@ html, body {
     <p>端末を横向きにしてください！</p>
 </div>
 
-<!-- Virtual Controls -->
-<div id="controls">
-    <div id="dpad" class="left-controls">
-        <div id="btn-left" class="control-btn">◀</div>
-        <div id="btn-right" class="control-btn">▶</div>
-    </div>
-    <div id="action-buttons" class="right-controls">
-        <div id="btn-jump" class="control-btn">▲</div>
-        <div id="btn-attack" class="control-btn">X</div>
-    </div>
-</div>
-
   <script>
 window.addEventListener("orientationchange", () => {
     setTimeout(() => {
@@ -228,33 +228,30 @@ window.addEventListener("orientationchange", () => {
 // For browsers that don't support orientationchange well
 window.addEventListener("resize", () => {
     const GAME_WIDTH = 800;
-const GAME_HEIGHT = 450;
+    const GAME_HEIGHT = 450;
 
-function setupCanvas() {
-    const canvas = document.getElementById("gameCanvas");
-    canvas.width = GAME_WIDTH;
-    canvas.height = GAME_HEIGHT;
-}
+    function setupCanvas() {
+        const canvas = document.getElementById("gameCanvas");
+        canvas.width = GAME_WIDTH;
+        canvas.height = GAME_HEIGHT;
+    }
 
-// Call this once on startup
-setupCanvas();
+    setupCanvas();
 });
+
 const VIRTUAL_WIDTH = 800;
 const VIRTUAL_HEIGHT = 450;
 
 function resizeCanvas() {
     const canvas = document.getElementById("gameCanvas");
-    // Ensure the canvas internal resolution is always 800x450
     canvas.width = VIRTUAL_WIDTH;
     canvas.height = VIRTUAL_HEIGHT;
 }
 
-// Single source of truth for initialization
 window.addEventListener('load', () => {
     resizeCanvas();
 });
 
-// Orientation change fix
 window.addEventListener("orientationchange", () => {
     setTimeout(resizeCanvas, 300);
 });
@@ -267,6 +264,15 @@ window.addEventListener("orientationchange", () => {
     const panelText = overlay.querySelector("p");
     const panelHint = overlay.querySelector(".hint");
     
+    // SFX Helper Function
+    function playSfx(id) {
+        const sound = document.getElementById(id);
+        if (sound) {
+            sound.currentTime = 0;
+            sound.play().catch(e => console.log("SFX play prevented:", e));
+        }
+    }
+
     const spriteFiles = {
       idle: "male_hero-idle.png",
       run: "male_hero-run.png",
@@ -283,14 +289,14 @@ window.addEventListener("orientationchange", () => {
     let loadedAssets = 0;
     const totalAssets = Object.keys(spriteFiles).length + 1;
 
-const BOOGER_SIZE = 32;
-const BOOGER_ANIM = {
-    moveRight: { row: 5, frames: 4 },
-    moveLeft:  { row: 6, frames: 4 },
-    hitRight:  { row: 13, frames: 2 },
-    hitLeft:   { row: 15, frames: 2 },
-    dying:     { row: 21, frames: 5 }
-};
+    const BOOGER_SIZE = 32;
+    const BOOGER_ANIM = {
+        moveRight: { row: 5, frames: 4 },
+        moveLeft:  { row: 6, frames: 4 },
+        hitRight:  { row: 13, frames: 2 },
+        hitLeft:   { row: 15, frames: 2 },
+        dying:     { row: 21, frames: 5 }
+    };
 
     function assetLoaded() {
       loadedAssets += 1;
@@ -315,11 +321,12 @@ const BOOGER_ANIM = {
     const MOVE_SPEED = 4.8;
     const JUMP_FORCE = -12.4;
     const FRICTION = 0.8;
-    const WORLD_WIDTH = 1600; // Total width of your new long level
+    const WORLD_WIDTH = 1600;
     let camera = { x: 0 };
 
     let player;
     let platforms;
+    let spikes;
     let goal;
     let mobs;
     let floatingTexts = [];
@@ -327,116 +334,111 @@ const BOOGER_ANIM = {
     let animationFrameId = null;
     let running = false;
     let lastTime = 0;
-    let frameIndex = 0;
     let flagTimer = 0;
     let letterPool = ["s", "u", "m", "m", "e", "r"];
     let collectedLetters = [];
     let lives = 3;
-const FLAG_FRAME_DURATION = 150; // Milliseconds per frame
 
     function resetGame() {
         lives = 3;
         letterPool = ["s", "u", "m", "m", "e", "r"]; 
         collectedLetters = [];
-      player = {
-        x: 0,
-        y: 15,
-        w: 108,
-        h: 135,
-        hitboxW: 25,
-        hitboxH: 100, // Physics hitbox is smaller than sprite
-        yOffset: 17,  // Visual correction to shift sprite down
-        dx: 0,
-        dy: 0,
-        onGround: false,
-        facing: 1,
-        alive: true,
-        playerFrameIndex: 0,
-        isAttacking: false,
-        isInvulnerable: false,
-        invulnerableTimer: 0
-      };
+        player = {
+            x: 0,
+            y: 15,
+            w: 108,
+            h: 135,
+            hitboxW: 25,
+            hitboxH: 100,
+            yOffset: 17,
+            dx: 0,
+            dy: 0,
+            onGround: false,
+            facing: 1,
+            alive: true,
+            playerFrameIndex: 0,
+            isAttacking: false,
+            isInvulnerable: false,
+            invulnerableTimer: 0
+        };
 
-platforms = [
-    // The ground segments from your drawing
-    { x: -1, y: 350, w: 200, h: 50 },
-    { x: 300, y: 350, w: 200, h: 50 },
-    { x: 600, y: 350, w: 200, h: 50 },
-    { x: 950, y: 350, w: 200, h: 50 },
-    
-    // Floating platforms
-    { x: 200, y: 220, w: 80, h: 20 },
-    { x: 520, y: 220, w: 80, h: 20 },
-    { x: 780, y: 180, w: 100, h: 20 },
-    { x: 950, y: 100, w: 150, h: 20 },
-    { x: 1300, y: 150, w: 100, h: 20 }
-];
-spikes = [
-    { x: 450, y: 340, w: 30, h: 10 },
-    { x: 750, y: 340, w: 30, h: 10 }
-];
+        platforms = [
+            { x: -1, y: 350, w: 200, h: 50 },
+            { x: 300, y: 350, w: 200, h: 50 },
+            { x: 600, y: 350, w: 200, h: 50 },
+            { x: 950, y: 350, w: 200, h: 50 },
+            { x: 200, y: 220, w: 80, h: 20 },
+            { x: 520, y: 220, w: 80, h: 20 },
+            { x: 780, y: 180, w: 100, h: 20 },
+            { x: 950, y: 100, w: 150, h: 20 },
+            { x: 1300, y: 150, w: 100, h: 20 }
+        ];
+        
+        spikes = [
+            { x: 450, y: 340, w: 30, h: 10 },
+            { x: 750, y: 340, w: 30, h: 10 }
+        ];
 
-goal = {
-  x: 1330, 
-  y: 92, 
-  w: 44, 
-  h: 58,
-  hitboxW: 16, 
-  hitboxH: 45,
-  hitboxOffsetX: 14, 
-  hitboxOffsetY: 8,
-  frameCount: 5,
-  frameIndex: 0,
-  // This is the only distance that matters
-  frameWidth: 60,
-  active: false
-};
-      keys = {};
+        goal = {
+          x: 1330, 
+          y: 92, 
+          w: 44, 
+          h: 58,
+          hitboxW: 40,          // Expanded width for easier reach
+          hitboxH: 45,
+          hitboxOffsetX: -10,   // Shifted further to the left
+          hitboxOffsetY: 8,
+          frameCount: 5,
+          frameIndex: 0,
+          frameWidth: 60,
+          active: false
+        };
+        
+        keys = {};
 
-mobs = [
-  { 
-    x: 350, y: 288, w: 50, h: 40, dx: 1.5, health: 3, frame: 0, facing: 1, 
-    minX: 300, maxX: 500, // Restricted to the first platform
-    wasHit: false, isDead: false, deathTimer: 0 
-  },
-  { 
-    x: 650, y: 288, w: 50, h: 40, dx: -1.5, health: 3, frame: 0, facing: -1, 
-    minX: 600, maxX: 800, // Restricted to the second platform
-    wasHit: false, isDead: false, deathTimer: 0 
-  }
-];
-
+        mobs = [
+          { 
+            x: 350, y: 288, w: 50, h: 40, dx: 1.5, health: 3, frame: 0, facing: 1, 
+            minX: 300, maxX: 500, 
+            wasHit: false, isDead: false, deathTimer: 0 
+          },
+          { 
+            x: 650, y: 288, w: 50, h: 40, dx: -1.5, health: 3, frame: 0, facing: -1, 
+            minX: 600, maxX: 800, 
+            wasHit: false, isDead: false, deathTimer: 0 
+          }
+        ];
     }
 
-function startGame() {
-    // Check if the device is likely mobile
-    // It checks if the screen width is small (under 900px) AND it has touch capabilities
-    const isMobile = window.innerWidth <= 900 && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    function startGame() {
+        const isMobile = window.innerWidth <= 900 && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
-    if (isMobile) {
-        const elem = document.documentElement;
-        if (elem.requestFullscreen) {
-            elem.requestFullscreen().then(() => {
-                if (screen.orientation && screen.orientation.lock) {
-                    screen.orientation.lock('landscape').catch(() => {});
-                }
-            }).catch((err) => {
-                console.log("Fullscreen failed", err);
-            });
+        if (isMobile) {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().then(() => {
+                    if (screen.orientation && screen.orientation.lock) {
+                        screen.orientation.lock('landscape').catch(() => {});
+                    }
+                }).catch((err) => {
+                    console.log("Fullscreen failed", err);
+                });
+            }
         }
+        
+        resetGame();
+        running = true;
+        lastTime = performance.now();
+        overlay.style.display = "none";
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(loop);
     }
-    
-    resetGame();
-    running = true;
-    lastTime = performance.now();
-    overlay.style.display = "none";
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    animationFrameId = requestAnimationFrame(loop);
-}
 
     function showOverlay(title, text, hint) {
       running = false;
-      
+      const runSfx = document.getElementById("sfx-run");
+      if (runSfx) runSfx.pause();
+
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       overlay.style.display = "flex";
       panelTitle.textContent = title;
@@ -445,474 +447,468 @@ function startGame() {
       startButton.textContent = title === "You Win!" ? "Play Again" : "Restart";
     }
 
-  function loop(time) {
-    if (!running) return;
-    
-    // Clamp delta between 0.5 and 2.0 to prevent physics "explosions"
-    let delta = (time - lastTime) / 16.67;
-    delta = Math.max(0.5, Math.min(2.0, delta)); 
-    
-    lastTime = time;
-    update(delta);
-    render();
-    animationFrameId = requestAnimationFrame(loop);
-}
+    function loop(time) {
+        if (!running) return;
+        
+        let delta = (time - lastTime) / 16.67;
+        delta = Math.max(0.5, Math.min(2.0, delta)); 
+        
+        lastTime = time;
+        update(delta);
+        render();
+        animationFrameId = requestAnimationFrame(loop);
+    }
 
     function update(delta) {
-
         if (player.isInvulnerable) {
-        player.invulnerableTimer -= delta;
-        if (player.invulnerableTimer <= 0) {
-            player.isInvulnerable = false;
-            player.invulnerableTimer = 0;
+            player.invulnerableTimer -= delta;
+            if (player.invulnerableTimer <= 0) {
+                player.isInvulnerable = false;
+                player.invulnerableTimer = 0;
+            }
         }
-    }
-// Inside update(delta)
-const moveInput = (keys["ArrowRight"] || keys["KeyD"] ? 1 : 0) - (keys["ArrowLeft"] || keys["KeyA"] ? 1 : 0);
 
-if (moveInput !== 0) {
-  player.dx = moveInput * MOVE_SPEED; // Remove * delta here for smoother horizontal movement
-  player.facing = moveInput;
-} else {
-  player.dx *= FRICTION; // This slows the player down gradually
-}
+        const moveInput = (keys["ArrowRight"] || keys["KeyD"] ? 1 : 0) - (keys["ArrowLeft"] || keys["KeyA"] ? 1 : 0);
 
-      if ((keys["Space"] || keys["ArrowUp"] || keys["KeyW"]) && player.onGround) {
-        player.dy = JUMP_FORCE;
-        player.onGround = false;
-      }
-const MAX_FALL_SPEED = 15; 
-if (player.dy > MAX_FALL_SPEED) {
-    player.dy = MAX_FALL_SPEED;
-}
-      player.dy += GRAVITY * delta;
-      player.x += player.dx * delta;
-      player.y += player.dy * delta;
-
-      let landed = false;
-      const playerHitboxX = player.x + (player.w - player.hitboxW) / 2;
-      
-      platforms.forEach((platform) => {
-        if (
-          playerHitboxX < platform.x + platform.w &&
-          playerHitboxX + player.hitboxW > platform.x &&
-          player.y + player.hitboxH >= platform.y &&
-          player.y + player.hitboxH <= platform.y + 20
-        ) {
-          if (player.dy >= 0) {
-            player.y = platform.y - player.hitboxH;
-            player.dy = 0;
-            player.onGround = true;
-            landed = true;
-          }
+        if (moveInput !== 0) {
+          player.dx = moveInput * MOVE_SPEED; 
+          player.facing = moveInput;
+        } else {
+          player.dx *= FRICTION; 
         }
-      });
 
-spikes.forEach(spike => {
-    if (
-        player.x < spike.x + spike.w &&
-        player.x + player.hitboxW > spike.x &&
-        player.y + player.hitboxH > spike.y
-    ) {
-        lives = 0;
-        finishGame("Try Again", "スパイクにぶつかってしまったね。もっと気をつけてね！");
-    }
-});
-
-      if (!landed) player.onGround = false;
-
-     const hitboxPadding = (player.w - player.hitboxW) / 2;
-
-if (player.x + hitboxPadding < 0) {
-  player.x = -hitboxPadding;
-}
-if (player.x + hitboxPadding + player.hitboxW > WORLD_WIDTH) {
-  player.x = WORLD_WIDTH - player.hitboxW - hitboxPadding;
-}
-      if (player.y > 450) { 
-        lives = 0;
-    finishGame("Game Over", "君は深淵に落ちてしまった！");
-}
-
-mobs.forEach(mob => {
-    if (mob.removed) return;
-
-    // 1. Movement & Boundary Constraints
-    if (mob.health > 0) {
-        mob.x += mob.dx * delta;
-        if (mob.x < mob.minX || (mob.x + mob.w) > mob.maxX) {
-            mob.dx *= -1;
-        }
-    }
-
-   // 2. Combat Logic (Sword)
-if (player.isAttacking) {
-    const comboFrame = Math.floor(player.playerFrameIndex / 4);
-    if (comboFrame >= 2 && comboFrame <= 4 && !mob.wasHit) {
-        const hitBoxX = player.facing === 1 ? player.x + 40 : player.x - 40;
-        if (Math.abs(mob.x - hitBoxX) < 75) {
+        // Running Sound Loop Management with custom frame delay
+        const runSfx = document.getElementById("sfx-run");
+        if (runSfx) {
+            const isMovingHorizontally = Math.abs(player.dx) > 0.5;
             
-            // Only deal damage and give rewards if the mob is still alive
-            if (mob.health > 0) {
-                mob.health -= 1;
-                mob.wasHit = true;
-                
-                // Reward Logic
-                const letter = letterPool.length > 0 ? letterPool.splice(Math.floor(Math.random() * letterPool.length), 1)[0] : null;
-                if (letter) {
-                    collectedLetters.push(letter);
-                    spawnDamageText(mob.x, mob.y - 20, letter.toUpperCase());
+            if (window.runDelayCounter === undefined) window.runDelayCounter = 0;
+
+            if (isMovingHorizontally && player.onGround) {
+                if (runSfx.paused) {
+                    if (window.runDelayCounter <= 0) {
+                        runSfx.currentTime = 0;
+                        runSfx.play().catch(e => console.log("Run SFX play prevented:", e));
+                        window.runDelayCounter = 28; // Adjust this value to change delay length (in frames)
+                    } else {
+                        window.runDelayCounter -= delta;
+                    }
                 }
             } else {
-                // If health is already 0, just flag as hit without spawning anything
-                mob.wasHit = true;
+                window.runDelayCounter = 0;
+                if (!runSfx.paused) {
+                    runSfx.pause();
+                    runSfx.currentTime = 0;
+                }
+            }
+        }
+
+        if ((keys["Space"] || keys["ArrowUp"] || keys["KeyW"]) && player.onGround) {
+            player.dy = JUMP_FORCE;
+            player.onGround = false;
+            
+            if (runSfx && !runSfx.paused) {
+                runSfx.pause();
+                runSfx.currentTime = 0;
+            }
+
+            playSfx('sfx-jump');
+        }
+
+        const MAX_FALL_SPEED = 15; 
+        if (player.dy > MAX_FALL_SPEED) {
+            player.dy = MAX_FALL_SPEED;
+        }
+        
+        player.dy += GRAVITY * delta;
+        player.x += player.dx * delta;
+        player.y += player.dy * delta;
+
+        let landed = false;
+        const playerHitboxX = player.x + (player.w - player.hitboxW) / 2;
+          
+        platforms.forEach((platform) => {
+            if (
+              playerHitboxX < platform.x + platform.w &&
+              playerHitboxX + player.hitboxW > platform.x &&
+              player.y + player.hitboxH >= platform.y &&
+              player.y + player.hitboxH <= platform.y + 20
+            ) {
+              if (player.dy >= 0) {
+                player.y = platform.y - player.hitboxH;
+                player.dy = 0;
+                player.onGround = true;
+                landed = true;
+              }
+            }
+        });
+
+        spikes.forEach(spike => {
+            if (
+                player.x < spike.x + spike.w &&
+                player.x + player.hitboxW > spike.x &&
+                player.y + player.hitboxH > spike.y
+            ) {
+                lives = 0;
+                const runSfxCheck = document.getElementById("sfx-run");
+                if (runSfxCheck) runSfxCheck.pause();
+                playSfx('sfx-fall');
+                finishGame("Try Again", "スパイクにぶつかってしまったね。もっと気をつけてね！");
+            }
+        });
+
+        if (!landed) player.onGround = false;
+
+        const hitboxPadding = (player.w - player.hitboxW) / 2;
+
+        if (player.x + hitboxPadding < 0) {
+          player.x = -hitboxPadding;
+        }
+        if (player.x + hitboxPadding + player.hitboxW > WORLD_WIDTH) {
+          player.x = WORLD_WIDTH - player.hitboxW - hitboxPadding;
+        }
+        
+        if (player.y > 450) { 
+            lives = 0;
+            const runSfxCheck = document.getElementById("sfx-run");
+            if (runSfxCheck) runSfxCheck.pause();
+            playSfx('sfx-fall');
+            finishGame("Game Over", "君は深淵に落ちてしまった！");
+        }
+
+        mobs.forEach(mob => {
+            if (mob.removed) return;
+
+            if (mob.health > 0) {
+                mob.x += mob.dx * delta;
+                if (mob.x < mob.minX || (mob.x + mob.w) > mob.maxX) {
+                    mob.dx *= -1;
+                }
+            }
+
+            if (player.isAttacking) {
+                const comboFrame = Math.floor(player.playerFrameIndex / 4);
+                if (comboFrame >= 2 && comboFrame <= 4 && !mob.wasHit) {
+                    const hitBoxX = player.facing === 1 ? player.x + 40 : player.x - 40;
+                    if (Math.abs(mob.x - hitBoxX) < 75) {
+                        if (mob.health > 0) {
+                            mob.health -= 1;
+                            mob.wasHit = true;
+                            playSfx('sfx-mobhit');
+                            
+                            const letter = letterPool.length > 0 ? letterPool.splice(Math.floor(Math.random() * letterPool.length), 1)[0] : null;
+                            if (letter) {
+                                collectedLetters.push(letter);
+                                spawnDamageText(mob.x, mob.y - 20, letter.toUpperCase());
+                            }
+                        } else {
+                            mob.wasHit = true;
+                        }
+                    }
+                }
+            } else {
+                mob.wasHit = false;
+            }
+
+            if (!mob.isDead &&
+                player.x < mob.x + mob.w &&
+                player.x + player.hitboxW > mob.x &&
+                player.y + player.hitboxH > (mob.y + 25) &&
+                player.y < (mob.y + 25) + mob.h
+            ) {
+                const playerFeet = player.y + player.hitboxH;
+                const mobTop = mob.y + 25; 
+
+                if (player.dy > 0 && playerFeet < mobTop + 30) {
+                    if (mob.health > 0) {
+                        mob.health -= 1;
+                        player.dy = -8;
+                        player.onGround = false;
+                        playSfx('sfx-stomp');
+                        
+                        const letter = letterPool.length > 0 ? letterPool.splice(Math.floor(Math.random() * letterPool.length), 1)[0] : null;
+                        if (letter) {
+                            spawnDamageText(mob.x, mob.y, letter.toUpperCase());
+                        }
+                    } else {
+                        player.dy = -8;
+                        player.onGround = false;
+                        playSfx('sfx-stomp');
+                    }
+                } 
+                else if (!player.isInvulnerable && mob.health > 0) {
+                    lives -= 1;
+                    playSfx('sfx-hit');
+                    if (lives <= 0) {
+                        const runSfxCheck = document.getElementById("sfx-run");
+                        if (runSfxCheck) runSfxCheck.pause();
+                        finishGame("Game Over", "You ran out of lives!");
+                    } else {
+                        player.isInvulnerable = true;
+                        player.invulnerableTimer = 120; 
+                        player.dx = (player.x < mob.x ? -1 : 1) * 8;
+                        player.dy = -5;
+                    }
+                }
+            }
+
+            if (mob.health <= 0 && !mob.isDead) {
+                mob.isDead = true;
+                mob.frame = 0;
+            }
+        });
+
+        mobs = mobs.filter(m => !m.removed);
+
+        flagTimer += delta; 
+        if (flagTimer >= 10) {
+            goal.frameIndex = (goal.frameIndex + 1) % goal.frameCount;
+            flagTimer = 0;
+        }
+
+        const goalHitboxX = goal.x + goal.hitboxOffsetX;
+        const goalHitboxY = goal.y + goal.hitboxOffsetY;
+
+        if (goal.active) { 
+            if (
+              player.x < goalHitboxX + goal.hitboxW &&
+              player.x + player.hitboxW > goalHitboxX &&
+              player.y < goalHitboxY + goal.hitboxH &&
+              player.y + player.hitboxH > goalHitboxY
+            ) {
+              const runSfxCheck = document.getElementById("sfx-run");
+              if (runSfxCheck) runSfxCheck.pause();
+              
+              // Stop player movement immediately upon reaching goal
+              player.dx = 0;
+              keys = {};
+
+              finishGame("You Win!", "You reached the goal!");
+            }
+        } else {
+            if (mobs.every(m => m.isDead)) {
+                goal.active = true;
+                spawnDamageText(goal.x, goal.y - 20, "UNLOCKED!");
             }
         }
     }
-} else {
-    mob.wasHit = false;
-}
-const MOB_Y_OFFSET = 25;
-if (!mob.isDead &&
-    player.x < mob.x + mob.w &&
-    player.x + player.hitboxW > mob.x &&
-    player.y + player.hitboxH > (mob.y + 25) &&
-    player.y < (mob.y + 25) + mob.h
-) {
-    const playerFeet = player.y + player.hitboxH;
-    const mobTop = mob.y + 25; 
 
-    if (player.dy > 0 && playerFeet < mobTop + 30) {
-        // Only trigger if mob still has health
-        if (mob.health > 0) {
-            mob.health -= 1;
-            player.dy = -8; // Bounce off
-            player.onGround = false;
+    function render() {
+        camera.x = Math.max(0, Math.min(player.x - VIRTUAL_WIDTH / 2, WORLD_WIDTH - VIRTUAL_WIDTH));
+        ctx.clearRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+        const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        sky.addColorStop(0, "#2d5a27");
+        sky.addColorStop(1, "#1a3317");
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        function drawForestTrees(alpha, scale, speed, yOffset) {
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            const trunkSpacing = 300 * scale; 
             
-            // Reward Logic
-            const letter = letterPool.length > 0 ? letterPool.splice(Math.floor(Math.random() * letterPool.length), 1)[0] : null;
-            if (letter) {
-                spawnDamageText(mob.x, mob.y, letter.toUpperCase());
+            for (let i = 0; i < WORLD_WIDTH / trunkSpacing; i++) {
+                const treeX = (i * trunkSpacing) - (camera.x * speed);
+                
+                if (treeX > -100 && treeX < VIRTUAL_WIDTH + 100) {
+                    ctx.fillStyle = "#3d2b1f";
+                    ctx.fillRect(treeX + (15 * scale), 50 + yOffset, 30 * scale, 400 * scale);
+                    
+                    ctx.fillStyle = "#2d5a27";
+                    ctx.beginPath();
+                    ctx.arc(treeX + (30 * scale), 50 + yOffset, 45 * scale, 0, Math.PI * 2);
+                    ctx.arc(treeX, 80 + yOffset, 35 * scale, 0, Math.PI * 2);
+                    ctx.arc(treeX + (60 * scale), 80 + yOffset, 35 * scale, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = "#3e7a37";
+                    ctx.beginPath();
+                    ctx.arc(treeX + (30 * scale), 50 + yOffset, 25 * scale, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             }
-        } else {
-            // Still bounce off dead/dying mobs, but give no rewards
-            player.dy = -8;
-            player.onGround = false;
+            ctx.restore();
         }
-    } 
-    else if (!player.isInvulnerable && mob.health > 0) {
-        // Damage to player only happens if the mob is still alive
-        lives -= 1;
-        if (lives <= 0) {
-            finishGame("Game Over", "You ran out of lives!");
-        } else {
-            player.isInvulnerable = true;
-            player.invulnerableTimer = 120; 
-            player.dx = (player.x < mob.x ? -1 : 1) * 8;
-            player.dy = -5;
-        }
-    }
-}
 
-    // 4. Death Check
-    if (mob.health <= 0 && !mob.isDead) {
-        mob.isDead = true;
-        mob.frame = 0;
-    }
-});
+        drawForestTrees(0.3, 0.6, 0.1, 50); 
+        drawForestTrees(0.6, 0.9, 0.3, 20); 
+        drawForestTrees(1.0, 1.3, 0.6, 0);  
 
-// Cleanup removed mobs
-mobs = mobs.filter(m => !m.removed);
+        ctx.fillStyle = "#0f1f0e";
+        ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
 
-// Goal Animation Timer
-flagTimer += delta; 
-if (flagTimer >= 10) { // Adjust '10' based on how fast you want the animation
-    goal.frameIndex = (goal.frameIndex + 1) % goal.frameCount;
-    flagTimer = 0;
-}
+        ctx.save();
+        ctx.translate(-camera.x, 0);
 
-const goalHitboxX = goal.x + goal.hitboxOffsetX;
-const goalHitboxY = goal.y + goal.hitboxOffsetY;
+        spikes.forEach(s => {
+            ctx.fillStyle = "#ff0000";
+            ctx.strokeStyle = "#8b0000";
+            ctx.lineWidth = 2;
 
-// Add the 'if (goal.active)' check here
-if (goal.active) { 
-    if (
-      player.x < goalHitboxX + goal.hitboxW &&
-      player.x + player.hitboxW > goalHitboxX &&
-      player.y < goalHitboxY + goal.hitboxH &&
-      player.y + player.hitboxH > goalHitboxY
-    ) {
-      finishGame("You Win!", "You reached the goal!");
-    }
-} else {
-    // Optional: Check if all mobs are dead to unlock
-    if (mobs.every(m => m.isDead)) {
-        goal.active = true;
-        spawnDamageText(goal.x, goal.y - 20, "UNLOCKED!");
-    }
-}
-    }
+            const triWidth = s.w / 3;
 
-   
+            for (let i = 0; i < 3; i++) {
+                const startX = s.x + (i * triWidth);
+                
+                ctx.beginPath();
+                ctx.moveTo(startX, s.y + s.h);
+                ctx.lineTo(startX + (triWidth / 2), s.y);
+                ctx.lineTo(startX + triWidth, s.y + s.h);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+        });
 
-function render() {
-    // 1. Calculate camera
-camera.x = Math.max(0, Math.min(player.x - VIRTUAL_WIDTH / 2, WORLD_WIDTH - VIRTUAL_WIDTH));
-ctx.clearRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+        platforms.forEach((platform) => {
+            ctx.fillStyle = "#5d3a1a";
+            ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
 
-    // --- A. Draw Static Background (No Translation) ---
-const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-sky.addColorStop(0, "#2d5a27");
-sky.addColorStop(1, "#1a3317");
-ctx.fillStyle = sky;
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-// 2. Forest Layering Function
-function drawForestTrees(alpha, scale, speed, yOffset) {
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    const trunkSpacing = 300 * scale; 
-    
-    for (let i = 0; i < WORLD_WIDTH / trunkSpacing; i++) {
-        const treeX = (i * trunkSpacing) - (camera.x * speed);
-        
-        if (treeX > -100 && treeX < VIRTUAL_WIDTH + 100) {
-            // Trunk: Increased height from 270 to 400 to reach the floor
-            ctx.fillStyle = "#3d2b1f";
-            ctx.fillRect(treeX + (15 * scale), 50 + yOffset, 30 * scale, 400 * scale);
+            ctx.fillStyle = "#4a7c44";
+            ctx.fillRect(platform.x, platform.y, platform.w, 10); 
             
-            // Foliage: Remains at the top
-            ctx.fillStyle = "#2d5a27";
-            ctx.beginPath();
-            ctx.arc(treeX + (30 * scale), 50 + yOffset, 45 * scale, 0, Math.PI * 2);
-            ctx.arc(treeX, 80 + yOffset, 35 * scale, 0, Math.PI * 2);
-            ctx.arc(treeX + (60 * scale), 80 + yOffset, 35 * scale, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillStyle = "#6b9a65"; 
+            ctx.fillRect(platform.x, platform.y, platform.w, 4);
+        });
 
-            // Highlight
-            ctx.fillStyle = "#3e7a37";
-            ctx.beginPath();
-            ctx.arc(treeX + (30 * scale), 50 + yOffset, 25 * scale, 0, Math.PI * 2);
-            ctx.fill();
+        mobs.forEach(m => {
+            if (m.health >= 0) {
+                m.facing = m.dx > 0 ? 1 : -1;
+                drawBooger(m);
+            }
+        });
+
+        ctx.drawImage(goalImage, goal.frameIndex * 60, 0, 32, 50, goal.x, goal.y, goal.w, goal.h);
+        if (!goal.active) {
+            ctx.font = "24px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("🔒", goal.x + goal.w / 2, goal.y - 10);
         }
-    }
-    ctx.restore();
-}
 
-// 3. Draw layers from Back to Front
-drawForestTrees(0.3, 0.6, 0.1, 50); 
-drawForestTrees(0.6, 0.9, 0.3, 20); 
-drawForestTrees(1.0, 1.3, 0.6, 0);  
+        drawPlayer();
 
-// 4. Forest Floor
-ctx.fillStyle = "#0f1f0e";
-ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+        ctx.restore();
 
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+            let ft = floatingTexts[i];
+            ft.y -= 0.5; 
+            ft.timer -= 1;
+            ctx.save();
+            ctx.globalAlpha = ft.timer / 60;
+            ctx.fillStyle = "#FFD700";
+            ctx.font = ft.text.length > 1 ? "bold 16px Arial, sans-serif" : "bold 30px Arial, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(ft.text, ft.x - camera.x, ft.y);
+            ctx.restore();
+            if (ft.timer <= 0) floatingTexts.splice(i, 1);
+        }
 
-    // --- B. Start Camera Translation ---
-    ctx.save();
-    ctx.translate(-camera.x, 0);
-
-spikes.forEach(s => {
-    ctx.fillStyle = "#ff0000"; // Bright deadly red
-    ctx.strokeStyle = "#8b0000"; // Dark red outline
-    ctx.lineWidth = 2;
-
-    const triWidth = s.w / 3; // Divide the area into 3 parts
-
-    for (let i = 0; i < 3; i++) {
-        const startX = s.x + (i * triWidth);
+        ctx.fillStyle = "rgba(255,255,255,0.85)";
+        ctx.font = "20px Segoe UI";
+        ctx.textAlign = "left";
         
-        ctx.beginPath();
-        ctx.moveTo(startX, s.y + s.h);                 // Bottom Left
-        ctx.lineTo(startX + (triWidth / 2), s.y);       // Tip
-        ctx.lineTo(startX + triWidth, s.y + s.h);       // Bottom Right
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-    }
-});
-
-platforms.forEach((platform) => {
-    // 1. Draw the "Trunk/Earth" base
-    ctx.fillStyle = "#5d3a1a"; // Darker brown
-    ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
-
-    // 2. Draw the mossy grass on top
-    ctx.fillStyle = "#4a7c44"; // Forest green
-    ctx.fillRect(platform.x, platform.y, platform.w, 10); 
-    
-    // 3. Add a highlight trim
-    ctx.fillStyle = "#6b9a65"; 
-    ctx.fillRect(platform.x, platform.y, platform.w, 4);
-});
-    // Draw Mobs
-    mobs.forEach(m => {
-        if (m.health >= 0) {
-            m.facing = m.dx > 0 ? 1 : -1;
-            drawBooger(m);
+        let hearts = "";
+        for (let i = 0; i < lives; i++) {
+            hearts += "❤️";
         }
-    });
-
-    
-    // Draw Goal
-    ctx.drawImage(goalImage, goal.frameIndex * 60, 0, 32, 50, goal.x, goal.y, goal.w, goal.h);
-    if (!goal.active) {
-        ctx.font = "24px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText("🔒", goal.x + goal.w / 2, goal.y - 10);
+        ctx.fillText(`Lives: ${hearts}`, 30, 30);
     }
 
-    // Draw Player
-    drawPlayer();
+    function drawPlayer() {
+      let img = sprites.idle;
+      let frame = 0;
+      let frameCount = 10;
+      
+      const isMoving = Math.abs(player.dx) > 0.5;
+      const isJumping = player.dy < -1;
+      const isFalling = player.dy > 2 && !player.onGround;
 
-    ctx.restore(); // --- C. End Camera Translation ---
+      player.playerFrameIndex++;
 
- // --- D. Draw UI (No Translation - Pinned to Screen) ---
-for (let i = floatingTexts.length - 1; i >= 0; i--) {
-    let ft = floatingTexts[i];
-    ft.y -= 0.5; 
-    ft.timer -= 1;
-    ctx.save();
-    ctx.globalAlpha = ft.timer / 60;
-    ctx.fillStyle = "#FFD700";
-    
-    // CHANGE THIS: Use a more robust font definition
-    // If it's a single letter, make it big. If it's a big phrase, make it small.
-    ctx.font = ft.text.length > 1 ? "bold 16px Arial, sans-serif" : "bold 30px Arial, sans-serif";
-    
-    ctx.textAlign = "center";
-    ctx.fillText(ft.text, ft.x - camera.x, ft.y);
-    ctx.restore();
-    if (ft.timer <= 0) floatingTexts.splice(i, 1);
-}
-
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
-    ctx.font = "20px Segoe UI"; // Slightly larger font for better visibility
-    ctx.textAlign = "left";
-    
-
-    // Draw "Lives: ❤️❤️❤️"
-    let hearts = "";
-    for (let i = 0; i < lives; i++) {
-        hearts += "❤️";
-    }
-    ctx.fillText(`Lives: ${hearts}`, 30, 30);
-
-}
-
- function drawPlayer() {
-  let img = sprites.idle;
-  let frame = 0;
-  let frameCount = 10;
-  
-  const isMoving = Math.abs(player.dx) > 0.5;
-  const isJumping = player.dy < -1;
-  const isFalling = player.dy > 2 && !player.onGround;
-
-  // 1. Always increment the frame counter
-  player.playerFrameIndex++;
-
-  // 2. Handle Attack Logic
-  if (player.isAttacking) {
-    const comboFrame = Math.floor(player.playerFrameIndex / 4); // Kept faster speed (4)
-    
-    if (comboFrame >= 7) {
-      player.isAttacking = false;
-      player.playerFrameIndex = 0; // Reset for next use
-    } else {
-      if (comboFrame < 3) {
-        img = sprites.attack;
-        frame = comboFrame;
-        frameCount = 3;
-      } else {
-        img = sprites.attack_end;
-        frame = comboFrame - 3;
-        frameCount = 4;
+      if (player.isAttacking) {
+        const comboFrame = Math.floor(player.playerFrameIndex / 4);
+        
+        if (comboFrame >= 7) {
+          player.isAttacking = false;
+          player.playerFrameIndex = 0;
+        } else {
+          if (comboFrame < 3) {
+            img = sprites.attack;
+            frame = comboFrame;
+            frameCount = 3;
+          } else {
+            img = sprites.attack_end;
+            frame = comboFrame - 3;
+            frameCount = 4;
+          }
+        }
       }
-    }
-  }
 
-  // 3. Handle Movement Logic
-  // We use an "else if" here so we don't accidentally draw movement 
-  // frames while the attack is still playing.
-  if (!player.isAttacking) {
-    if (isJumping) {
-      img = sprites.jump;
-      frameCount = 6;
-    } else if (isFalling) {
-      img = sprites.fall;
-      frameCount = 4;
-    } else if (isMoving) {
-      img = sprites.run;
-      frameCount = 10;
-    } else {
-      img = sprites.idle;
-      frameCount = 10;
-    }
-    frame = Math.floor(player.playerFrameIndex / 8) % frameCount;
-  }
+      if (!player.isAttacking) {
+        if (isJumping) {
+          img = sprites.jump;
+          frameCount = 6;
+        } else if (isFalling) {
+          img = sprites.fall;
+          frameCount = 4;
+        } else if (isMoving) {
+          img = sprites.run;
+          frameCount = 10;
+        } else {
+          img = sprites.idle;
+          frameCount = 10;
+        }
+        frame = Math.floor(player.playerFrameIndex / 8) % frameCount;
+      }
 
-// 4. Drawing code...
-if (!img || img.width === 0) return;
-const frameWidth = img.width / frameCount;
-const frameHeight = img.height;
-const srcX = frame * frameWidth;
+      if (!img || img.width === 0) return;
+      const frameWidth = img.width / frameCount;
+      const frameHeight = img.height;
+      const srcX = frame * frameWidth;
 
+      ctx.save();
 
-ctx.save();
+      if (player.isInvulnerable) {
+          if (Math.floor(player.invulnerableTimer / 6) % 2 === 0) {
+              ctx.globalAlpha = 0.3;
+          } else {
+              ctx.globalAlpha = 0.85;
+          }
+      }
 
-// --- NEW FLASHING LOGIC ---
-if (player.isInvulnerable) {
-    // Flash every 6 frames (adjust the modulo for speed)
-    if (Math.floor(player.invulnerableTimer / 6) % 2 === 0) {
-        ctx.globalAlpha = 0.3; // Make character semi-transparent
-    } else {
-        ctx.globalAlpha = 0.85; // Slightly faded but more visible
-    }
-}
-// --------------------------
+      if (player.facing < 0) {
+        ctx.translate(player.x + player.w, player.y + player.yOffset);
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, srcX, 0, frameWidth, frameHeight, 0, 0, player.w, player.h);
+      } else {
+        ctx.drawImage(img, srcX, 0, frameWidth, frameHeight, player.x, player.y + player.yOffset, player.w, player.h);
+      }
 
-if (player.facing < 0) {
-  ctx.translate(player.x + player.w, player.y + player.yOffset);
-  ctx.scale(-1, 1);
-  ctx.drawImage(img, srcX, 0, frameWidth, frameHeight, 0, 0, player.w, player.h);
-} else {
-  ctx.drawImage(img, srcX, 0, frameWidth, frameHeight, player.x, player.y + player.yOffset, player.w, player.h);
-}
-
-ctx.restore(); // This automatically restores the globalAlpha back to 1.0
-}
-function handleKeyDown(event) {
-    // If the user is typing in an input field (like the password box), ignore game controls completely
-    if (event.target.tagName === "INPUT") {
-        return;
+      ctx.restore();
     }
 
-    if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
-        event.preventDefault();
-    }
-    keys[event.code] = true;
+    function handleKeyDown(event) {
+        if (!running) return;
 
-    if (event.code === "KeyX") {
-        if (!player.isAttacking) { 
-            player.isAttacking = true;
-            player.playerFrameIndex = 0;
+        if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
+            event.preventDefault();
+        }
+        keys[event.code] = true;
+
+        if (event.code === "KeyX") {
+            if (!player.isAttacking) { 
+                player.isAttacking = true;
+                player.playerFrameIndex = 0;
+                playSfx('sfx-attack');
+            }
         }
     }
- 
-    if (event.code === "Enter" && !running) {
-        startGame();
-    }
-}
 
-function handleKeyUp(event) {
-    // Ignore if typing in an input field
-    if (event.target.tagName === "INPUT") {
-        return;
+    function handleKeyUp(event) {
+        if (!running) return;
+        keys[event.code] = false;
     }
-    keys[event.code] = false;
-}
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
@@ -920,174 +916,189 @@ function handleKeyUp(event) {
 
     showOverlay("Summer Quest", "Use the sprites in the folder to run, jump, and reach the flag.", "Controls: Arrow keys or A/D to move, Space/Up/W to jump.");
   
-function spawnDamageText(x, y, text) {
-  floatingTexts.push({
-    x: x,
-    y: y,
-    text: text,
-    timer: 60 
-  });
-}
-
-function checkAllMobsDefeated() {
-  // Returns true if every mob has health <= 0
-  return mobs.every(mob => mob.health <= 0);
-}
-
-function drawBooger(mob) {
-    if (mob.removed) return; 
-
-    // 1. Determine Animation State
-    let animName = "moveRight";
-    if (mob.isDead) {
-        animName = "dying";
-    } else if (mob.wasHit) {
-        animName = (mob.facing === -1) ? "hitLeft" : "hitRight";
-    } else {
-        animName = (mob.facing === -1) ? "moveLeft" : "moveRight";
+    function spawnDamageText(x, y, text) {
+      floatingTexts.push({
+        x: x,
+        y: y,
+        text: text,
+        timer: 60 
+      });
     }
 
-    const anim = BOOGER_ANIM[animName];
-    const sy = (anim.row - 1) * BOOGER_SIZE;
-    const sx = Math.floor(Math.floor(mob.frame) * BOOGER_SIZE);
+    function checkAllMobsDefeated() {
+      return mobs.every(mob => mob.health <= 0);
+    }
 
-    const padding = 1;
-ctx.drawImage(
-    sprites.booger, 
-    sx, sy + padding, BOOGER_SIZE, BOOGER_SIZE - padding, 
-    mob.x, mob.y, 64, 64
-);
-    // 3. Update logic (Handle Frame + Removal Timer)
-    if (mob.isDead) {
-        // Increment frame only if we haven't reached the end
-        if (mob.frame < anim.frames - 1) {
-            mob.frame += 0.1;
+    function drawBooger(mob) {
+        if (mob.removed) return; 
+
+        let animName = "moveRight";
+        if (mob.isDead) {
+            animName = "dying";
+        } else if (mob.wasHit) {
+            animName = (mob.facing === -1) ? "hitLeft" : "hitRight";
         } else {
-            // Reached the end: freeze frame and increment the death timer
-            mob.frame = anim.frames - 1;
-            mob.deathTimer++;
-            
-            // Mark for removal after timer
-            if (mob.deathTimer > 60) {
-                mob.removed = true;
-            }
+            animName = (mob.facing === -1) ? "moveLeft" : "moveRight";
         }
-    } else {
-        // Normal looping animation
-        mob.frame = (mob.frame + 0.1) % anim.frames;
-    }
-}
 
-function finishGame(title, text) {
-    if (title === "You Win!") {
+        const anim = BOOGER_ANIM[animName];
+        const sy = (anim.row - 1) * BOOGER_SIZE;
+        const sx = Math.floor(Math.floor(mob.frame) * BOOGER_SIZE);
+
+        const padding = 1;
+        ctx.drawImage(
+            sprites.booger, 
+            sx, sy + padding, BOOGER_SIZE, BOOGER_SIZE - padding, 
+            mob.x, mob.y, 64, 64
+        );
+
+        if (mob.isDead) {
+            if (mob.frame < anim.frames - 1) {
+                mob.frame += 0.1;
+            } else {
+                mob.frame = anim.frames - 1;
+                mob.deathTimer++;
+                
+                if (mob.deathTimer > 60) {
+                    mob.removed = true;
+                }
+            }
+        } else {
+            mob.frame = (mob.frame + 0.1) % anim.frames;
+        }
+    }
+
+    function finishGame(title, text) {
+        if (title === "You Win!") {
+            // Stop the game loop entirely
+            running = false;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+            // Pause running audio
+            const runSfx = document.getElementById("sfx-run");
+            if (runSfx) runSfx.pause();
+
+            // Hide the mobile control buttons
+            const controls = document.getElementById("controls");
+            if (controls) controls.style.display = "none";
+
+            // Unlock body overflow so inputs can receive focus properly
+            document.body.classList.add("modal-open");
+
+            const popup = document.getElementById("goalPopup");
+            popup.style.display = "flex";
+            
+            document.getElementById("password-section").style.display = "block";
+            document.getElementById("success-section").style.display = "none";
+            document.getElementById("passwordInput").value = "";
+            document.getElementById("errorMessage").textContent = "";
+            
+            setTimeout(() => {
+                const passwordInput = document.getElementById("passwordInput");
+                if (passwordInput) {
+                    passwordInput.focus();
+                    passwordInput.click();
+                }
+            }, 50);
+        } else {
+            showOverlay(title, text);
+        }
+    }
+
+    function checkWord() {
+        const input = document.getElementById("passwordInput").value.toLowerCase().trim();
+        const errorDisplay = document.getElementById("errorMessage");
+
+        if (input === "summer") {
+            playSfx('sfx-flag'); // Plays the flag sound effect upon entering the correct password
+            document.getElementById("password-section").style.display = "none";
+            document.getElementById("success-section").style.display = "block";
+        } else {
+            errorDisplay.textContent = "Incorrect word! Please try again.";
+            document.getElementById("passwordInput").value = ""; 
+        }
+    }
+
+    function restartGame() {
+        // Re-lock body overflow for the game canvas
+        document.body.classList.remove("modal-open");
+
         const popup = document.getElementById("goalPopup");
-        popup.style.display = "flex";
+        popup.style.display = "none";
         
-        // Ensure password section is visible and success section is hidden when first opened
+        // Restore mobile controls if on mobile view
+        const controls = document.getElementById("controls");
+        if (controls && window.innerWidth <= 900) {
+            controls.style.display = "block";
+        }
+        
         document.getElementById("password-section").style.display = "block";
         document.getElementById("success-section").style.display = "none";
-        document.getElementById("passwordInput").value = "";
         document.getElementById("errorMessage").textContent = "";
+        document.getElementById("passwordInput").value = "";
         
-        document.getElementById("passwordInput").focus();
-    } else {
-        showOverlay(title, text);
+        startGame();
     }
-}
 
-function checkWord() {
-    const input = document.getElementById("passwordInput").value.toLowerCase().trim();
-    const errorDisplay = document.getElementById("errorMessage");
-
-    if (input === "summer") {
-        // Hide password section and reveal the image success section instead of redirecting
-        document.getElementById("password-section").style.display = "none";
-        document.getElementById("success-section").style.display = "block";
-    } else {
-        errorDisplay.textContent = "Incorrect word! Please try again.";
-        document.getElementById("passwordInput").value = ""; 
-    }
-}
-
-function restartGame() {
-    const popup = document.getElementById("goalPopup");
-    popup.style.display = "none";
-    
-    // Reset sections for the next playthrough
-    document.getElementById("password-section").style.display = "block";
-    document.getElementById("success-section").style.display = "none";
-    document.getElementById("errorMessage").textContent = "";
-    document.getElementById("passwordInput").value = "";
-    
-    startGame();
-}
-// 1. Update your map
-const btnMap = {
-    "btn-left": "ArrowLeft",
-    "btn-right": "ArrowRight",
-    "btn-jump": "Space",
-    "btn-attack": "KeyX" // Added X
-};
-
-// 2. Updated Event Logic
-document.querySelectorAll('.control-btn').forEach(btn => {
-    // Helper to trigger the attack
-    const triggerInput = (code, state) => {
-        keys[code] = state;
-        // If it's the attack button being pressed, trigger the logic immediately
-        if (code === "KeyX" && state === true) {
-            if (!player.isAttacking) {
-                player.isAttacking = true;
-                player.playerFrameIndex = 0;
-            }
-        }
+    const btnMap = {
+        "btn-left": "ArrowLeft",
+        "btn-right": "ArrowRight",
+        "btn-jump": "Space",
+        "btn-attack": "KeyX"
     };
 
-    btn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        triggerInput(btnMap[btn.id], true);
-    });
+    document.querySelectorAll('.control-btn').forEach(btn => {
+        const triggerInput = (code, state) => {
+            keys[code] = state;
+            if (code === "KeyX" && state === true) {
+                if (!player.isAttacking) {
+                    player.isAttacking = true;
+                    player.playerFrameIndex = 0;
+                    playSfx('sfx-attack');
+                }
+            }
+        };
 
-    btn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        // Don't set Attack (KeyX) to false immediately on end, 
-        // as it's a "trigger" not a "hold" key
-        if (btnMap[btn.id] !== "KeyX") {
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            triggerInput(btnMap[btn.id], true);
+        });
+
+        btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (btnMap[btn.id] !== "KeyX") {
+                keys[btnMap[btn.id]] = false;
+            }
+        });
+
+        btn.addEventListener('touchcancel', (e) => {
             keys[btnMap[btn.id]] = false;
+        });
+    });
+
+    function lockLandscape() {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+            screen.orientation.lock('landscape').catch(() => {});
         }
-    });
-
-btn.addEventListener('touchcancel', (e) => {
-        keys[btnMap[btn.id]] = false;
-    });
-});
-
-function lockLandscape() {
-    if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen();
-        screen.orientation.lock('landscape').catch(() => {});
     }
-}
 
-function drawHitboxDebug() {
-    ctx.save();
-    ctx.translate(-camera.x, 0);
+    function drawHitboxDebug() {
+        ctx.save();
+        ctx.translate(-camera.x, 0);
 
-    // Player
-    ctx.strokeStyle = 'red';
-    ctx.strokeRect(player.x + (player.w - player.hitboxW)/2, player.y, player.hitboxW, player.hitboxH);
+        ctx.strokeStyle = 'red';
+        ctx.strokeRect(player.x + (player.w - player.hitboxW)/2, player.y, player.hitboxW, player.hitboxH);
 
-    // Mobs (Must use + 25 offset to match the collision logic above)
-    ctx.strokeStyle = 'yellow';
-    mobs.forEach(mob => {
-        if (!mob.removed) {
-            ctx.strokeRect(mob.x, mob.y + 25, mob.w, mob.h);
-        }
-    });
+        ctx.strokeStyle = 'yellow';
+        mobs.forEach(mob => {
+            if (!mob.removed) {
+                ctx.strokeRect(mob.x, mob.y + 25, mob.w, mob.h);
+            }
+        });
 
-    ctx.restore();
-}
-
+        ctx.restore();
+    }
   </script>
 </body>
 </html>
