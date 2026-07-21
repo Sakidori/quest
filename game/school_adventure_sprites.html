@@ -150,23 +150,82 @@ canvas {
         display: flex;
     }
 }
+
+    /* Music Widget Styles */
+    #music-widget {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 10000;
+        color: white;
+        font-family: sans-serif;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        pointer-events: auto !important;
+    }
+
+    .controls-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .music-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+        line-height: 1;
+        margin: 0;
+        border-radius: 0;
+    }
+    .music-btn:hover { 
+        transform: scale(1.15); 
+        opacity: 0.8; 
+        background: none;
+    }
+
+    #track-title {
+        font-size: 14px;
+        white-space: nowrap;
+        line-height: 1;
+    }
   </style>
 </head>
 <body>
-  <!-- Background Music with explicit source type & Sound Effects[cite: 5] -->
-  <audio id="bg-music" loop preload="auto">
-    <source src="music/zangyousenshi.mp3" type="audio/mpeg">
-  </audio>
+  <!-- Background Music with explicit source type & Sound Effects -->
+  <audio id="bg-music" preload="auto"></audio>
   <audio id="sfx-jump" src="jump.mp3" preload="auto"></audio>
   <audio id="sfx-attack" src="attack.mp3" preload="auto"></audio>
-  <audio id="sfx-hit" src="hit.mp3" preload="auto"></audio>          <!-- Player getting hit[cite: 5] -->
-  <audio id="sfx-mobhit" src="mobhit.mp3" preload="auto"></audio>    <!-- Mob getting hit[cite: 5] -->
+  <audio id="sfx-hit" src="hit.mp3" preload="auto"></audio>          <!-- Player getting hit -->
+  <audio id="sfx-mobhit" src="mobhit.mp3" preload="auto"></audio>    <!-- Mob getting hit -->
   <audio id="sfx-stomp" src="stomp.mp3" preload="auto"></audio>
   <audio id="sfx-fall" src="fall.mp3" preload="auto"></audio>
-  <audio id="sfx-run" src="run.mp3" preload="auto"></audio>          <!-- Continuous running loop[cite: 5] -->
-  <audio id="sfx-flag" src="flag.mp3" preload="auto"></audio>        <!-- Reaching the flag[cite: 5] -->
+  <audio id="sfx-run" src="run.mp3" preload="auto"></audio>          <!-- Continuous running loop -->
+  <audio id="sfx-flag" src="flag.mp3" preload="auto"></audio>        <!-- Reaching the flag -->
 
   <div id="game-shell">
+    <!-- Music Widget -->
+    <div id="music-widget">
+        <span id="track-title">8.Onward</span>
+        <div class="controls-group">
+            <button class="music-btn" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">❚❚</button>
+        </div>
+    </div>
+
     <canvas id="gameCanvas"></canvas>
 
      <div id="overlay">
@@ -264,12 +323,47 @@ window.addEventListener("orientationchange", () => {
     const overlay = document.getElementById("overlay");
     const startButton = document.getElementById("startButton");
     const panelTitle = overlay.querySelector("h1");
-    const panelText = overlay.querySelector("p");
+    panelText = overlay.querySelector("p");
     const panelHint = overlay.querySelector(".hint");
     
+    // --- Playlist Configuration ---
+    const playlist = [
+        { name: "8.Onward", src: "music/zangyousenshi.mp3" }, 
+
+    ];
+    let currentTrackIndex = 0; // Default to Zangyou Senshi or index 0
     const bgMusic = document.getElementById('bg-music');
-    bgMusic.loop = true;
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const trackTitleDisplay = document.getElementById('track-title');
     bgMusic.volume = 0.8;
+
+    function playCurrentTrack() {
+        bgMusic.src = playlist[currentTrackIndex].src;
+        trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
+        bgMusic.play().then(() => {
+            playPauseBtn.textContent = "❚❚"; 
+        }).catch(e => console.log("Audio play blocked or waiting for interaction"));
+    }
+
+    bgMusic.addEventListener('ended', () => {
+        currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+        playCurrentTrack();
+    });
+
+    // Widget Controls
+    function togglePlayPause() {
+        if (bgMusic.paused) {
+            if (!bgMusic.src) {
+                playCurrentTrack();
+            } else {
+                bgMusic.play();
+            }
+            playPauseBtn.textContent = "❚❚";
+        } else {
+            bgMusic.pause();
+            playPauseBtn.textContent = "▶"; 
+        }
+    }
 
     function playSfx(id) {
         const sound = document.getElementById(id);
@@ -451,7 +545,6 @@ function showOverlay(title, text, hint) {
       panelText.textContent = text;
       panelHint.textContent = hint || "操作方法:矢印キーまたはA/Dで移動、スペース//Wでジャンプ、Xで攻撃";
       
-      // Explicitly set button text depending on the state
       if (title === "You Win!") {
           startButton.textContent = "Play Again";
       } else if (title === "Game Over" || title === "Try Again") {
@@ -925,23 +1018,9 @@ function showOverlay(title, text, hint) {
     window.addEventListener("keyup", handleKeyUp);
 
     startButton.addEventListener("click", () => {
-        bgMusic.currentTime = 0;
-        bgMusic.play().then(() => {
-            console.log("BGM started successfully.");
-        }).catch(err => {
-            console.log("BGM play failed due to browser restriction:", err);
-        });
-        
+        playCurrentTrack();
         startGame();
     });
-
-    document.addEventListener("click", function unlockAudio() {
-        if (bgMusic.paused) {
-            bgMusic.play().then(() => {
-                document.removeEventListener("click", unlockAudio);
-            }).catch(e => {});
-        }
-    }, { once: true });
 
     showOverlay("Summer Quest", "Finish the level.", "操作方法:矢印キーまたはA/Dで移動、スペース//Wでジャンプ、Xで攻撃");
   
@@ -1063,21 +1142,17 @@ function showOverlay(title, text, hint) {
         startGame();
     }
 
-    // Function to handle "Close Game" and return to the parent page (panopto/panoee)
     function closeGame() {
-        // Stop audio tracks
         if (bgMusic) bgMusic.pause();
         const runSfx = document.getElementById("sfx-run");
         if (runSfx) runSfx.pause();
 
-        // Try navigating back or closing window context cleanly
         if (window.history.length > 1) {
             window.history.back();
         } else {
             window.close();
         }
         
-        // Fallback redirection if window.close() is blocked by browser policies
         setTimeout(() => {
             window.location.href = "about:blank";
         }, 300);
@@ -1126,10 +1201,12 @@ function showOverlay(title, text, hint) {
             if (bgMusic && !bgMusic.paused) {
                 wasPlayingBeforeGame = true; 
                 bgMusic.pause();             
+                playPauseBtn.textContent = "▶";
             }
         } else {
             if (bgMusic && wasPlayingBeforeGame) {
                 bgMusic.play().then(() => {
+                    playPauseBtn.textContent = "❚❚";
                 }).catch(e => console.log("Auto-resume blocked"));
                 
                 wasPlayingBeforeGame = false; 
