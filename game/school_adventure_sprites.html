@@ -153,7 +153,8 @@ canvas {
   </style>
 </head>
 <body>
-  <!-- Sound Effects -->
+  <!-- Background Music (Single Track with loop enabled) & Sound Effects -->
+  <audio id="bg-music" src="music/zangyousenshi.mp3" loop preload="auto"></audio>
   <audio id="sfx-jump" src="jump.mp3" preload="auto"></audio>
   <audio id="sfx-attack" src="attack.mp3" preload="auto"></audio>
   <audio id="sfx-hit" src="hit.mp3" preload="auto"></audio>          <!-- Player getting hit -->
@@ -171,7 +172,7 @@ canvas {
         <h1>Super Summer Quest</h1>
         <p>Complete the level.</p>
         <button id="startButton">Start Game</button>
-        <div class="hint">Controls: Arrow keys or A/D to move, Space/Up/W to jump.</div>
+        <div class="hint">操作方法:矢印キーまたはA/Dで移動、スペース//Wでジャンプ、Xで攻撃</div>
       </div>
     </div>
 
@@ -192,9 +193,10 @@ canvas {
         <div id="success-section" style="display: none;">
             <h2>Good Job!</h2>
             <img src="rpg_answer.jpg" alt="RPG Answer" class="win-image" onerror="this.style.display='none'" style="max-width: 200px; height: auto; border-radius: 10px; margin: 10px 0; display: block; margin-left: auto; margin-right: auto;">
-            <p style="color: #d1d5db; text-align: center; font-size: 0.85rem;">Take a memo of this!</p>
+            <p style="color: #d1d5db; text-align: center; font-size: 0.85rem;">これをメモしておいてね!</p>
             <br>
             <button onclick="restartGame()">Play Again</button>
+            <button onclick="closeGame()" style="background: #e74c3c;">Close Game</button>
         </div>
     </div>
 </div>
@@ -225,7 +227,6 @@ window.addEventListener("orientationchange", () => {
     }, 200);
 });
 
-// For browsers that don't support orientationchange well
 window.addEventListener("resize", () => {
     const GAME_WIDTH = 800;
     const GAME_HEIGHT = 450;
@@ -264,7 +265,10 @@ window.addEventListener("orientationchange", () => {
     const panelText = overlay.querySelector("p");
     const panelHint = overlay.querySelector(".hint");
     
-    // SFX Helper Function
+    const bgMusic = document.getElementById('bg-music');
+    bgMusic.loop = true;
+    bgMusic.volume = 0.8;
+
     function playSfx(id) {
         const sound = document.getElementById(id);
         if (sound) {
@@ -301,7 +305,6 @@ window.addEventListener("orientationchange", () => {
     function assetLoaded() {
       loadedAssets += 1;
       if (loadedAssets >= totalAssets) {
-        startGame();
       }
     }
 
@@ -384,9 +387,9 @@ window.addEventListener("orientationchange", () => {
           y: 92, 
           w: 44, 
           h: 58,
-          hitboxW: 40,          // Expanded width for easier reach
+          hitboxW: 40,          
           hitboxH: 45,
-          hitboxOffsetX: -10,   // Shifted further to the left
+          hitboxOffsetX: -10,   
           hitboxOffsetY: 8,
           frameCount: 5,
           frameIndex: 0,
@@ -430,11 +433,12 @@ window.addEventListener("orientationchange", () => {
         running = true;
         lastTime = performance.now();
         overlay.style.display = "none";
+       
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         animationFrameId = requestAnimationFrame(loop);
     }
 
-    function showOverlay(title, text, hint) {
+function showOverlay(title, text, hint) {
       running = false;
       const runSfx = document.getElementById("sfx-run");
       if (runSfx) runSfx.pause();
@@ -444,9 +448,16 @@ window.addEventListener("orientationchange", () => {
       panelTitle.textContent = title;
       panelText.textContent = text;
       panelHint.textContent = hint || "操作方法:矢印キーまたはA/Dで移動、スペース//Wでジャンプ、Xで攻撃";
-      startButton.textContent = title === "You Win!" ? "Play Again" : "Restart";
+      
+      // Explicitly set button text depending on the state
+      if (title === "You Win!") {
+          startButton.textContent = "Play Again";
+      } else if (title === "Game Over" || title === "Try Again") {
+          startButton.textContent = "Restart";
+      } else {
+          startButton.textContent = "Start Game";
+      }
     }
-
     function loop(time) {
         if (!running) return;
         
@@ -477,7 +488,6 @@ window.addEventListener("orientationchange", () => {
           player.dx *= FRICTION; 
         }
 
-        // Running Sound Loop Management with custom frame delay
         const runSfx = document.getElementById("sfx-run");
         if (runSfx) {
             const isMovingHorizontally = Math.abs(player.dx) > 0.5;
@@ -489,7 +499,7 @@ window.addEventListener("orientationchange", () => {
                     if (window.runDelayCounter <= 0) {
                         runSfx.currentTime = 0;
                         runSfx.play().catch(e => console.log("Run SFX play prevented:", e));
-                        window.runDelayCounter = 28; // Adjust this value to change delay length (in frames)
+                        window.runDelayCounter = 28; 
                     } else {
                         window.runDelayCounter -= delta;
                     }
@@ -679,7 +689,6 @@ window.addEventListener("orientationchange", () => {
               const runSfxCheck = document.getElementById("sfx-run");
               if (runSfxCheck) runSfxCheck.pause();
               
-              // Stop player movement immediately upon reaching goal
               player.dx = 0;
               keys = {};
 
@@ -912,9 +921,27 @@ window.addEventListener("orientationchange", () => {
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
-    startButton.addEventListener("click", startGame);
 
-    showOverlay("Summer Quest", "Use the sprites in the folder to run, jump, and reach the flag.", "Controls: Arrow keys or A/D to move, Space/Up/W to jump.");
+    startButton.addEventListener("click", () => {
+        bgMusic.currentTime = 0;
+        bgMusic.play().then(() => {
+            console.log("BGM started successfully.");
+        }).catch(err => {
+            console.log("BGM play failed due to browser restriction:", err);
+        });
+        
+        startGame();
+    });
+
+    document.addEventListener("click", function unlockAudio() {
+        if (bgMusic.paused) {
+            bgMusic.play().then(() => {
+                document.removeEventListener("click", unlockAudio);
+            }).catch(e => {});
+        }
+    }, { once: true });
+
+    showOverlay("Summer Quest", "Finish the level.", "操作方法:矢印キーまたはA/Dで移動、スペース//Wでジャンプ、Xで攻撃");
   
     function spawnDamageText(x, y, text) {
       floatingTexts.push({
@@ -970,19 +997,15 @@ window.addEventListener("orientationchange", () => {
 
     function finishGame(title, text) {
         if (title === "You Win!") {
-            // Stop the game loop entirely
             running = false;
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
-            // Pause running audio
             const runSfx = document.getElementById("sfx-run");
             if (runSfx) runSfx.pause();
 
-            // Hide the mobile control buttons
             const controls = document.getElementById("controls");
             if (controls) controls.style.display = "none";
 
-            // Unlock body overflow so inputs can receive focus properly
             document.body.classList.add("modal-open");
 
             const popup = document.getElementById("goalPopup");
@@ -1010,7 +1033,7 @@ window.addEventListener("orientationchange", () => {
         const errorDisplay = document.getElementById("errorMessage");
 
         if (input === "summer") {
-            playSfx('sfx-flag'); // Plays the flag sound effect upon entering the correct password
+            playSfx('sfx-flag'); 
             document.getElementById("password-section").style.display = "none";
             document.getElementById("success-section").style.display = "block";
         } else {
@@ -1020,13 +1043,11 @@ window.addEventListener("orientationchange", () => {
     }
 
     function restartGame() {
-        // Re-lock body overflow for the game canvas
         document.body.classList.remove("modal-open");
 
         const popup = document.getElementById("goalPopup");
         popup.style.display = "none";
         
-        // Restore mobile controls if on mobile view
         const controls = document.getElementById("controls");
         if (controls && window.innerWidth <= 900) {
             controls.style.display = "block";
@@ -1038,6 +1059,26 @@ window.addEventListener("orientationchange", () => {
         document.getElementById("passwordInput").value = "";
         
         startGame();
+    }
+
+    // Function to handle "Close Game" and return to the parent page (panopto/panoee)
+    function closeGame() {
+        // Stop audio tracks
+        if (bgMusic) bgMusic.pause();
+        const runSfx = document.getElementById("sfx-run");
+        if (runSfx) runSfx.pause();
+
+        // Try navigating back or closing window context cleanly
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.close();
+        }
+        
+        // Fallback redirection if window.close() is blocked by browser policies
+        setTimeout(() => {
+            window.location.href = "about:blank";
+        }, 300);
     }
 
     const btnMap = {
@@ -1076,29 +1117,23 @@ window.addEventListener("orientationchange", () => {
         });
     });
 
-    function lockLandscape() {
-        if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen();
-            screen.orientation.lock('landscape').catch(() => {});
-        }
-    }
+    let wasPlayingBeforeGame = false;
 
-    function drawHitboxDebug() {
-        ctx.save();
-        ctx.translate(-camera.x, 0);
-
-        ctx.strokeStyle = 'red';
-        ctx.strokeRect(player.x + (player.w - player.hitboxW)/2, player.y, player.hitboxW, player.hitboxH);
-
-        ctx.strokeStyle = 'yellow';
-        mobs.forEach(mob => {
-            if (!mob.removed) {
-                ctx.strokeRect(mob.x, mob.y + 25, mob.w, mob.h);
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            if (bgMusic && !bgMusic.paused) {
+                wasPlayingBeforeGame = true; 
+                bgMusic.pause();             
             }
-        });
-
-        ctx.restore();
-    }
+        } else {
+            if (bgMusic && wasPlayingBeforeGame) {
+                bgMusic.play().then(() => {
+                }).catch(e => console.log("Auto-resume blocked"));
+                
+                wasPlayingBeforeGame = false; 
+            }
+        }
+    });
   </script>
 </body>
 </html>
