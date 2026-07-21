@@ -28,21 +28,17 @@
 
         @media screen and (orientation: portrait) {
             .text-box { 
-                width: 150% !important; 
-                top: 15% !important; 
-                left: -23% !important; 
+                width: 100%;    /* Make text bigger in portrait */
+                top: 10%;      /* Move up slightly */
+                left: 10%; 
             }
-            .text-box img { width: 100% !important; }
-
             .sword-box { 
-                width: 90% !important; 
-                top: 25% !important; 
-                right: -15% !important; 
+                width: 100%;    /* Make sword bigger in portrait */
+                top: 45%;      /* Move down so it doesn't overlap text */
+                right: 25%; 
             }
-            .sword-box img { width: 100% !important; }
-
-            #rotate-msg { display: block !important; }
-            #enter-container { display: none !important; }
+            #rotate-msg { display: block; }
+            #enter-container { display: none; }
         }
 
         .enter-btn { 
@@ -90,16 +86,25 @@
 
         /* Button Layout */
         .button-group {
-            position: absolute; bottom: 10%; left: 50%;
-            transform: translateX(-50%); display: flex;
-            flex-direction: row; gap: 20px; z-index: 10;
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: row; /* Force side-by-side */
+            gap: 20px;
+            z-index: 10;
         }
-        .btn { 
+        .btn {
             padding: 15px 40px; font-size: 20px; font-family: sans-serif;
             border: none; border-radius: 25px; cursor: pointer; color: white;
             font-weight: 500; transition: transform 0.2s ease;
         }
-        .start-btn { background-color: #2a7ae2; display: none; }
+        .start-btn { 
+            background-color: #2a7ae2; 
+            visibility: hidden; /* Reserved space */
+        }
+        .start-visible { visibility: visible !important; }
         .rules-btn { background-color: #555; }
         .btn:hover { transform: scale(1.05); }
 
@@ -112,7 +117,7 @@
             padding: 50px 120px 80px 120px; box-sizing: border-box;
             color: #333; font-family: sans-serif; overflow-y: auto;
         }
-        .close-btn { color: white; font-size: 50px; cursor: pointer; position: absolute; top: 20px; right: 40px; }
+        .close-btn { color: white; font-size: 50px; cursor: pointer; position: absolute; top: 20px; right: 40px; z-index: 10001; }
 
         @keyframes floatIn { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes swordFly { from { opacity: 0; transform: translate(400px, -400px) rotate(45deg); } to { opacity: 1; transform: translate(0, 0) rotate(-20deg); } }
@@ -188,9 +193,8 @@
         <button class="btn rules-btn" onclick="openRules()">RULES</button>
     </div>
 
-    <!-- Fixed typo here (removed extra '<') -->
     <div id="music-widget">
-        <span id="track-title">Adventure</span>
+        <span id="track-title">Track 1</span>
         <div class="controls-group">
             <button class="music-btn" onclick="prevTrack()" title="Previous">⏮</button>
             <button class="music-btn" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">❚❚</button>
@@ -198,13 +202,12 @@
         </div>
     </div>
 
-    <!-- Single clean audio tag -->
     <audio id="bg-music"></audio>
 
     <div id="rules-modal" class="modal">
         <span class="close-btn" onclick="closeRules()">&times;</span>
         <div class="modal-content">
-            <!-- All rules text has been deleted from here -->
+            <!-- Text removed here -->
         </div>
     </div>
 
@@ -276,13 +279,13 @@
             splash.style.opacity = '0';
             setTimeout(() => { splash.style.display = 'none'; }, 1000);
             
-            // Explicitly trigger the playlist initialization on entry
+            // Start the playlist upon entering
             playCurrentTrack();
         }
 
         function openRules() { 
             document.getElementById("rules-modal").style.display = "block";
-            document.querySelector(".start-btn").style.display = "block";
+            document.querySelector(".start-btn").classList.add("start-visible");
         }
         function closeRules() { document.getElementById("rules-modal").style.display = "none"; }
 
@@ -294,6 +297,23 @@
             iframe.setAttribute("allowFullScreen", "true");
             document.body.appendChild(iframe);
         }
+
+// Listen for messages bubbling up from the iframe/tour structure
+        window.addEventListener("message", (event) => {
+            // Check if the data coming through contains your game's URL
+            if (typeof event.data === "string" && event.data.includes("school_adventure_sprites.html")) {
+                if (bgMusic) {
+                    bgMusic.volume = 0.2; // Lowers volume right when the game URL is triggered
+                }
+            }
+        });
+
+        // Automatically restore volume to normal (1.0) when the user clicks back onto this tab
+        window.addEventListener("focus", () => {
+            if (bgMusic && bgMusic.volume < 1.0) {
+                bgMusic.volume = 1.0; 
+            }
+        });
     </script>
 </body>
 </html>
