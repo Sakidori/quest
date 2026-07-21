@@ -153,16 +153,18 @@ canvas {
   </style>
 </head>
 <body>
-  <!-- Background Music (Single Track with loop enabled) & Sound Effects -->
-  <audio id="bg-music" src="music/zangyousenshi.mp3" loop preload="auto"></audio>
+  <!-- Background Music with explicit source type & Sound Effects[cite: 5] -->
+  <audio id="bg-music" loop preload="auto">
+    <source src="music/zangyousenshi.mp3" type="audio/mpeg">
+  </audio>
   <audio id="sfx-jump" src="jump.mp3" preload="auto"></audio>
   <audio id="sfx-attack" src="attack.mp3" preload="auto"></audio>
-  <audio id="sfx-hit" src="hit.mp3" preload="auto"></audio>          <!-- Player getting hit -->
-  <audio id="sfx-mobhit" src="mobhit.mp3" preload="auto"></audio>    <!-- Mob getting hit -->
+  <audio id="sfx-hit" src="hit.mp3" preload="auto"></audio>          <!-- Player getting hit[cite: 5] -->
+  <audio id="sfx-mobhit" src="mobhit.mp3" preload="auto"></audio>    <!-- Mob getting hit[cite: 5] -->
   <audio id="sfx-stomp" src="stomp.mp3" preload="auto"></audio>
   <audio id="sfx-fall" src="fall.mp3" preload="auto"></audio>
-  <audio id="sfx-run" src="run.mp3" preload="auto"></audio>          <!-- Continuous running loop -->
-  <audio id="sfx-flag" src="flag.mp3" preload="auto"></audio>        <!-- Reaching the flag -->
+  <audio id="sfx-run" src="run.mp3" preload="auto"></audio>          <!-- Continuous running loop[cite: 5] -->
+  <audio id="sfx-flag" src="flag.mp3" preload="auto"></audio>        <!-- Reaching the flag[cite: 5] -->
 
   <div id="game-shell">
     <canvas id="gameCanvas"></canvas>
