@@ -27,7 +27,6 @@
         #enter-container { display: block; }
 
         @media screen and (orientation: portrait) {
-            /* Title (adjusted for better mobile fit) */
             .text-box { 
                 width: 150% !important; 
                 top: 15% !important; 
@@ -35,7 +34,6 @@
             }
             .text-box img { width: 100% !important; }
 
-            /* Sword (adjusted for better mobile fit) */
             .sword-box { 
                 width: 90% !important; 
                 top: 25% !important; 
@@ -43,7 +41,6 @@
             }
             .sword-box img { width: 100% !important; }
 
-            /* Orientation Message */
             #rotate-msg { display: block !important; }
             #enter-container { display: none !important; }
         }
@@ -164,7 +161,6 @@
             white-space: nowrap;
             line-height: 1;
         }
-        
     </style>
 </head>
 <body>
@@ -192,8 +188,9 @@
         <button class="btn rules-btn" onclick="openRules()">RULES</button>
     </div>
 
-    <<div id="music-widget">
-        <span id="track-title">Track 1</span>
+    <!-- Fixed typo here (removed extra '<') -->
+    <div id="music-widget">
+        <span id="track-title">Adventure</span>
         <div class="controls-group">
             <button class="music-btn" onclick="prevTrack()" title="Previous">⏮</button>
             <button class="music-btn" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">❚❚</button>
@@ -201,16 +198,15 @@
         </div>
     </div>
 
+    <!-- Single clean audio tag -->
     <audio id="bg-music"></audio>
-    <!-- RULES MODAL (Text has been removed from inside .modal-content) -->
+
     <div id="rules-modal" class="modal">
         <span class="close-btn" onclick="closeRules()">&times;</span>
         <div class="modal-content">
             <!-- All rules text has been deleted from here -->
         </div>
     </div>
-
-    <audio id="bg-music" loop><source src="kaisen.mp3" type="audio/mpeg"></audio>
 
     <script>
         const container = document.getElementById('sparkle-container');
@@ -224,13 +220,13 @@
             container.appendChild(s);
         }
 
-         // --- Playlist Configuration ---
+        // --- Playlist Configuration ---
         const playlist = [
             { name: "Adventure", src: "kaisen.mp3" },
             { name: "Summer", src: "natsuyasuminotanken.mp3" }, 
             { name: "Rain", src: "solarisnoame.mp3" }, 
-	    { name: "Lunar", src: "gesshokunomirage.mp3" }, 
-	    { name: "Kingdom", src: "icarusnotsuiraku.mp3" } 
+            { name: "Lunar", src: "gesshokunomirage.mp3" }, 
+            { name: "Kingdom", src: "icarusnotsuiraku.mp3" } 
         ];
         let currentTrackIndex = 0;
         const bgMusic = document.getElementById('bg-music');
@@ -279,7 +275,9 @@
             var splash = document.getElementById('splash-screen');
             splash.style.opacity = '0';
             setTimeout(() => { splash.style.display = 'none'; }, 1000);
-            document.getElementById('bg-music').play().catch(e => console.log("Audio started"));
+            
+            // Explicitly trigger the playlist initialization on entry
+            playCurrentTrack();
         }
 
         function openRules() { 
