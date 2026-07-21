@@ -163,15 +163,27 @@ html, body {
       </div>
     </div>
 
-<div id="goalPopup">
+<div id="goalPopup" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center; z-index: 100;">
     <div class="panel">
-        <h2>Level Complete!</h2>
-        <p>秘密の言葉を入れてください:</p>
-        <input type="text" id="passwordInput" placeholder="Type here..." style="padding: 10px; border-radius: 5px; border: none; font-size: 16px;">
-        <br><br>
-        <button onclick="checkWord()">Submit</button>
-        <button onclick="restartGame()">Restart</button>
-        <p id="errorMessage" style="color:#ff7675; margin-top: 10px; font-weight: bold;"></p>
+        <!-- Stage 1: Password Input Form -->
+        <div id="password-section">
+            <h2>Level Complete!</h2>
+            <p>秘密の言葉を入れてください:</p>
+            <input type="text" id="passwordInput" placeholder="Type here..." style="padding: 10px; border-radius: 5px; border: none; font-size: 16px;">
+            <br><br>
+            <button onclick="checkWord()">Submit</button>
+            <button onclick="restartGame()">Restart</button>
+            <p id="errorMessage" style="color:#ff7675; margin-top: 10px; font-weight: bold;"></p>
+        </div>
+
+        <!-- Stage 2: Success & Memo Image (Initially Hidden) -->
+        <div id="success-section" style="display: none;">
+            <h2>Good Job!</h2>
+            <img src="rpg_answer.jpg" alt="RPG Answer" class="win-image" onerror="this.style.display='none'" style="max-width: 200px; height: auto; border-radius: 10px; margin: 10px 0; display: block; margin-left: auto; margin-right: auto;">
+            <p style="color: #d1d5db; text-align: center; font-size: 0.85rem;">Take a memo of this!</p>
+            <br>
+            <button onclick="restartGame()">Play Again</button>
+        </div>
     </div>
 </div>
 
@@ -433,18 +445,6 @@ function startGame() {
       startButton.textContent = title === "You Win!" ? "Play Again" : "Restart";
     }
 
-    function finishGame(title, text) {
-    if (title === "You Win!") {
-        // Show the secret word popup instead of the standard overlay
-        const popup = document.getElementById("goalPopup");
-        popup.style.display = "flex";
-        document.getElementById("passwordInput").focus();
-    } else {
-        // Default behavior for "Try Again"
-        showOverlay(title, text);
-    }
-}
-
   function loop(time) {
     if (!running) return;
     
@@ -545,12 +545,15 @@ mobs.forEach(mob => {
         }
     }
 
-    // 2. Combat Logic (Sword)
-    if (player.isAttacking) {
-        const comboFrame = Math.floor(player.playerFrameIndex / 4);
-        if (comboFrame >= 2 && comboFrame <= 4 && !mob.wasHit) {
-            const hitBoxX = player.facing === 1 ? player.x + 40 : player.x - 40;
-            if (Math.abs(mob.x - hitBoxX) < 75) {
+   // 2. Combat Logic (Sword)
+if (player.isAttacking) {
+    const comboFrame = Math.floor(player.playerFrameIndex / 4);
+    if (comboFrame >= 2 && comboFrame <= 4 && !mob.wasHit) {
+        const hitBoxX = player.facing === 1 ? player.x + 40 : player.x - 40;
+        if (Math.abs(mob.x - hitBoxX) < 75) {
+            
+            // Only deal damage and give rewards if the mob is still alive
+            if (mob.health > 0) {
                 mob.health -= 1;
                 mob.wasHit = true;
                 
@@ -559,14 +562,16 @@ mobs.forEach(mob => {
                 if (letter) {
                     collectedLetters.push(letter);
                     spawnDamageText(mob.x, mob.y - 20, letter.toUpperCase());
-                } else {
-                    spawnDamageText(mob.x, mob.y - 20, "!");
                 }
+            } else {
+                // If health is already 0, just flag as hit without spawning anything
+                mob.wasHit = true;
             }
         }
-    } else {
-        mob.wasHit = false;
     }
+} else {
+    mob.wasHit = false;
+}
 const MOB_Y_OFFSET = 25;
 if (!mob.isDead &&
     player.x < mob.x + mob.w &&
@@ -574,29 +579,35 @@ if (!mob.isDead &&
     player.y + player.hitboxH > (mob.y + 25) &&
     player.y < (mob.y + 25) + mob.h
 ) {
-    // We define "Feet" as the bottom of your player
     const playerFeet = player.y + player.hitboxH;
-    const mobTop = mob.y + 25; // Adjusted for your visual offset
+    const mobTop = mob.y + 25; 
 
-    // STOMP: If we are falling AND our feet are above the center of the mob
-    // I increased the threshold from 20 to 30 to make it easier to hit.
     if (player.dy > 0 && playerFeet < mobTop + 30) {
-        mob.health -= 1;
-        player.dy = -8; // Bounce off
-        player.onGround = false;
-        
-        // Reward Logic
-        const letter = letterPool.length > 0 ? letterPool.splice(Math.floor(Math.random() * letterPool.length), 1)[0] : null;
-        spawnDamageText(mob.x, mob.y, letter ? letter.toUpperCase() : "!");
+        // Only trigger if mob still has health
+        if (mob.health > 0) {
+            mob.health -= 1;
+            player.dy = -8; // Bounce off
+            player.onGround = false;
+            
+            // Reward Logic
+            const letter = letterPool.length > 0 ? letterPool.splice(Math.floor(Math.random() * letterPool.length), 1)[0] : null;
+            if (letter) {
+                spawnDamageText(mob.x, mob.y, letter.toUpperCase());
+            }
+        } else {
+            // Still bounce off dead/dying mobs, but give no rewards
+            player.dy = -8;
+            player.onGround = false;
+        }
     } 
-    // DAMAGE: Only triggers if the stomp condition was NOT met
-    else if (!player.isInvulnerable) {
+    else if (!player.isInvulnerable && mob.health > 0) {
+        // Damage to player only happens if the mob is still alive
         lives -= 1;
         if (lives <= 0) {
             finishGame("Game Over", "You ran out of lives!");
         } else {
             player.isInvulnerable = true;
-            player.invulnerableTimer = 120; // 2 seconds of invulnerability
+            player.invulnerableTimer = 120; 
             player.dx = (player.x < mob.x ? -1 : 1) * 8;
             player.dy = -5;
         }
@@ -872,27 +883,36 @@ if (player.facing < 0) {
 
 ctx.restore(); // This automatically restores the globalAlpha back to 1.0
 }
-    function handleKeyDown(event) {
-      if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
-        event.preventDefault();
-      }
-      keys[event.code] = true;
+function handleKeyDown(event) {
+    // If the user is typing in an input field (like the password box), ignore game controls completely
+    if (event.target.tagName === "INPUT") {
+        return;
+    }
 
-if (event.code === "KeyX") {
-    if (!player.isAttacking) { // Prevents re-triggering while already attacking
-        player.isAttacking = true;
-        player.playerFrameIndex = 0;
+    if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
+        event.preventDefault();
+    }
+    keys[event.code] = true;
+
+    if (event.code === "KeyX") {
+        if (!player.isAttacking) { 
+            player.isAttacking = true;
+            player.playerFrameIndex = 0;
+        }
+    }
+ 
+    if (event.code === "Enter" && !running) {
+        startGame();
     }
 }
-  
-      if (event.code === "Enter" && !running) {
-        startGame();
-      }
-    }
 
-    function handleKeyUp(event) {
-      keys[event.code] = false;
+function handleKeyUp(event) {
+    // Ignore if typing in an input field
+    if (event.target.tagName === "INPUT") {
+        return;
     }
+    keys[event.code] = false;
+}
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
@@ -958,17 +978,33 @@ ctx.drawImage(
     }
 }
 
+function finishGame(title, text) {
+    if (title === "You Win!") {
+        const popup = document.getElementById("goalPopup");
+        popup.style.display = "flex";
+        
+        // Ensure password section is visible and success section is hidden when first opened
+        document.getElementById("password-section").style.display = "block";
+        document.getElementById("success-section").style.display = "none";
+        document.getElementById("passwordInput").value = "";
+        document.getElementById("errorMessage").textContent = "";
+        
+        document.getElementById("passwordInput").focus();
+    } else {
+        showOverlay(title, text);
+    }
+}
+
 function checkWord() {
-    const input = document.getElementById("passwordInput").value.toLowerCase();
+    const input = document.getElementById("passwordInput").value.toLowerCase().trim();
     const errorDisplay = document.getElementById("errorMessage");
 
     if (input === "summer") {
-        window.location.href = "next_level.html"; 
+        // Hide password section and reveal the image success section instead of redirecting
+        document.getElementById("password-section").style.display = "none";
+        document.getElementById("success-section").style.display = "block";
     } else {
-        // Show the message inline instead of an alert
         errorDisplay.textContent = "Incorrect word! Please try again.";
-        
-        // Optional: Clear the input so they can type again
         document.getElementById("passwordInput").value = ""; 
     }
 }
@@ -976,8 +1012,13 @@ function checkWord() {
 function restartGame() {
     const popup = document.getElementById("goalPopup");
     popup.style.display = "none";
+    
+    // Reset sections for the next playthrough
+    document.getElementById("password-section").style.display = "block";
+    document.getElementById("success-section").style.display = "none";
     document.getElementById("errorMessage").textContent = "";
     document.getElementById("passwordInput").value = "";
+    
     startGame();
 }
 // 1. Update your map
