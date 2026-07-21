@@ -14,16 +14,16 @@
             background-attachment: fixed;
         }
 
-:fullscreen, :-webkit-full-screen {
-    width: 100% !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-}
+        :fullscreen, :-webkit-full-screen {
+            width: 100% !important;
+            height: 100% !important;
+            overflow-y: auto !important;
+        }
 
-/* Ensure interactive controls maintain pointer responsiveness */
-.button-group, #music-widget, .modal {
-    pointer-events: auto !important;
-}
+        /* Ensure interactive controls maintain pointer responsiveness */
+        .button-group, #music-widget, .modal {
+            pointer-events: auto !important;
+        }
 
         /* Combined Splash & Orientation Screen */
         #splash-screen {
@@ -37,7 +37,7 @@
         #rotate-msg { display: none; font-size: 24px; }
         #enter-container { display: block; }
 
-               @media screen and (orientation: portrait) {
+        @media screen and (orientation: portrait) {
             /* Title (adjusted for better mobile fit) */
             .text-box { 
                 width: 150% !important; 
@@ -190,7 +190,7 @@
 
     <div id="splash-screen">
         <div class="splash-content">
-            <div id="rotate-msg"><h1>端末を横向きにしてください</h1></div>
+            <div id="rotate-msg"><h1>Please rotate your device to landscape</h1></div>
             <div id="enter-container">
                <button class="enter-btn" onclick="enterSite()">ENTER</button>
             </div>
@@ -260,7 +260,6 @@
             { name: "15.March", src: "music/funenotabi.mp3" }, 
             { name: "16.Endless", src: "music/hateshinaimichi.mp3" }, 
             { name: "17.Mystery", src: "music/tsukitowatashi_violin.mp3" }
-
         ];
         let currentTrackIndex = 0;
         const bgMusic = document.getElementById('bg-music');
@@ -310,8 +309,7 @@
             splash.style.opacity = '0';
             setTimeout(() => { splash.style.display = 'none'; }, 1000);
             
-            // Start the playlist upon entering
-　　　　　　　　　　requestFullscreen();
+            requestFullscreen();
             playCurrentTrack();
         }
 
@@ -331,27 +329,34 @@
         }
 
         function requestFullscreen() {
-    var elem = document.documentElement;
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) { /* Safari/iOS fallback */
-        elem.webkitRequestFullscreen();
-    }
-}
-// Listen for messages bubbling up from the iframe/tour structure
-        window.addEventListener("message", (event) => {
-            // Check if the data coming through contains your game's URL
-            if (typeof event.data === "string" && event.data.includes("school_adventure_sprites.html")) {
-                if (bgMusic) {
-                    bgMusic.volume = 0.2; // Lowers volume right when the game URL is triggered
-                }
+            var elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { /* Safari/iOS fallback */
+                elem.webkitRequestFullscreen();
             }
-        });
+        }
 
-        // Automatically restore volume to normal (1.0) when the user clicks back onto this tab
-        window.addEventListener("focus", () => {
-            if (bgMusic && bgMusic.volume < 1.0) {
-                bgMusic.volume = 1.0; 
+        let wasPlayingBeforeGame = false;
+
+        // Triggers ONLY when the user actually switches tabs or minimizes (ignores iframe clicks)
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                // User switched away to the game tab or left the browser
+                if (bgMusic && !bgMusic.paused) {
+                    wasPlayingBeforeGame = true; // Remember it was playing
+                    bgMusic.pause();             // Pause the music
+                    playPauseBtn.textContent = "▶"; 
+                }
+            } else {
+                // User returned to this tab
+                if (bgMusic && wasPlayingBeforeGame) {
+                    bgMusic.play().then(() => {
+                        playPauseBtn.textContent = "❚❚";
+                    }).catch(e => console.log("Auto-resume blocked"));
+                    
+                    wasPlayingBeforeGame = false; // Reset flag
+                }
             }
         });
     </script>
