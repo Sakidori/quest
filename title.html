@@ -26,19 +26,26 @@
         #rotate-msg { display: none; font-size: 24px; }
         #enter-container { display: block; }
 
-        @media screen and (orientation: portrait) {
+               @media screen and (orientation: portrait) {
+            /* Title (adjusted for better mobile fit) */
             .text-box { 
-                width: 100%;    /* Make text bigger in portrait */
-                top: 10%;      /* Move up slightly */
-                left: 10%; 
+                width: 150% !important; 
+                top: 15% !important; 
+                left: -23% !important; 
             }
+            .text-box img { width: 100% !important; }
+
+            /* Sword (adjusted for better mobile fit) */
             .sword-box { 
-                width: 100%;    /* Make sword bigger in portrait */
-                top: 45%;      /* Move down so it doesn't overlap text */
-                right: 25%; 
+                width: 90% !important; 
+                top: 25% !important; 
+                right: -15% !important; 
             }
-            #rotate-msg { display: block; }
-            #enter-container { display: none; }
+            .sword-box img { width: 100% !important; }
+
+            /* Orientation Message */
+            #rotate-msg { display: block !important; }
+            #enter-container { display: none !important; }
         }
 
         .enter-btn { 
