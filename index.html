@@ -26,7 +26,6 @@
         :fullscreen, :-webkit-full-screen {
             width: 100% !important;
             height: 100% !important;
-            overflow-y: auto !important;
         }
 
         /* Ensure interactive controls maintain pointer responsiveness */
@@ -171,8 +170,8 @@
 
         #music-widget {
             position: fixed;
-            top: 15px;
-            right: 150px;
+            bottom: 20px; /* Changed from top to bottom */
+            right: 20px;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.2);
