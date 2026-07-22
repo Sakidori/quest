@@ -23,9 +23,13 @@
             background-attachment: fixed;
         }
 
-        :fullscreen, :-webkit-full-screen {
-            width: 100% !important;
-            height: 100% !important;
+        :fullscreen, :-webkit-full-screen, .ios-fullscreen-fallback {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999;
         }
 
         /* Ensure interactive controls maintain pointer responsiveness */
@@ -154,23 +158,44 @@
         .rules-btn { background-color: #555; }
         .btn:hover { transform: scale(1.05); }
 
-        /* Modal */
-        .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
-        .modal-content {
-            margin: 5% auto; width: 80vw; height: 80vh;
-            background-image: url('book.png'); background-size: contain;
-            background-repeat: no-repeat; background-position: center;
-            padding: 50px 120px 80px 120px; box-sizing: border-box;
-            color: #333; font-family: sans-serif; overflow-y: auto;
+        /* Modal - Fixed scrolling and cutoff */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 10000; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0,0,0,0.85); 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
         }
-        .close-btn { color: white; font-size: 50px; cursor: pointer; position: absolute; top: 20px; right: 40px; z-index: 10001; }
+        .modal-content {
+            position: relative;
+            margin: 5vh auto; 
+            width: 85vw; 
+            max-width: 900px;
+            min-height: 70vh;
+            background-image: url('book.png'); 
+            background-size: 100% 100%; 
+            background-repeat: no-repeat; 
+            background-position: center;
+            padding: 12% 15% 15% 15%; 
+            box-sizing: border-box;
+            color: #333; 
+            font-family: sans-serif; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
+        }
+        .close-btn { color: white; font-size: 50px; cursor: pointer; position: fixed; top: 20px; right: 40px; z-index: 10001; }
 
         @keyframes floatIn { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes swordFly { from { opacity: 0; transform: translate(400px, -400px) rotate(45deg); } to { opacity: 1; transform: translate(0, 0) rotate(-20deg); } }
 
         #music-widget {
             position: fixed;
-            bottom: 20px; /* Changed from top to bottom */
+            bottom: 20px; 
             right: 20px;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(5px);
@@ -364,30 +389,29 @@
             var elem = document.documentElement;
             if (elem.requestFullscreen) {
                 elem.requestFullscreen();
-            } else if (elem.webkitRequestFullscreen) { /* Safari/iOS fallback */
+            } else if (elem.webkitRequestFullscreen) { 
                 elem.webkitRequestFullscreen();
+            } else {
+                elem.classList.add('ios-fullscreen-fallback');
             }
         }
 
         let wasPlayingBeforeGame = false;
 
-        // Triggers ONLY when the user actually switches tabs or minimizes (ignores iframe clicks)
         document.addEventListener("visibilitychange", () => {
             if (document.hidden) {
-                // User switched away to the game tab or left the browser
                 if (bgMusic && !bgMusic.paused) {
-                    wasPlayingBeforeGame = true; // Remember it was playing
-                    bgMusic.pause();           // Pause the music
+                    wasPlayingBeforeGame = true; 
+                    bgMusic.pause();             
                     playPauseBtn.textContent = "▶"; 
                 }
             } else {
-                // User returned to this tab
                 if (bgMusic && wasPlayingBeforeGame) {
                     bgMusic.play().then(() => {
                         playPauseBtn.textContent = "❚❚";
                     }).catch(e => console.log("Auto-resume blocked"));
                     
-                    wasPlayingBeforeGame = false; // Reset flag
+                    wasPlayingBeforeGame = false; 
                 }
             }
         });
