@@ -154,7 +154,7 @@
         .rules-btn { background-color: #555; }
         .btn:hover { transform: scale(1.05); }
 
-        /* Modal - Flexbox Centering */
+        /* Modal - Dynamic Viewport Unit Locking */
         .modal { 
             display: none; 
             position: fixed; 
@@ -162,7 +162,7 @@
             left: 0; 
             top: 0; 
             width: 100vw; 
-            height: 100vh; 
+            height: 100dvh; 
             background-color: rgba(0,0,0,0.85); 
             justify-content: center;
             align-items: center;
@@ -170,15 +170,15 @@
         
         .modal-content {
             position: relative;
-            width: 85vw;
-            height: 80vh;
-            max-width: 1000px;
-            max-height: 700px;
+            /* Ensures proportions stay locked to original ratio (e.g., 3:2 landscape book ratio width/height) */
+            aspect-ratio: 3 / 2;
+            width: min(90vw, 900px);
+            max-height: 85dvh;
             background-image: url('book.png'); 
-            background-size: contain; /* Prevents aspect ratio stretching */
+            background-size: contain; 
             background-repeat: no-repeat; 
             background-position: center;
-            padding: 50px 120px 80px 120px; 
+            padding: 8% 12% 10% 12%; 
             box-sizing: border-box;
             color: #333; 
             font-family: sans-serif; 
