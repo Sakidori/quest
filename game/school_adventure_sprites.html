@@ -495,18 +495,18 @@ window.addEventListener("orientationchange", () => {
         
         keys = {};
 
-        mobs = [
-          { 
-            x: 350, y: 288, w: 50, h: 40, dx: 1.5, health: 3, frame: 0, facing: 1, 
-            minX: 300, maxX: 500, 
-            wasHit: false, isDead: false, deathTimer: 0 
-          },
-          { 
-            x: 650, y: 288, w: 50, h: 40, dx: -1.5, health: 3, frame: 0, facing: -1, 
-            minX: 600, maxX: 800, 
-            wasHit: false, isDead: false, deathTimer: 0 
-          }
-        ];
+    mobs = [
+  { 
+    x: 350, y: 288, w: 50, h: 40, hitboxH: 40, yOffset: 24, dx: 1.5, health: 3, frame: 0, facing: 1, 
+    minX: 300, maxX: 500, 
+    wasHit: false, isDead: false, deathTimer: 0 
+  },
+  { 
+    x: 650, y: 288, w: 50, h: 40, hitboxH: 40, yOffset: 24, dx: -1.5, health: 3, frame: 0, facing: -1, 
+    minX: 600, maxX: 800, 
+    wasHit: false, isDead: false, deathTimer: 0 
+  }
+];
     }
 
     function startGame() {
@@ -691,11 +691,13 @@ function showOverlay(title, text, hint) {
                 }
             }
 
-            if (player.isAttacking) {
+if (player.isAttacking) {
                 const comboFrame = Math.floor(player.playerFrameIndex / 4);
                 if (comboFrame >= 2 && comboFrame <= 4 && !mob.wasHit) {
                     const hitBoxX = player.facing === 1 ? player.x + 40 : player.x - 40;
-                    if (Math.abs(mob.x - hitBoxX) < 75) {
+                    
+                    // Added vertical check: ensures you are close enough vertically to hit them
+                    if (Math.abs(mob.x - hitBoxX) < 75 && Math.abs(player.y - mob.y) < 60) {
                         if (mob.health > 0) {
                             mob.health -= 1;
                             mob.wasHit = true;
@@ -715,14 +717,14 @@ function showOverlay(title, text, hint) {
                 mob.wasHit = false;
             }
 
-            if (!mob.isDead &&
+ if (!mob.isDead &&
                 player.x < mob.x + mob.w &&
                 player.x + player.hitboxW > mob.x &&
-                player.y + player.hitboxH > (mob.y + 25) &&
-                player.y < (mob.y + 25) + mob.h
+                player.y + player.hitboxH > (mob.y + (mob.yOffset || 0)) &&
+                player.y < (mob.y + (mob.yOffset || 0)) + mob.h
             ) {
                 const playerFeet = player.y + player.hitboxH;
-                const mobTop = mob.y + 25; 
+                const mobTop = mob.y + (mob.yOffset || 0);
 
                 if (player.dy > 0 && playerFeet < mobTop + 30) {
                     if (mob.health > 0) {
