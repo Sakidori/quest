@@ -156,23 +156,25 @@
 
         /* Modal */
         .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
-        .modal-content {
-            margin: 5% auto; width: 80vw; height: 80vh;
-            background-image: url('book.png'); background-size: contain;
-            background-repeat: no-repeat; background-position: center;
-            padding: 50px 120px 80px 120px; box-sizing: border-box;
-            color: #333; font-family: sans-serif; overflow-y: auto;
-        }
         
-        /* Mobile-specific book scaling for iPhones */
-        @media screen and (max-width: 900px) {
-            .modal-content {
-                width: 95vw;
-                height: 90vh;
-                margin: 2% auto;
-                padding: 35px 60px 50px 60px;
-                background-size: 100% 100%;
-            }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85vw;
+            max-width: 1000px;
+            aspect-ratio: 4 / 3; /* Locks a clean book aspect ratio */
+            max-height: 85vh;
+            background-image: url('book.png'); 
+            background-size: 100% 100%; /* Ensures background image maintains proportions cleanly without stretching */
+            background-repeat: no-repeat; 
+            background-position: center;
+            padding: 8% 14% 10% 14%; 
+            box-sizing: border-box;
+            color: #333; 
+            font-family: sans-serif; 
+            overflow-y: auto;
         }
 
         .close-btn { color: white; font-size: 50px; cursor: pointer; position: absolute; top: 20px; right: 40px; z-index: 10001; }
@@ -182,7 +184,7 @@
 
         #music-widget {
             position: fixed;
-            bottom: 20px; /* Changed from top to bottom */
+            bottom: 20px; 
             right: 20px;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(5px);
