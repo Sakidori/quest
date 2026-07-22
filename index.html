@@ -15,7 +15,11 @@
     <title>Summer Challenge - English Quest</title>
     <style>
         body, html { 
-            margin: 0; padding: 0; height: 100%; overflow: hidden; 
+            margin: 0; padding: 0; 
+            min-height: 100vh;
+            min-height: 100dvh; 
+            overflow-x: hidden; 
+            overflow-y: auto; 
             background-image: url('background.png');
             background-size: cover;
             background-position: center;
@@ -29,6 +33,7 @@
             left: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
+            height: 100dvh !important;
             z-index: 9999;
         }
 
@@ -39,7 +44,7 @@
 
         /* Combined Splash & Orientation Screen */
         #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; height: 100dvh;
             background-color: #000; z-index: 20000;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
@@ -94,13 +99,39 @@
             100% { opacity: 0; transform: translateY(-40px) scale(0.5); }
         }
 
+        /* Items wrapper to maintain relative spacing for scrolling */
+        .main-wrapper {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-bottom: 120px;
+            box-sizing: border-box;
+        }
+
         /* Items */
-        .item-container { position: absolute; display: inline-block; z-index: 1; }
+        .item-container { position: relative; display: inline-block; z-index: 1; }
         .item-container img { display: block; width: 100%; }
-        .text-box { width: 60%; top: 15%; left: 20%; animation: floatIn 1.5s ease-out forwards; }
+        
+        .text-box { 
+            width: 55%; 
+            margin-top: 8vh; 
+            margin-left: -15vw;
+            animation: floatIn 1.5s ease-out forwards; 
+        }
 
         /* Sword Shine */
-        .sword-box { width: 35%; top: 30%; right: 25%; opacity: 0; animation: swordFly 1s ease-out 1.5s forwards; }
+        .sword-box { 
+            width: 32%; 
+            margin-top: -25vh; 
+            margin-right: -35vw;
+            opacity: 0; 
+            animation: swordFly 1s ease-out 1.5s forwards; 
+        }
         .sword-wrapper { position: relative; width: 100%; display: inline-block; }
         .sword-shine {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -121,6 +152,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden; 
             z-index: 9999;
         }
@@ -134,12 +166,10 @@
             border: none;
         }
 
-        /* Button Layout */
+        /* Button Layout - Scrollable Friendly */
         .button-group {
-            position: absolute;
-            bottom: 6vh;
-            left: 50%;
-            transform: translateX(-50%);
+            position: relative;
+            margin-top: 5vh;
             display: flex;
             flex-direction: row;
             gap: 20px;
@@ -158,7 +188,7 @@
         .rules-btn { background-color: #555; }
         .btn:hover { transform: scale(1.05); }
 
-        /* Modal - Natural proportions with contain and smooth scrolling */
+        /* Modal - Full Touch Scrolling & Margin Padding for Mobile Bars */
         .modal { 
             display: none; 
             position: fixed; 
@@ -167,16 +197,19 @@
             top: 0; 
             width: 100%; 
             height: 100%; 
+            height: 100dvh;
             background-color: rgba(0,0,0,0.85); 
             overflow-y: auto; 
             -webkit-overflow-scrolling: touch;
+            padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+            box-sizing: border-box;
         }
         .modal-content {
             position: relative;
-            margin: 4vh auto; 
+            margin: 4vh auto 10vh auto; 
             width: 90vw; 
             max-width: 1000px;
-            min-height: 85vh;
+            min-height: 80vh;
             background-image: url('book.png'); 
             background-size: contain; 
             background-repeat: no-repeat; 
@@ -185,18 +218,24 @@
             box-sizing: border-box;
             color: #333; 
             font-family: sans-serif; 
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch;
         }
-        .close-btn { color: white; font-size: 50px; cursor: pointer; position: fixed; top: 20px; right: 40px; z-index: 10001; }
+        .close-btn { 
+            color: white; 
+            font-size: 50px; 
+            cursor: pointer; 
+            position: fixed; 
+            top: calc(15px + env(safe-area-inset-top, 0px)); 
+            right: calc(25px + env(safe-area-inset-right, 0px)); 
+            z-index: 10001; 
+        }
 
         @keyframes floatIn { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes swordFly { from { opacity: 0; transform: translate(400px, -400px) rotate(45deg); } to { opacity: 1; transform: translate(0, 0) rotate(-20deg); } }
 
         #music-widget {
             position: fixed;
-            bottom: 20px; 
-            right: 20px;
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px)); 
+            right: calc(20px + env(safe-area-inset-right, 0px));
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -208,7 +247,7 @@
             z-index: 10000;
             color: white;
             font-family: sans-serif;
-            box-shadow: home 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
         .controls-group {
@@ -251,17 +290,20 @@
     </div>
 
     <div id="sparkle-container"></div>
-    <div class="item-container text-box"><img src="text.png" alt="Title"></div>
-    <div class="item-container sword-box">
-        <div class="sword-wrapper">
-            <img src="sword.png" alt="Sword">
-            <div class="sword-shine"></div>
-        </div>
-    </div>
 
-    <div class="button-group">
-        <button class="btn start-btn" onclick="startExperience()">START</button>
-        <button class="btn rules-btn" onclick="openRules()">RULES</button>
+    <div class="main-wrapper">
+        <div class="item-container text-box"><img src="text.png" alt="Title"></div>
+        <div class="item-container sword-box">
+            <div class="sword-wrapper">
+                <img src="sword.png" alt="Sword">
+                <div class="sword-shine"></div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn start-btn" onclick="startExperience()">START</button>
+            <button class="btn rules-btn" onclick="openRules()">RULES</button>
+        </div>
     </div>
 
     <div id="music-widget">
