@@ -154,7 +154,7 @@
         .rules-btn { background-color: #555; }
         .btn:hover { transform: scale(1.05); }
 
-        /* Modal - Uniform Book Display without Pinch-to-Zoom */
+        /* Modal - Fixed Standard Size with Correct Ratio */
         .modal { 
             display: none; 
             position: fixed; 
@@ -164,20 +164,19 @@
             width: 100%; 
             height: 100%; 
             background-color: rgba(0,0,0,0.85); 
-            display: none;
             justify-content: center;
             align-items: center;
         }
         
         .modal-content {
             position: relative;
-            width: min(85vw, 900px);
-            height: min(70vh, 650px);
+            width: 900px;
+            height: 600px;
             background-image: url('book.png'); 
             background-size: 100% 100%; 
             background-repeat: no-repeat; 
             background-position: center;
-            padding: 10% 14%; 
+            padding: 50px 120px 80px 120px; 
             box-sizing: border-box;
             color: #333; 
             font-family: sans-serif; 
@@ -187,20 +186,12 @@
 
         .close-btn { 
             color: white; 
-            font-size: 40px; 
+            font-size: 50px; 
             cursor: pointer; 
             position: absolute; 
             top: 20px; 
-            right: 30px; 
+            right: 40px; 
             z-index: 10001; 
-            background: rgba(0,0,0,0.5);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1;
         }
 
         @keyframes floatIn { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
