@@ -154,7 +154,7 @@
         .rules-btn { background-color: #555; }
         .btn:hover { transform: scale(1.05); }
 
-        /* Modal - Flexbox Centering with Safe Viewport Boundaries */
+        /* Modal - Flexbox Centering */
         .modal { 
             display: none; 
             position: fixed; 
@@ -170,10 +170,12 @@
         
         .modal-content {
             position: relative;
-            width: min(85vw, 900px);
-            height: min(75vh, 600px);
+            width: 85vw;
+            height: 80vh;
+            max-width: 1000px;
+            max-height: 700px;
             background-image: url('book.png'); 
-            background-size: 100% 100%; 
+            background-size: contain; /* Prevents aspect ratio stretching */
             background-repeat: no-repeat; 
             background-position: center;
             padding: 50px 120px 80px 120px; 
