@@ -163,6 +163,18 @@
             padding: 50px 120px 80px 120px; box-sizing: border-box;
             color: #333; font-family: sans-serif; overflow-y: auto;
         }
+        
+        /* Mobile-specific book scaling for iPhones */
+        @media screen and (max-width: 900px) {
+            .modal-content {
+                width: 95vw;
+                height: 90vh;
+                margin: 2% auto;
+                padding: 35px 60px 50px 60px;
+                background-size: 100% 100%;
+            }
+        }
+
         .close-btn { color: white; font-size: 50px; cursor: pointer; position: absolute; top: 20px; right: 40px; z-index: 10001; }
 
         @keyframes floatIn { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
@@ -377,7 +389,7 @@
                 // User switched away to the game tab or left the browser
                 if (bgMusic && !bgMusic.paused) {
                     wasPlayingBeforeGame = true; // Remember it was playing
-                    bgMusic.pause();           // Pause the music
+                    bgMusic.pause();            // Pause the music
                     playPauseBtn.textContent = "▶"; 
                 }
             } else {
