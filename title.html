@@ -102,6 +102,26 @@
         }
         @keyframes shine-animation { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
+        /* Panoee Cropping Container */
+        .panoee-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Clips out-of-bounds UI elements */
+            z-index: 9999;
+        }
+
+        .panoee-container iframe {
+            position: absolute;
+            width: 100%;
+            height: 105%;
+            top: 0%;
+            left: 0%;
+            border: none;
+        }
+
         /* Button Layout */
         .button-group {
             position: absolute;
@@ -109,7 +129,7 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            flex-direction: row; /* Force side-by-side */
+            flex-direction: row;
             gap: 20px;
             z-index: 10;
         }
@@ -120,7 +140,7 @@
         }
         .start-btn { 
             background-color: #2a7ae2; 
-            visibility: hidden; /* Reserved space */
+            visibility: hidden; 
         }
         .start-visible { visibility: visible !important; }
         .rules-btn { background-color: #555; }
@@ -320,12 +340,16 @@
         function closeRules() { document.getElementById("rules-modal").style.display = "none"; }
 
         function startExperience() {
+            var wrapper = document.createElement("div");
+            wrapper.className = "panoee-container";
+
             var iframe = document.createElement("iframe");
             iframe.src = "https://tour.panoee.net/iframe/6a59cd8d10863f0008ada757";
-            iframe.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; border:none; z-index:9999;";
             iframe.setAttribute("allow", "vr; xr; accelerometer; gyroscope; autoplay;");
             iframe.setAttribute("allowFullScreen", "true");
-            document.body.appendChild(iframe);
+            
+            wrapper.appendChild(iframe);
+            document.body.appendChild(wrapper);
         }
 
         function requestFullscreen() {
@@ -345,7 +369,7 @@
                 // User switched away to the game tab or left the browser
                 if (bgMusic && !bgMusic.paused) {
                     wasPlayingBeforeGame = true; // Remember it was playing
-                    bgMusic.pause();             // Pause the music
+                    bgMusic.pause();           // Pause the music
                     playPauseBtn.textContent = "▶"; 
                 }
             } else {
