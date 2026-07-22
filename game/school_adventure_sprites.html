@@ -460,7 +460,7 @@ window.addEventListener("orientationchange", () => {
             isInvulnerable: false,
             invulnerableTimer: 0
         };
-      
+
         platforms = [
             { x: -1, y: 350, w: 200, h: 50 },
             { x: 300, y: 350, w: 200, h: 50 },
@@ -648,17 +648,30 @@ function showOverlay(title, text, hint) {
             }
         });
 
-        spikes.forEach(spike => {
+spikes.forEach(spike => {
+            const playerHitboxX = player.x + (player.w - player.hitboxW) / 2;
+
             if (
-                player.x < spike.x + spike.w &&
-                player.x + player.hitboxW > spike.x &&
-                player.y + player.hitboxH > spike.y
+                playerHitboxX < spike.x + spike.w &&
+                playerHitboxX + player.hitboxW > spike.x &&
+                player.y + player.hitboxH > spike.y &&
+                player.y < spike.y + spike.h
             ) {
-                lives = 0;
-                const runSfxCheck = document.getElementById("sfx-run");
-                if (runSfxCheck) runSfxCheck.pause();
-                playSfx('sfx-fall');
-                finishGame("Try Again", "スパイクにぶつかってしまったね。もっと気をつけてね！");
+                if (!player.isInvulnerable) {
+                    lives -= 1;
+                    playSfx('sfx-hit');
+                    
+                    if (lives <= 0) {
+                        const runSfxCheck = document.getElementById("sfx-run");
+                        if (runSfxCheck) runSfxCheck.pause();
+                        finishGame("Game Over", "スパイクにぶつかってしまったね。もっと気をつけてね！");
+                    } else {
+                        player.isInvulnerable = true;
+                        player.invulnerableTimer = 120; // 2 seconds of invulnerability
+                        player.dx = (player.x < spike.x ? -1 : 1) * 6;
+                        player.dy = -6;
+                    }
+                }
             }
         });
 
