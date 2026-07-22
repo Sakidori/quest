@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Super Summer Quest - Hard Mode</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        height: 100dvh;
+        overflow: hidden;
+        background: #1a2f4d;
+        touch-action: manipulation;
+    }
+
+    body.modal-open {
+        overflow: auto !important;
+        position: fixed;
+        width: 100%;
+    }
+
+    #game-shell {
+        position: relative;
+        width: 100vw;
+        height: 100dvh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #overlay, #goalPopup {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+    }
+
+    .panel {
+        background: #2c3e50;
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        border: 2px solid #34495e;
+        max-width: 80%;
+    }
+
+    button {
+        padding: 12px 25px;
+        margin: 10px;
+        background: #c0392b;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    button:hover {
+        background: #962d22;
+    }
+
+    canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        aspect-ratio: 16 / 9;
+    }
+
+    #controls {
+        display: none;
+        position: absolute; 
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 20;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    @media (max-width: 900px) {
+        #controls {
+            display: block;
+        }
+    }
+
+    .left-controls {
+        position: absolute;
+        left: 10px;
+        bottom: 20px;
+        display: flex;
+        gap: 10px;
+        pointer-events: auto;
+    }
+
+    .right-controls {
+        position: absolute;
+        right: 10px;
+        bottom: 20px;
+        display: flex;
+        gap: 10px;
+        pointer-events: auto;
+    }
+
+    .control-btn {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-family: Segoe UI;
+        color: white;
+        user-select: none;
+        touch-action: none;
+    }
+
+    #orientation-gate {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background: #000;
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    @media (max-width: 900px) and (orientation: portrait) {
+        #orientation-gate {
+            display: flex;
+        }
+    }
+
+    #music-widget {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 10000;
+        color: white;
+        font-family: sans-serif;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        pointer-events: auto !important;
+    }
+
+    .controls-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .music-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+        line-height: 1;
+        margin: 0;
+        border-radius: 0;
+    }
+    .music-btn:hover { 
+        transform: scale(1.15); 
+        opacity: 0.8; 
+        background: none;
+    }
+
+    #track-title {
+        font-size: 14px;
+        white-space: nowrap;
+        line-height: 1;
+    }
+  </style>
+</head>
+<body>
+  <audio id="bg-music" preload="auto"></audio>
+  <audio id="sfx-jump" src="jump.mp3" preload="auto"></audio>
+  <audio id="sfx-attack" src="attack.mp3" preload="auto"></audio>
+  <audio id="sfx-hit" src="hit.mp3" preload="auto"></audio>
+  <audio id="sfx-mobhit" src="mobhit.mp3" preload="auto"></audio>
+  <audio id="sfx-stomp" src="stomp.mp3" preload="auto"></audio>
+  <audio id="sfx-fall" src="fall.mp3" preload="auto"></audio>
+  <audio id="sfx-run" src="run.mp3" preload="auto"></audio>
+  <audio id="sfx-flag" src="flag.mp3" preload="auto"></audio>
+
+  <div id="game-shell">
+    <div id="music-widget">
+        <span id="track-title">8.Onward</span>
+        <div class="controls-group">
+            <button class="music-btn" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">❚❚</button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="overlay">
+      <div class="panel">
+        <h1>Super Summer Quest: HARD MODE</h1>
+        <p>Try your best to get to the end</p>
+        <button id="startButton">Start</button>
+        <div class="hint">操作方法:矢印キーまたはA/Dで移動、スペース/Wでジャンプ、Xで攻撃</div>
+      </div>
+    </div>
+
+    <div id="goalPopup">
+        <div class="panel">
+            <h2>Amazing!</h2>
+            <p>過酷なハードモード試練を完全踏破した！おめでとう！</p>
+            <br>
+            <button onclick="restartGame()">Play Again</button>
+            <button onclick="closeGame()" style="background: #e74c3c;">Close Game</button>
+        </div>
+    </div>
+
+    <div id="controls">
+        <div id="dpad" class="left-controls">
+            <div id="btn-left" class="control-btn">◀</div>
+            <div id="btn-right" class="control-btn">▶</div>
+        </div>
+        <div id="action-buttons" class="right-controls">
+            <div id="btn-jump" class="control-btn">▲</div>
+            <div id="btn-attack" class="control-btn">X</div>
+        </div>
+    </div>
+  </div>
+
+  <div id="orientation-gate">
+    <p>端末を横向きにしてください！</p>
+  </div>
+
+  <script>
+    window.addEventListener("orientationchange", () => {
+        setTimeout(() => {
+            window.scrollTo(0, 0);
+            resizeCanvas();
+        }, 200);
+    });
+
+    const VIRTUAL_WIDTH = 800;
+    const VIRTUAL_HEIGHT = 450;
+
+    function resizeCanvas() {
+        const canvas = document.getElementById("gameCanvas");
+        canvas.width = VIRTUAL_WIDTH;
+        canvas.height = VIRTUAL_HEIGHT;
+    }
+
+    window.addEventListener('load', () => {
+        resizeCanvas();
+    });
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const overlay = document.getElementById("overlay");
+    const startButton = document.getElementById("startButton");
+    const panelTitle = overlay.querySelector("h1");
+    let panelText = overlay.querySelector("p");
+    const panelHint = overlay.querySelector(".hint");
+    
+    const playlist = [
+        { name: "8.Onward", src: "../music/zangyousenshi.mp3" }, 
+    ];
+    let currentTrackIndex = 0; 
+    const bgMusic = document.getElementById('bg-music');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const trackTitleDisplay = document.getElementById('track-title');
+    bgMusic.volume = 0.5;
+
+    function playCurrentTrack() {
+        bgMusic.src = playlist[currentTrackIndex].src;
+        trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
+        bgMusic.play().then(() => {
+            playPauseBtn.textContent = "❚❚"; 
+        }).catch(e => console.log("Audio play blocked or waiting for interaction"));
+    }
+
+    bgMusic.addEventListener('ended', () => {
+        currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+        playCurrentTrack();
+    });
+
+    function togglePlayPause() {
+        if (bgMusic.paused) {
+            if (!bgMusic.src) {
+                playCurrentTrack();
+            } else {
+                bgMusic.play();
+            }
+            playPauseBtn.textContent = "❚❚";
+        } else {
+            bgMusic.pause();
+            playPauseBtn.textContent = "▶"; 
+        }
+    }
+
+    function playSfx(id) {
+        const sound = document.getElementById(id);
+        if (sound) {
+            sound.currentTime = 0;
+            sound.play().catch(e => console.log("SFX play prevented:", e));
+        }
+    }
+
+    const spriteFiles = {
+      idle: "male_hero-idle.png",
+      run: "male_hero-run.png",
+      jump: "male_hero-jump.png",
+      fall: "male_hero-fall.png",
+      walk: "male_hero-walk.png",
+      attack: "male_hero-combo_1.png",
+      attack_end: "male_hero-combo_1_end.png",
+      booger: "Booger Buddy.png"
+    };
+
+    const sprites = {};
+    const goalImage = new Image();
+    let loadedAssets = 0;
+    const totalAssets = Object.keys(spriteFiles).length + 1;
+
+    const BOOGER_SIZE = 32;
+    const BOOGER_ANIM = {
+        moveRight: { row: 5, frames: 4 },
+        moveLeft:  { row: 6, frames: 4 },
+        hitRight:  { row: 13, frames: 2 },
+        hitLeft:   { row: 15, frames: 2 },
+        dying:     { row: 21, frames: 5 }
+    };
+
+    function assetLoaded() {
+      loadedAssets += 1;
+    }
+
+    Object.entries(spriteFiles).forEach(([key, src]) => {
+      const img = new Image();
+      img.onload = assetLoaded;
+      img.onerror = assetLoaded;
+      img.src = src;
+      sprites[key] = img;
+    });
+
+    goalImage.onload = assetLoaded;
+    goalImage.onerror = assetLoaded;
+    goalImage.src = "goal_flag.png";
+
+    const GRAVITY = 0.65;
+    const MOVE_SPEED = 5.2;
+    const JUMP_FORCE = -13.0;
+    const FRICTION = 0.8;
+    const WORLD_WIDTH = 3200;
+    let camera = { x: 0 };
+
+    let player;
+    let platforms;
+    let spikes;
+    let goal;
+    let mobs;
+    let floatingTexts = [];
+    let keys = {};
+    let animationFrameId = null;
+    let running = false;
+    let lastTime = 0;
+    let flagTimer = 0;
+    let lives = 3;
+    let score = 0;
+
+    function resetGame() {
+        lives = 3;
+        score = 0;
+        player = {
+            x: 0,
+            y: 15,
+            w: 108,
+            h: 135,
+            hitboxW: 25,
+            hitboxH: 100,
+            yOffset: 17,
+            dx: 0,
+            dy: 0,
+            onGround: false,
+            facing: 1,
+            alive: true,
+            playerFrameIndex: 0,
+            isAttacking: false,
+            isInvulnerable: false,
+            invulnerableTimer: 0
+        };
+
+        platforms = [
+            { x: -1, y: 350, w: 180, h: 50 },
+            { x: 260, y: 350, w: 140, h: 50 },
+            { x: 480, y: 280, w: 100, h: 20 },
+            { x: 640, y: 220, w: 120, h: 20 },
+            { x: 840, y: 350, w: 160, h: 50 },
+            { x: 1080, y: 260, w: 90, h: 20 },
+            { x: 1250, y: 190, w: 110, h: 20 },
+            { x: 1440, y: 350, w: 200, h: 50 },
+            { x: 1720, y: 280, w: 100, h: 20 },
+            { x: 1900, y: 210, w: 120, h: 20 },
+            { x: 2120, y: 350, w: 150, h: 50 },
+            { x: 2350, y: 250, w: 100, h: 20 },
+            { x: 2550, y: 180, w: 130, h: 20 },
+            { x: 2780, y: 350, w: 420, h: 50 }
+        ];
+        
+        spikes = [
+            { x: 350, y: 340, w: 40, h: 10 },
+            { x: 680, y: 210, w: 40, h: 10 },
+            { x: 900, y: 340, w: 60, h: 10 },
+            { x: 1300, y: 180, w: 40, h: 10 },
+            { x: 1550, y: 340, w: 50, h: 10 },
+            { x: 1950, y: 200, w: 40, h: 10 },
+            { x: 2200, y: 340, w: 60, h: 10 },
+            { x: 2600, y: 170, w: 50, h: 10 },
+            { x: 2900, y: 340, w: 80, h: 10 }
+        ];
+
+        goal = {
+          x: 3000, 
+          y: 292, 
+          w: 44, 
+          h: 58,
+          hitboxW: 40,          
+          hitboxH: 45,
+          hitboxOffsetX: -10,   
+          hitboxOffsetY: 8,
+          frameCount: 5,
+          frameIndex: 0,
+          frameWidth: 60
+        };
+        
+        keys = {};
+
+        mobs = [
+          { x: 300, y: 288, w: 50, h: 40, hitboxH: 40, yOffset: 24, dx: 2.2, health: 4, frame: 0, facing: 1, minX: 260, maxX: 400, wasHit: false, isDead: false, deathTimer: 0 },
+          { x: 860, y: 288, w: 50, h: 40, hitboxH: 40, yOffset: 24, dx: -2.5, health: 4, frame: 0, facing: -1, minX: 840, maxX: 1000, wasHit: false, isDead: false, deathTimer: 0 },
+          { x: 1480, y: 288, w: 50, h: 40, hitboxH: 40, yOffset: 24, dx: 2.5, health: 4, frame: 0, facing: 1, minX: 1440, maxX: 1640, wasHit: false, isDead: false, deathTimer: 0 },
+          { x: 2150, y: 288, w: 50, h: 40, hitboxH: 40, yOffset: 24, dx: -2.8, health: 4, frame: 0, facing: -1, minX: 2120, maxX: 2270, wasHit: false, isDead: false, deathTimer: 0 },
+          { x: 2850, y: 288, w: 50, h: 40, hitboxH: 40, yOffset: 24, dx: 3.0, health: 4, frame: 0, facing: 1, minX: 2780, maxX: 3100, wasHit: false, isDead: false, deathTimer: 0 }
+        ];
+    }
+
+    function startGame() {
+        const isMobile = window.innerWidth <= 900 && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+        if (isMobile) {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().then(() => {
+                    if (screen.orientation && screen.orientation.lock) {
+                        screen.orientation.lock('landscape').catch(() => {});
+                    }
+                }).catch((err) => {
+                    console.log("Fullscreen failed", err);
+                });
+            }
+        }
+        
+        resetGame();
+        running = true;
+        lastTime = performance.now();
+        overlay.style.display = "none";
+       
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(loop);
+    }
+
+    function showOverlay(title, text, hint) {
+      running = false;
+      const runSfx = document.getElementById("sfx-run");
+      if (runSfx) runSfx.pause();
+
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      overlay.style.display = "flex";
+      panelTitle.textContent = title;
+      panelText.textContent = text;
+      panelHint.textContent = hint || "操作方法:矢印キーまたはA/Dで移動、スペース/Wでジャンプ、Xで攻撃";
+      
+      if (title === "You Win!") {
+          startButton.textContent = "Play Again";
+      } else if (title === "Game Over" || title === "Try Again") {
+          startButton.textContent = "Restart";
+      } else {
+          startButton.textContent = "Start Game";
+      }
+    }
+
+    function loop(time) {
+        if (!running) return;
+        
+        let delta = (time - lastTime) / 16.67;
+        delta = Math.max(0.5, Math.min(2.0, delta)); 
+        
+        lastTime = time;
+        update(delta);
+        render();
+        animationFrameId = requestAnimationFrame(loop);
+    }
+
+    function update(delta) {
+        if (player.isInvulnerable) {
+            player.invulnerableTimer -= delta;
+            if (player.invulnerableTimer <= 0) {
+                player.isInvulnerable = false;
+                player.invulnerableTimer = 0;
+            }
+        }
+
+        const moveInput = (keys["ArrowRight"] || keys["KeyD"] ? 1 : 0) - (keys["ArrowLeft"] || keys["KeyA"] ? 1 : 0);
+
+        if (moveInput !== 0) {
+          player.dx = moveInput * MOVE_SPEED; 
+          player.facing = moveInput;
+        } else {
+          player.dx *= FRICTION; 
+        }
+
+        const runSfx = document.getElementById("sfx-run");
+        if (runSfx) {
+            const isMovingHorizontally = Math.abs(player.dx) > 0.5;
+            
+            if (window.runDelayCounter === undefined) window.runDelayCounter = 0;
+
+            if (isMovingHorizontally && player.onGround) {
+                if (runSfx.paused) {
+                    if (window.runDelayCounter <= 0) {
+                        runSfx.currentTime = 0;
+                        runSfx.play().catch(e => console.log("Run SFX play prevented:", e));
+                        window.runDelayCounter = 28; 
+                    } else {
+                        window.runDelayCounter -= delta;
+                    }
+                }
+            } else {
+                window.runDelayCounter = 0;
+                if (!runSfx.paused) {
+                    runSfx.pause();
+                    runSfx.currentTime = 0;
+                }
+            }
+        }
+
+        if ((keys["Space"] || keys["ArrowUp"] || keys["KeyW"]) && player.onGround) {
+            player.dy = JUMP_FORCE;
+            player.onGround = false;
+            
+            if (runSfx && !runSfx.paused) {
+                runSfx.pause();
+                runSfx.currentTime = 0;
+            }
+
+            playSfx('sfx-jump');
+        }
+
+        const MAX_FALL_SPEED = 15; 
+        if (player.dy > MAX_FALL_SPEED) {
+            player.dy = MAX_FALL_SPEED;
+        }
+        
+        player.dy += GRAVITY * delta;
+        player.x += player.dx * delta;
+        player.y += player.dy * delta;
+
+        let landed = false;
+        const playerHitboxX = player.x + (player.w - player.hitboxW) / 2;
+          
+        platforms.forEach((platform) => {
+            if (
+              playerHitboxX < platform.x + platform.w &&
+              playerHitboxX + player.hitboxW > platform.x &&
+              player.y + player.hitboxH >= platform.y &&
+              player.y + player.hitboxH <= platform.y + 20
+            ) {
+              if (player.dy >= 0) {
+                player.y = platform.y - player.hitboxH;
+                player.dy = 0;
+                player.onGround = true;
+                landed = true;
+              }
+            }
+        });
+
+        spikes.forEach(spike => {
+            if (
+                playerHitboxX < spike.x + spike.w &&
+                playerHitboxX + player.hitboxW > spike.x &&
+                player.y + player.hitboxH > spike.y &&
+                player.y < spike.y + spike.h
+            ) {
+                if (!player.isInvulnerable) {
+                    lives -= 1;
+                    score -= 10;
+                    playSfx('sfx-hit');
+                    spawnDamageText(player.x + player.w / 2, player.y, "-10");
+                    
+                    if (lives <= 0) {
+                        const runSfxCheck = document.getElementById("sfx-run");
+                        if (runSfxCheck) runSfxCheck.pause();
+                        finishGame("Game Over", "過酷なスパイクトラップに倒れてしまった！もっと慎重にいこう！");
+                    } else {
+                        player.isInvulnerable = true;
+                        player.invulnerableTimer = 120; 
+                        player.dx = (player.x < spike.x ? -1 : 1) * 7;
+                        player.dy = -7;
+                    }
+                }
+            }
+        });
+
+        if (!landed) player.onGround = false;
+
+        const hitboxPadding = (player.w - player.hitboxW) / 2;
+
+        if (player.x + hitboxPadding < 0) {
+          player.x = -hitboxPadding;
+        }
+        if (player.x + hitboxPadding + player.hitboxW > WORLD_WIDTH) {
+          player.x = WORLD_WIDTH - player.hitboxW - hitboxPadding;
+        }
+        
+        if (player.y > 450) { 
+            lives = 0;
+            const runSfxCheck = document.getElementById("sfx-run");
+            if (runSfxCheck) runSfxCheck.pause();
+            playSfx('sfx-fall');
+            finishGame("Game Over", "過酷な深淵へと転落してしまった！");
+        }
+
+        mobs.forEach(mob => {
+            if (mob.removed) return;
+
+            if (mob.health > 0) {
+                mob.x += mob.dx * delta;
+                if (mob.x < mob.minX || (mob.x + mob.w) > mob.maxX) {
+                    mob.dx *= -1;
+                }
+            }
+
+            if (player.isAttacking) {
+                const comboFrame = Math.floor(player.playerFrameIndex / 4);
+                if (comboFrame >= 2 && comboFrame <= 4 && !mob.wasHit) {
+                    const hitBoxX = player.facing === 1 ? player.x + 40 : player.x - 40;
+                    
+                    if (Math.abs(mob.x - hitBoxX) < 75 && Math.abs(player.y - mob.y) < 60) {
+                        if (mob.health > 0) {
+                            mob.health -= 1;
+                            mob.wasHit = true;
+                            score += 10;
+                            playSfx('sfx-mobhit');
+                            spawnDamageText(mob.x, mob.y - 20, "-10");
+                        } else {
+                            mob.wasHit = true;
+                        }
+                    }
+                }
+            } else {
+                mob.wasHit = false;
+            }
+
+            if (!mob.isDead &&
+                player.x < mob.x + mob.w &&
+                player.x + player.hitboxW > mob.x &&
+                player.y + player.hitboxH > (mob.y + (mob.yOffset || 0)) &&
+                player.y < (mob.y + (mob.yOffset || 0)) + mob.h
+            ) {
+                const playerFeet = player.y + player.hitboxH;
+                const mobTop = mob.y + (mob.yOffset || 0);
+
+                if (player.dy > 0 && playerFeet < mobTop + 30) {
+                    if (mob.health > 0) {
+                        mob.health -= 1;
+                        player.dy = -8;
+                        player.onGround = false;
+                        score += 10;
+                        playSfx('sfx-stomp');
+                        spawnDamageText(mob.x, mob.y, "-10");
+                    } else {
+                        player.dy = -8;
+                        player.onGround = false;
+                        playSfx('sfx-stomp');
+                    }
+                } 
+                else if (!player.isInvulnerable && mob.health > 0) {
+                    lives -= 1;
+                    score -= 10;
+                    playSfx('sfx-hit');
+                    spawnDamageText(player.x + player.w / 2, player.y, "-10");
+                    
+                    if (lives <= 0) {
+                        const runSfxCheck = document.getElementById("sfx-run");
+                        if (runSfxCheck) runSfxCheck.pause();
+                        finishGame("Game Over", "強敵の猛攻に屈してしまった！");
+                    } else {
+                        player.isInvulnerable = true;
+                        player.invulnerableTimer = 120; 
+                        player.dx = (player.x < mob.x ? -1 : 1) * 9;
+                        player.dy = -6;
+                    }
+                }
+            }
+
+            if (mob.health <= 0 && !mob.isDead) {
+                mob.isDead = true;
+                mob.frame = 0;
+            }
+        });
+
+        mobs = mobs.filter(m => !m.removed);
+
+        flagTimer += delta; 
+        if (flagTimer >= 10) {
+            goal.frameIndex = (goal.frameIndex + 1) % goal.frameCount;
+            flagTimer = 0;
+        }
+
+        const goalHitboxX = goal.x + goal.hitboxOffsetX;
+        const goalHitboxY = goal.y + goal.hitboxOffsetY;
+
+        if (
+          player.x < goalHitboxX + goal.hitboxW &&
+          player.x + player.hitboxW > goalHitboxX &&
+          player.y < goalHitboxY + goal.hitboxH &&
+          player.y + player.hitboxH > goalHitboxY
+        ) {
+          const runSfxCheck = document.getElementById("sfx-run");
+          if (runSfxCheck) runSfxCheck.pause();
+          
+          player.dx = 0;
+          keys = {};
+
+          finishGame("You Win!", "過酷なハードコア試練を完全踏破した！おめでとう！");
+        }
+    }
+
+    function render() {
+        camera.x = Math.max(0, Math.min(player.x - VIRTUAL_WIDTH / 2, WORLD_WIDTH - VIRTUAL_WIDTH));
+        ctx.clearRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+        const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        sky.addColorStop(0, "#1f3a24");
+        sky.addColorStop(1, "#0d1a10");
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        function drawForestTrees(alpha, scale, speed, yOffset) {
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            const trunkSpacing = 300 * scale; 
+            
+            for (let i = 0; i < WORLD_WIDTH / trunkSpacing; i++) {
+                const treeX = (i * trunkSpacing) - (camera.x * speed);
+                
+                if (treeX > -100 && treeX < VIRTUAL_WIDTH + 100) {
+                    ctx.fillStyle = "#2b1c12";
+                    ctx.fillRect(treeX + (15 * scale), 50 + yOffset, 30 * scale, 400 * scale);
+                    
+                    ctx.fillStyle = "#1e3d1a";
+                    ctx.beginPath();
+                    ctx.arc(treeX + (30 * scale), 50 + yOffset, 45 * scale, 0, Math.PI * 2);
+                    ctx.arc(treeX, 80 + yOffset, 35 * scale, 0, Math.PI * 2);
+                    ctx.arc(treeX + (60 * scale), 80 + yOffset, 35 * scale, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            ctx.restore();
+        }
+
+        drawForestTrees(0.3, 0.6, 0.1, 50); 
+        drawForestTrees(0.6, 0.9, 0.3, 20); 
+        drawForestTrees(1.0, 1.3, 0.6, 0);  
+
+        ctx.fillStyle = "#070f07";
+        ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+
+        ctx.save();
+        ctx.translate(-camera.x, 0);
+
+        spikes.forEach(s => {
+            ctx.fillStyle = "#c0392b";
+            ctx.strokeStyle = "#641e16";
+            ctx.lineWidth = 2;
+
+            const triWidth = s.w / 3;
+
+            for (let i = 0; i < 3; i++) {
+                const startX = s.x + (i * triWidth);
+                
+                ctx.beginPath();
+                ctx.moveTo(startX, s.y + s.h);
+                ctx.lineTo(startX + (triWidth / 2), s.y);
+                ctx.lineTo(startX + triWidth, s.y + s.h);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+        });
+
+        platforms.forEach((platform) => {
+            ctx.fillStyle = "#3d2310";
+            ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
+
+            ctx.fillStyle = "#2e522b";
+            ctx.fillRect(platform.x, platform.y, platform.w, 10); 
+            
+            ctx.fillStyle = "#4a6c45"; 
+            ctx.fillRect(platform.x, platform.y, platform.w, 4);
+        });
+
+        mobs.forEach(m => {
+            if (m.health >= 0) {
+                m.facing = m.dx > 0 ? 1 : -1;
+                drawBooger(m);
+            }
+        });
+
+        ctx.drawImage(goalImage, goal.frameIndex * 60, 0, 32, 50, goal.x, goal.y, goal.w, goal.h);
+
+        drawPlayer();
+
+        ctx.restore();
+
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+            let ft = floatingTexts[i];
+            ft.y -= 0.5; 
+            ft.timer -= 1;
+            ctx.save();
+            ctx.globalAlpha = ft.timer / 60;
+            ctx.fillStyle = "#e74c3c";
+            ctx.font = "bold 20px Arial, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(ft.text, ft.x - camera.x, ft.y);
+            ctx.restore();
+            if (ft.timer <= 0) floatingTexts.splice(i, 1);
+        }
+
+        ctx.fillStyle = "rgba(255,255,255,0.85)";
+        ctx.font = "20px Segoe UI";
+        ctx.textAlign = "left";
+        
+        let hearts = "";
+        for (let i = 0; i < lives; i++) {
+            hearts += "❤️";
+        }
+        ctx.fillText(`Lives: ${hearts}  |  Score: ${score}`, 30, 30);
+    }
+
+    function drawPlayer() {
+      let img = sprites.idle;
+      let frame = 0;
+      let frameCount = 10;
+      
+      const isMoving = Math.abs(player.dx) > 0.5;
+      const isJumping = player.dy < -1;
+      const isFalling = player.dy > 2 && !player.onGround;
+
+      player.playerFrameIndex++;
+
+      if (player.isAttacking) {
+        const comboFrame = Math.floor(player.playerFrameIndex / 4);
+        
+        if (comboFrame >= 7) {
+          player.isAttacking = false;
+          player.playerFrameIndex = 0;
+        } else {
+          if (comboFrame < 3) {
+            img = sprites.attack;
+            frame = comboFrame;
+            frameCount = 3;
+          } else {
+            img = sprites.attack_end;
+            frame = comboFrame - 3;
+            frameCount = 4;
+          }
+        }
+      }
+
+      if (!player.isAttacking) {
+        if (isJumping) {
+          img = sprites.jump;
+          frameCount = 6;
+        } else if (isFalling) {
+          img = sprites.fall;
+          frameCount = 4;
+        } else if (isMoving) {
+          img = sprites.run;
+          frameCount = 10;
+        } else {
+          img = sprites.idle;
+          frameCount = 10;
+        }
+        frame = Math.floor(player.playerFrameIndex / 8) % frameCount;
+      }
+
+      if (!img || img.width === 0) return;
+      const frameWidth = img.width / frameCount;
+      const frameHeight = img.height;
+      const srcX = frame * frameWidth;
+
+      ctx.save();
+
+      if (player.isInvulnerable) {
+          if (Math.floor(player.invulnerableTimer / 6) % 2 === 0) {
+              ctx.globalAlpha = 0.3;
+          } else {
+              ctx.globalAlpha = 0.85;
+          }
+      }
+
+      if (player.facing < 0) {
+        ctx.translate(player.x + player.w, player.y + player.yOffset);
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, srcX, 0, frameWidth, frameHeight, 0, 0, player.w, player.h);
+      } else {
+        ctx.drawImage(img, srcX, 0, frameWidth, frameHeight, player.x, player.y + player.yOffset, player.w, player.h);
+      }
+
+      ctx.restore();
+    }
+
+    function handleKeyDown(event) {
+        if (!running) return;
+
+        if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
+            event.preventDefault();
+        }
+        keys[event.code] = true;
+
+        if (event.code === "KeyX") {
+            if (!player.isAttacking) { 
+                player.isAttacking = true;
+                player.playerFrameIndex = 0;
+                playSfx('sfx-attack');
+            }
+        }
+    }
+
+    function handleKeyUp(event) {
+        if (!running) return;
+        keys[event.code] = false;
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    startButton.addEventListener("click", () => {
+        playCurrentTrack();
+        startGame();
+    });
+
+    showOverlay("Super Summer Quest: HARD MODE", "Try your best to get to the end.", "操作方法:矢印キーまたはA/Dで移動、スペース/Wでジャンプ、Xで攻撃");
+  
+    function spawnDamageText(x, y, text) {
+      floatingTexts.push({
+        x: x,
+        y: y,
+        text: text,
+        timer: 60 
+      });
+    }
+
+    function drawBooger(mob) {
+        if (mob.removed) return; 
+
+        let animName = "moveRight";
+        if (mob.isDead) {
+            animName = "dying";
+        } else if (mob.wasHit) {
+            animName = (mob.facing === -1) ? "hitLeft" : "hitRight";
+        } else {
+            animName = (mob.facing === -1) ? "moveLeft" : "moveRight";
+        }
+
+        const anim = BOOGER_ANIM[animName];
+        const sy = (anim.row - 1) * BOOGER_SIZE;
+        const sx = Math.floor(Math.floor(mob.frame) * BOOGER_SIZE);
+
+        const padding = 1;
+        ctx.drawImage(
+            sprites.booger, 
+            sx, sy + padding, BOOGER_SIZE, BOOGER_SIZE - padding, 
+            mob.x, mob.y, 64, 64
+        );
+
+        if (mob.isDead) {
+            if (mob.frame < anim.frames - 1) {
+                mob.frame += 0.1;
+            } else {
+                mob.frame = anim.frames - 1;
+                mob.deathTimer++;
+                
+                if (mob.deathTimer > 60) {
+                    mob.removed = true;
+                }
+            }
+        } else {
+            mob.frame = (mob.frame + 0.1) % anim.frames;
+        }
+    }
+
+    function finishGame(title, text) {
+        if (title === "You Win!") {
+            running = false;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+            const runSfx = document.getElementById("sfx-run");
+            if (runSfx) runSfx.pause();
+
+            const controls = document.getElementById("controls");
+            if (controls) controls.style.display = "none";
+
+            document.body.classList.add("modal-open");
+
+            const popup = document.getElementById("goalPopup");
+            popup.style.display = "flex";
+            playSfx('sfx-flag');
+        } else {
+            showOverlay(title, text);
+        }
+    }
+
+    function restartGame() {
+        document.body.classList.remove("modal-open");
+
+        const popup = document.getElementById("goalPopup");
+        popup.style.display = "none";
+        
+        const controls = document.getElementById("controls");
+        if (controls && window.innerWidth <= 900) {
+            controls.style.display = "block";
+        }
+        
+        startGame();
+    }
+
+    function closeGame() {
+        if (bgMusic) bgMusic.pause();
+        const runSfx = document.getElementById("sfx-run");
+        if (runSfx) runSfx.pause();
+
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.close();
+        }
+        
+        setTimeout(() => {
+            window.location.href = "about:blank";
+        }, 300);
+    }
+
+    const btnMap = {
+        "btn-left": "ArrowLeft",
+        "btn-right": "ArrowRight",
+        "btn-jump": "Space",
+        "btn-attack": "KeyX"
+    };
+
+    document.querySelectorAll('.control-btn').forEach(btn => {
+        const triggerInput = (code, state) => {
+            keys[code] = state;
+            if (code === "KeyX" && state === true) {
+                if (!player.isAttacking) {
+                    player.isAttacking = true;
+                    player.playerFrameIndex = 0;
+                    playSfx('sfx-attack');
+                }
+            }
+        };
+
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            triggerInput(btnMap[btn.id], true);
+        });
+
+        btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys[btnMap[btn.id]] = false;
+        });
+
+        btn.addEventListener('touchcancel', (e) => {
+            keys[btnMap[btn.id]] = false;
+        });
+    });
+
+    let wasPlayingBeforeGame = false;
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            if (bgMusic && !bgMusic.paused) {
+                wasPlayingBeforeGame = true; 
+                bgMusic.pause();             
+                playPauseBtn.textContent = "▶";
+            }
+        } else {
+            if (bgMusic && wasPlayingBeforeGame) {
+                bgMusic.play().then(() => {
+                    playPauseBtn.textContent = "❚❚";
+                }).catch(e => console.log("Auto-resume blocked"));
+                
+                wasPlayingBeforeGame = false; 
+            }
+        }
+    });
+  </script>
+</body>
+</html>
