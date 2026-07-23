@@ -102,14 +102,32 @@ canvas {
         display: block; /* Show the container */
     }
 
-    #goalPopup {
-        align-items: flex-start !important; /* Pushes the dialog to the top so the keyboard doesn't cover it */
-        padding-top: 40px;
+    /* Option 2: Compact horizontal layout for mobile keyboards */
+    #password-section {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
-    
-    .panel {
-        max-width: 90%;
-        margin-bottom: 50px; /* Ensures space to scroll past the keyboard */
+
+    #password-section h2, 
+    #password-section p {
+        width: 100%;
+        margin: 0 0 5px 0;
+        font-size: 1.1rem;
+    }
+
+    #passwordInput {
+        flex: 1;
+        min-width: 150px;
+        padding: 8px;
+    }
+
+    #password-section button {
+        padding: 8px 15px;
+        margin: 0;
+        font-size: 16px;
     }
 }
 .left-controls {
@@ -259,7 +277,7 @@ canvas {
             <br><br>
             <button onclick="checkWord()">Submit</button>
             <button onclick="restartGame()">Restart</button>
-            <p id="errorMessage" style="color:#ff7675; margin-top: 10px; font-weight: bold;"></p>
+            <p id="errorMessage" style="color:#ff7675; margin-top: 10px; font-weight: bold; width: 100%;"></p>
         </div>
 
         <!-- Stage 2: Success & Memo Image (Initially Hidden) -->
