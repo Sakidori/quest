@@ -33,6 +33,42 @@
             pointer-events: auto !important;
         }
 
+        /* Update Notes Box Styling */
+        .update-notes {
+            position: fixed;
+            bottom: 20px;
+            left: 20px; /* Change 'left' to 'right' if you prefer it on the top right */
+            color: white;
+            font-family: sans-serif;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 18px;
+            border-radius: 12px;
+            z-index: 10001; /* Higher than splash screen so it's visible right away */
+            max-width: 280px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            pointer-events: auto;
+        }
+
+        .update-notes h3 {
+            margin: 0 0 6px 0;
+            font-size: 15px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .update-notes ul {
+            margin: 0;
+            padding-left: 16px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .update-notes li {
+            margin-bottom: 4px;
+        }
+
         /* Combined Splash & Orientation Screen */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -65,6 +101,9 @@
             /* Orientation Message */
             #rotate-msg { display: block !important; }
             #enter-container { display: none !important; }
+            
+            /* Optional: Hide or compact update notes on small portrait screens if needed */
+            .update-notes { display: none; }
         }
 
         .enter-btn { 
@@ -154,54 +193,23 @@
         .rules-btn { background-color: #555; }
         .btn:hover { transform: scale(1.05); }
 
-        /* Modal - Dynamic Viewport Unit Locking */
-        .modal { 
-            display: none; 
-            position: fixed; 
-            z-index: 10000; 
-            left: 0; 
-            top: 0; 
-            width: 100vw; 
-            height: 100dvh; 
-            background-color: rgba(0,0,0,0.85); 
-            justify-content: center;
-            align-items: center;
-        }
-        
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
         .modal-content {
-            position: relative;
-            /* Ensures proportions stay locked to original ratio (e.g., 3:2 landscape book ratio width/height) */
-            aspect-ratio: 3 / 2;
-            width: min(90vw, 900px);
-            max-height: 85dvh;
-            background-image: url('book.png'); 
-            background-size: contain; 
-            background-repeat: no-repeat; 
-            background-position: center;
-            padding: 8% 12% 10% 12%; 
-            box-sizing: border-box;
-            color: #333; 
-            font-family: sans-serif; 
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            margin: 5% auto; width: 80vw; height: 80vh;
+            background-image: url('book.png'); background-size: contain;
+            background-repeat: no-repeat; background-position: center;
+            padding: 50px 120px 80px 120px; box-sizing: border-box;
+            color: #333; font-family: sans-serif; overflow-y: auto;
         }
-
-        .close-btn { 
-            color: white; 
-            font-size: 50px; 
-            cursor: pointer; 
-            position: absolute; 
-            top: 20px; 
-            right: 40px; 
-            z-index: 10001; 
-        }
+        .close-btn { color: white; font-size: 50px; cursor: pointer; position: absolute; top: 20px; right: 40px; z-index: 10001; }
 
         @keyframes floatIn { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes swordFly { from { opacity: 0; transform: translate(400px, -400px) rotate(45deg); } to { opacity: 1; transform: translate(0, 0) rotate(-20deg); } }
 
         #music-widget {
             position: fixed;
-            bottom: 20px; 
+            bottom: 20px;
             right: 20px;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(5px);
@@ -246,6 +254,16 @@
     </style>
 </head>
 <body>
+
+    <!-- Update Notes Box (Placed at Top Left) -->
+    <div class="update-notes">
+        <h3>✨ What's New</h3>
+        <ul>
+            <li>RPGフォレストのミニゲームにハードモードが追加されました</li>
+            <li>17曲の楽曲が追加されました</li>
+            <li>一般的なバグの修正およびレイアウトの改善</li>
+        </ul>
+    </div>
 
     <div id="splash-screen">
         <div class="splash-content">
@@ -308,7 +326,7 @@
             { name: "4.Lunar", src: "music/gesshokunomirage.mp3" }, 
             { name: "5.Kingdom", src: "music/icarusnotsuiraku.mp3" },
             { name: "6.Tomorrow", src: "music/ashitaetudukusora.mp3" }, 
-            { name: "7.Snow", src: "music/hatsuyuki.mp3" },
+            { name: "7.Snow", src: "music/hatyuki.mp3" },
             { name: "8.Onward", src: "music/zangyousenshi.mp3" }, 
             { name: "9.Evening", src: "music/houkagonoumibe.mp3" }, 
             { name: "10.Boss", src: "music/gameover.mp3" }, 
@@ -373,7 +391,7 @@
         }
 
         function openRules() { 
-            document.getElementById("rules-modal").style.display = "flex";
+            document.getElementById("rules-modal").style.display = "block";
             document.querySelector(".start-btn").classList.add("start-visible");
         }
         function closeRules() { document.getElementById("rules-modal").style.display = "none"; }
@@ -402,23 +420,20 @@
 
         let wasPlayingBeforeGame = false;
 
-        // Triggers ONLY when the user actually switches tabs or minimizes (ignores iframe clicks)
         document.addEventListener("visibilitychange", () => {
             if (document.hidden) {
-                // User switched away to the game tab or left the browser
                 if (bgMusic && !bgMusic.paused) {
-                    wasPlayingBeforeGame = true; // Remember it was playing
-                    bgMusic.pause();            // Pause the music
+                    wasPlayingBeforeGame = true; 
+                    bgMusic.pause();           
                     playPauseBtn.textContent = "▶"; 
                 }
             } else {
-                // User returned to this tab
                 if (bgMusic && wasPlayingBeforeGame) {
                     bgMusic.play().then(() => {
                         playPauseBtn.textContent = "❚❚";
                     }).catch(e => console.log("Auto-resume blocked"));
                     
-                    wasPlayingBeforeGame = false; // Reset flag
+                    wasPlayingBeforeGame = false; 
                 }
             }
         });
