@@ -346,6 +346,7 @@
     </div>
 
     <audio id="bg-music"></audio>
+    <audio id="book-sound" src="bookflip.mp3"></audio>
 
     <div id="rules-modal" class="modal">
         <span class="close-btn" onclick="closeRules()">&times;</span>
@@ -376,10 +377,9 @@
                 if (updateBox && !updateBox.classList.contains('minimized')) {
                     updateBox.classList.add('minimized');
                 }
-            }, 5000); // 3 seconds timer
+            }, 5000); 
         }
 
-        // Automatically minimize 3 seconds after page load starts
         window.addEventListener('DOMContentLoaded', () => {
             startMinimizeTimer();
         });
@@ -388,7 +388,6 @@
             const updateBox = document.getElementById('update-box');
             updateBox.classList.toggle('minimized');
 
-            // Whenever the user expands it, trigger the 3-second auto-minimize timer again
             if (!updateBox.classList.contains('minimized')) {
                 startMinimizeTimer();
             } else {
@@ -470,8 +469,23 @@
         function openRules() { 
             document.getElementById("rules-modal").style.display = "block";
             document.querySelector(".start-btn").classList.add("start-visible");
+            
+            // Lower background music volume (e.g., 30% volume)
+            bgMusic.volume = 0.3;
+
+            // Play book flip sound effect at max volume
+            const bookSound = document.getElementById("book-sound");
+            bookSound.volume = 1.0;
+            bookSound.currentTime = 0;
+            bookSound.play().catch(e => console.log("Audio play blocked"));
         }
-        function closeRules() { document.getElementById("rules-modal").style.display = "none"; }
+
+        function closeRules() { 
+            document.getElementById("rules-modal").style.display = "none";
+            
+            // Restore background music volume back to full (100%)
+            bgMusic.volume = 1.0;
+        }
 
         function startExperience() {
             var wrapper = document.createElement("div");
