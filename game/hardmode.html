@@ -237,6 +237,7 @@
         <div class="panel">
             <h2>Amazing!</h2>
             <p>過酷なハードモード試練を完全踏破した！おめでとう！</p>
+            <p id="finalScoreDisplay" style="font-size: 32px; font-weight: bold; margin: 20px 0; color: #f1c40f;"></p>
             <br>
             <button onclick="restartGame()">Play Again</button>
             <button onclick="closeGame()" style="background: #e74c3c;">Close Game</button>
@@ -340,7 +341,8 @@
       walk: "male_hero-walk.png",
       attack: "male_hero-combo_1.png",
       attack_end: "male_hero-combo_1_end.png",
-      booger: "Booger Buddy.png"
+      booger: "Booger Buddy.png",
+      bed: "bed.png"
     };
 
     const sprites = {};
@@ -377,15 +379,17 @@
     const MOVE_SPEED = 5.2;
     const JUMP_FORCE = -13.0;
     const FRICTION = 0.8;
-    const WORLD_WIDTH = 3200;
+    const WORLD_WIDTH = 3400;
     let camera = { x: 0 };
 
     let player;
     let platforms;
     let spikes;
     let goal;
+    let bed;
     let mobs;
     let floatingTexts = [];
+    let explosions = [];
     let keys = {};
     let animationFrameId = null;
     let running = false;
@@ -393,10 +397,29 @@
     let flagTimer = 0;
     let lives = 3;
     let score = 0;
+    let godMode = false;
+    let secretCodeBuffer = [];
+    const SECRET_SEQUENCE = ["Jump", "Jump", "Left", "Right", "Left", "Right", "Attack", "Jump"];
+
+    function checkSecretCode(action) {
+        secretCodeBuffer.push(action);
+        if (secretCodeBuffer.length > SECRET_SEQUENCE.length) {
+            secretCodeBuffer.shift();
+        }
+        if (secretCodeBuffer.length === SECRET_SEQUENCE.length && secretCodeBuffer.every((val, index) => val === SECRET_SEQUENCE[index])) {
+            godMode = !godMode;
+            if (player) {
+                spawnDamageText(player.x + player.w / 2, player.y - 30, godMode ? "SECRET GOD MODE ON" : "GOD MODE OFF");
+            }
+            playSfx('sfx-flag');
+            secretCodeBuffer = [];
+        }
+    }
 
     function resetGame() {
         lives = 3;
         score = 0;
+        explosions = [];
         player = {
             x: 0,
             y: 15,
@@ -413,7 +436,8 @@
             playerFrameIndex: 0,
             isAttacking: false,
             isInvulnerable: false,
-            invulnerableTimer: 0
+            invulnerableTimer: 0,
+            isBlownUp: false
         };
 
         platforms = [
@@ -430,7 +454,7 @@
             { x: 2120, y: 350, w: 150, h: 50 },
             { x: 2350, y: 250, w: 100, h: 20 },
             { x: 2550, y: 180, w: 130, h: 20 },
-            { x: 2780, y: 350, w: 420, h: 50 }
+            { x: 2780, y: 350, w: 620, h: 50 }
         ];
         
         spikes = [
@@ -457,6 +481,14 @@
           frameCount: 5,
           frameIndex: 0,
           frameWidth: 60
+        };
+
+        bed = {
+          x: 3200,
+          y: 300,
+          w: 80,
+          h: 50,
+          exploded: false
         };
         
         keys = {};
@@ -538,10 +570,10 @@
 
         const moveInput = (keys["ArrowRight"] || keys["KeyD"] ? 1 : 0) - (keys["ArrowLeft"] || keys["KeyA"] ? 1 : 0);
 
-        if (moveInput !== 0) {
+        if (moveInput !== 0 && !player.isBlownUp) {
           player.dx = moveInput * MOVE_SPEED; 
           player.facing = moveInput;
-        } else {
+        } else if (!player.isBlownUp) {
           player.dx *= FRICTION; 
         }
 
@@ -551,7 +583,7 @@
             
             if (window.runDelayCounter === undefined) window.runDelayCounter = 0;
 
-            if (isMovingHorizontally && player.onGround) {
+            if (isMovingHorizontally && player.onGround && !player.isBlownUp) {
                 if (runSfx.paused) {
                     if (window.runDelayCounter <= 0) {
                         runSfx.currentTime = 0;
@@ -570,7 +602,7 @@
             }
         }
 
-        if ((keys["Space"] || keys["ArrowUp"] || keys["KeyW"]) && player.onGround) {
+        if ((keys["Space"] || keys["ArrowUp"] || keys["KeyW"]) && player.onGround && !player.isBlownUp) {
             player.dy = JUMP_FORCE;
             player.onGround = false;
             
@@ -617,7 +649,7 @@
                 player.y + player.hitboxH > spike.y &&
                 player.y < spike.y + spike.h
             ) {
-                if (!player.isInvulnerable) {
+                if (!godMode && !player.isInvulnerable && !player.isBlownUp) {
                     lives -= 1;
                     score -= 10;
                     playSfx('sfx-hit');
@@ -649,11 +681,16 @@
         }
         
         if (player.y > 450) { 
-            lives = 0;
-            const runSfxCheck = document.getElementById("sfx-run");
-            if (runSfxCheck) runSfxCheck.pause();
-            playSfx('sfx-fall');
-            finishGame("Game Over", "過酷な深淵へと転落してしまった！");
+            if (!godMode) {
+                lives = 0;
+                const runSfxCheck = document.getElementById("sfx-run");
+                if (runSfxCheck) runSfxCheck.pause();
+                playSfx('sfx-fall');
+                finishGame("Game Over", "過酷な深淵へと転落してしまった！");
+            } else {
+                player.y = 100;
+                player.dy = 0;
+            }
         }
 
         mobs.forEach(mob => {
@@ -673,11 +710,11 @@
                     
                     if (Math.abs(mob.x - hitBoxX) < 75 && Math.abs(player.y - mob.y) < 60) {
                         if (mob.health > 0) {
-                            mob.health -= 1;
+                            mob.health -= (godMode ? 4 : 1);
                             mob.wasHit = true;
                             score += 10;
                             playSfx('sfx-mobhit');
-                            spawnDamageText(mob.x, mob.y - 20, "-10");
+                            spawnDamageText(mob.x, mob.y - 20, godMode ? "-40" : "-10");
                         } else {
                             mob.wasHit = true;
                         }
@@ -698,7 +735,7 @@
 
                 if (player.dy > 0 && playerFeet < mobTop + 30) {
                     if (mob.health > 0) {
-                        mob.health -= 1;
+                        mob.health -= (godMode ? 4 : 1);
                         player.dy = -8;
                         player.onGround = false;
                         score += 10;
@@ -710,7 +747,7 @@
                         playSfx('sfx-stomp');
                     }
                 } 
-                else if (!player.isInvulnerable && mob.health > 0) {
+                else if (!godMode && !player.isInvulnerable && mob.health > 0 && !player.isBlownUp) {
                     lives -= 1;
                     score -= 10;
                     playSfx('sfx-hit');
@@ -752,13 +789,61 @@
           player.y < goalHitboxY + goal.hitboxH &&
           player.y + player.hitboxH > goalHitboxY
         ) {
+          if (!godMode) {
+              const runSfxCheck = document.getElementById("sfx-run");
+              if (runSfxCheck) runSfxCheck.pause();
+              
+              player.dx = 0;
+              keys = {};
+
+              finishGame("You Win!", "過酷なハードコア試練を完全踏破した！おめでとう！");
+          }
+        }
+
+        if (
+          !godMode &&
+          !bed.exploded &&
+          player.x < bed.x + bed.w &&
+          player.x + player.hitboxW > bed.x &&
+          player.y < bed.y + bed.h &&
+          player.y + player.hitboxH > bed.y
+        ) {
           const runSfxCheck = document.getElementById("sfx-run");
           if (runSfxCheck) runSfxCheck.pause();
+          playSfx('sfx-hit');
           
-          player.dx = 0;
-          keys = {};
+          bed.exploded = true;
+          player.isBlownUp = true;
+          player.dy = -10; 
+          player.dx = (player.x < bed.x + bed.w/2 ? -1 : 1) * 8;
 
-          finishGame("You Win!", "過酷なハードコア試練を完全踏破した！おめでとう！");
+          for (let i = 0; i < 30; i++) {
+              explosions.push({
+                  x: bed.x + bed.w / 2,
+                  y: bed.y + bed.h / 2,
+                  dx: (Math.random() - 0.5) * 12,
+                  dy: (Math.random() - 0.7) * 10,
+                  radius: Math.random() * 8 + 4,
+                  color: Math.random() > 0.4 ? (Math.random() > 0.5 ? "#e74c3c" : "#f39c12") : "#e67e22",
+                  alpha: 1.0,
+                  decay: Math.random() * 0.03 + 0.015
+              });
+          }
+
+          setTimeout(() => {
+              finishGame("Game Over", "Intentional game design");
+          }, 900);
+        }
+
+        for (let i = explosions.length - 1; i >= 0; i--) {
+            let ex = explosions[i];
+            ex.x += ex.dx * delta;
+            ex.y += ex.dy * delta;
+            ex.dy += 0.2 * delta; 
+            ex.alpha -= ex.decay * delta;
+            if (ex.alpha <= 0) {
+                explosions.splice(i, 1);
+            }
         }
     }
 
@@ -845,6 +930,20 @@
 
         ctx.drawImage(goalImage, goal.frameIndex * 60, 0, 32, 50, goal.x, goal.y, goal.w, goal.h);
 
+        if (!bed.exploded && sprites.bed && sprites.bed.complete && sprites.bed.naturalWidth !== 0) {
+            ctx.drawImage(sprites.bed, bed.x, bed.y, bed.w, bed.h);
+        }
+
+        explosions.forEach(ex => {
+            ctx.save();
+            ctx.globalAlpha = ex.alpha;
+            ctx.fillStyle = ex.color;
+            ctx.beginPath();
+            ctx.arc(ex.x, ex.y, ex.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+
         drawPlayer();
 
         ctx.restore();
@@ -871,7 +970,7 @@
         for (let i = 0; i < lives; i++) {
             hearts += "❤️";
         }
-        ctx.fillText(`Lives: ${hearts}  |  Score: ${score}`, 30, 30);
+        ctx.fillText(`Lives: ${hearts}  |  Score: ${score} ${godMode ? ' | [GOD MODE ACTIVE 🌟]' : ''}`, 30, 30);
     }
 
     function drawPlayer() {
@@ -928,7 +1027,11 @@
 
       ctx.save();
 
-      if (player.isInvulnerable) {
+      if (godMode) {
+          ctx.shadowColor = "#f1c40f";
+          ctx.shadowBlur = 15;
+          ctx.globalAlpha = 0.95;
+      } else if (player.isInvulnerable) {
           if (Math.floor(player.invulnerableTimer / 6) % 2 === 0) {
               ctx.globalAlpha = 0.3;
           } else {
@@ -948,6 +1051,16 @@
     }
 
     function handleKeyDown(event) {
+        let action = null;
+        if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") action = "Jump";
+        if (event.code === "ArrowLeft" || event.code === "KeyA") action = "Left";
+        if (event.code === "ArrowRight" || event.code === "KeyD") action = "Right";
+        if (event.code === "KeyX") action = "Attack";
+
+        if (action) {
+            checkSecretCode(action);
+        }
+
         if (!running) return;
 
         if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
@@ -1040,6 +1153,8 @@
 
             document.body.classList.add("modal-open");
 
+            document.getElementById("finalScoreDisplay").textContent = `Final Score: ${score}`;
+
             const popup = document.getElementById("goalPopup");
             popup.style.display = "flex";
             playSfx('sfx-flag');
@@ -1079,36 +1194,36 @@
     }
 
     const btnMap = {
-        "btn-left": "ArrowLeft",
-        "btn-right": "ArrowRight",
-        "btn-jump": "Space",
-        "btn-attack": "KeyX"
+        "btn-left": { code: "ArrowLeft", action: "Left" },
+        "btn-right": { code: "ArrowRight", action: "Right" },
+        "btn-jump": { code: "Space", action: "Jump" },
+        "btn-attack": { code: "KeyX", action: "Attack" }
     };
 
     document.querySelectorAll('.control-btn').forEach(btn => {
-        const triggerInput = (code, state) => {
-            keys[code] = state;
-            if (code === "KeyX" && state === true) {
+        const mapping = btnMap[btn.id];
+
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys[mapping.code] = true;
+            checkSecretCode(mapping.action);
+
+            if (mapping.code === "KeyX") {
                 if (!player.isAttacking) {
                     player.isAttacking = true;
                     player.playerFrameIndex = 0;
                     playSfx('sfx-attack');
                 }
             }
-        };
-
-        btn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            triggerInput(btnMap[btn.id], true);
         });
 
         btn.addEventListener('touchend', (e) => {
             e.preventDefault();
-            keys[btnMap[btn.id]] = false;
+            keys[mapping.code] = false;
         });
 
         btn.addEventListener('touchcancel', (e) => {
-            keys[btnMap[btn.id]] = false;
+            keys[mapping.code] = false;
         });
     });
 
