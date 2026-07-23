@@ -354,7 +354,7 @@
         </div>
     </div>
 
-    <script>
+<script>
         const container = document.getElementById('sparkle-container');
         for(let i = 0; i < 40; i++) {
             let s = document.createElement('div');
@@ -366,19 +366,37 @@
             container.appendChild(s);
         }
 
-        // --- Auto-Minimize Update Notes after 5 seconds ---
+        // --- Auto-Minimize Update Notes ---
         let manualToggle = false;
+        let minimizeTimer;
+
+        function startMinimizeTimer() {
+            clearTimeout(minimizeTimer);
+            minimizeTimer = setTimeout(() => {
+                const updateBox = document.getElementById('update-box');
+                if (updateBox && !updateBox.classList.contains('minimized')) {
+                    updateBox.classList.add('minimized');
+                }
+            }, 3000);
+        }
+
         setTimeout(() => {
             const updateBox = document.getElementById('update-box');
             if (!manualToggle && updateBox && !updateBox.classList.contains('minimized')) {
                 updateBox.classList.add('minimized');
             }
-        }, 5000); // 5000 milliseconds = 5 seconds
+        }, 3000);
 
         function toggleUpdateNotes(event) {
-            manualToggle = true; // User interacted, stop auto-behavior conflicts
+            manualToggle = true; 
             const updateBox = document.getElementById('update-box');
             updateBox.classList.toggle('minimized');
+
+            if (!updateBox.classList.contains('minimized')) {
+                startMinimizeTimer();
+            } else {
+                clearTimeout(minimizeTimer);
+            }
         }
 
         // --- Playlist Configuration ---
@@ -419,7 +437,6 @@
             playCurrentTrack();
         });
 
-        // Widget Controls
         function togglePlayPause() {
             if (bgMusic.paused) {
                 if (!bgMusic.src) {
@@ -476,7 +493,7 @@
             var elem = document.documentElement;
             if (elem.requestFullscreen) {
                 elem.requestFullscreen();
-            } else if (elem.webkitRequestFullscreen) { /* Safari/iOS fallback */
+            } else if (elem.webkitRequestFullscreen) {
                 elem.webkitRequestFullscreen();
             }
         }
