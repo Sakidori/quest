@@ -469,8 +469,16 @@
             { x: 2900, y: 340, w: 80, h: 10 }
         ];
 
+        bed = {
+          x: 3100,
+          y: 300,
+          w: 80,
+          h: 50,
+          exploded: false
+        };
+
         goal = {
-          x: 3000, 
+          x: 3300, 
           y: 292, 
           w: 44, 
           h: 58,
@@ -481,14 +489,6 @@
           frameCount: 5,
           frameIndex: 0,
           frameWidth: 60
-        };
-
-        bed = {
-          x: 3200,
-          y: 300,
-          w: 80,
-          h: 50,
-          exploded: false
         };
         
         keys = {};
@@ -1215,6 +1215,11 @@
                     playSfx('sfx-attack');
                 }
             }
+        });
+
+        btn.addEventListener('touched', (e) => {
+            e.preventDefault();
+            keys[mapping.code] = false;
         });
 
         btn.addEventListener('touchend', (e) => {
