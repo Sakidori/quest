@@ -367,7 +367,6 @@
         }
 
         // --- Auto-Minimize Update Notes ---
-        let manualToggle = false;
         let minimizeTimer;
 
         function startMinimizeTimer() {
@@ -377,21 +376,19 @@
                 if (updateBox && !updateBox.classList.contains('minimized')) {
                     updateBox.classList.add('minimized');
                 }
-            }, 3000);
+            }, 3000); // 3 seconds timer
         }
 
-        setTimeout(() => {
-            const updateBox = document.getElementById('update-box');
-            if (!manualToggle && updateBox && !updateBox.classList.contains('minimized')) {
-                updateBox.classList.add('minimized');
-            }
-        }, 3000);
+        // Automatically minimize 3 seconds after page load starts
+        window.addEventListener('DOMContentLoaded', () => {
+            startMinimizeTimer();
+        });
 
         function toggleUpdateNotes(event) {
-            manualToggle = true; 
             const updateBox = document.getElementById('update-box');
             updateBox.classList.toggle('minimized');
 
+            // Whenever the user expands it, trigger the 3-second auto-minimize timer again
             if (!updateBox.classList.contains('minimized')) {
                 startMinimizeTimer();
             } else {
