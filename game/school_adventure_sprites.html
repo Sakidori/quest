@@ -47,6 +47,14 @@ body.modal-open {
     padding: 20px 0;
 }
 
+/* Update #goalPopup alignment for mobile viewports to push the panel up initially */
+@media (max-width: 900px) {
+    #goalPopup {
+        align-items: flex-start;
+        padding-top: 30px;
+    }
+}
+
 /* The rounded, stylized box */
 .panel {
     background: #2c3e50; /* Dark blue/grey background */
