@@ -214,6 +214,12 @@
             border: none;
         }
 
+@media screen and (max-width: 768px), screen and (orientation: portrait) {
+            .panoee-container iframe {
+                height: 115%; /* Stretches the bottom further on mobile devices */
+            }
+        }
+
         /* Button Layout */
         .button-group {
             position: absolute;
