@@ -33,22 +33,65 @@
             pointer-events: auto !important;
         }
 
-        /* Update Notes Box Styling */
+        /* Update Notes Box Styling with smooth minimize transition */
         .update-notes {
             position: fixed;
-            bottom: 20px;
-            left: 20px; /* Change 'left' to 'right' if you prefer it on the top right */
+            top: 20px;
+            right: 20px;
             color: white;
             font-family: sans-serif;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 12px 18px;
             border-radius: 12px;
-            z-index: 10001; /* Higher than splash screen so it's visible right away */
-            max-width: 280px;
+            z-index: 10001;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             pointer-events: auto;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 280px;
+            max-height: 250px;
+            padding: 12px 18px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        /* Minimized State */
+        .update-notes.minimized {
+            width: 44px;
+            height: 44px;
+            max-height: 44px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .update-notes.minimized .update-body {
+            opacity: 0;
+            pointer-events: none;
+            display: none;
+        }
+
+        .update-notes.minimized .update-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Expanded State Elements */
+        .update-body {
+            transition: opacity 0.2s ease;
+            opacity: 1;
+        }
+
+        .update-icon {
+            position: absolute;
+            font-size: 20px;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.3s ease;
         }
 
         .update-notes h3 {
@@ -56,6 +99,9 @@
             font-size: 15px;
             font-weight: bold;
             letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .update-notes ul {
@@ -102,7 +148,6 @@
             #rotate-msg { display: block !important; }
             #enter-container { display: none !important; }
             
-            /* Optional: Hide or compact update notes on small portrait screens if needed */
             .update-notes { display: none; }
         }
 
@@ -156,7 +201,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            overflow: hidden; /* Clips out-of-bounds UI elements */
+            overflow: hidden; 
             z-index: 9999;
         }
 
@@ -255,14 +300,17 @@
 </head>
 <body>
 
-    <!-- Update Notes Box (Placed at Top Left) -->
-    <div class="update-notes">
-        <h3>✨ What's New</h3>
-        <ul>
-            <li>RPGフォレストのミニゲームにハードモードが追加されました</li>
-            <li>17曲の楽曲が追加されました</li>
-            <li>一般的なバグの修正およびレイアウトの改善</li>
-        </ul>
+    <!-- Update Notes Box with toggle capability -->
+    <div id="update-box" class="update-notes" onclick="toggleUpdateNotes(event)" title="Click to expand update notes">
+        <div class="update-icon">✨</div>
+        <div class="update-body">
+            <h3>✨ What's New <span style="font-size: 11px; font-weight: normal; opacity: 0.7;">_</span></h3>
+            <ul>
+                <li>Added new background music tracks!</li>
+                <li>Improved mobile layout & controls.</li>
+                <li>General bug fixes and performance updates.</li>
+            </ul>
+        </div>
     </div>
 
     <div id="splash-screen">
@@ -316,6 +364,21 @@
             s.style.animationDuration = (Math.random() * 3 + 4) + 's';
             s.style.animationDelay = Math.random() * 5 + 's';
             container.appendChild(s);
+        }
+
+        // --- Auto-Minimize Update Notes after 5 seconds ---
+        let manualToggle = false;
+        setTimeout(() => {
+            const updateBox = document.getElementById('update-box');
+            if (!manualToggle && updateBox && !updateBox.classList.contains('minimized')) {
+                updateBox.classList.add('minimized');
+            }
+        }, 5000); // 5000 milliseconds = 5 seconds
+
+        function toggleUpdateNotes(event) {
+            manualToggle = true; // User interacted, stop auto-behavior conflicts
+            const updateBox = document.getElementById('update-box');
+            updateBox.classList.toggle('minimized');
         }
 
         // --- Playlist Configuration ---
