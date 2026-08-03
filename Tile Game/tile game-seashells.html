@@ -132,12 +132,12 @@
       font-size: 0.95rem;
     }
 
-    /* 📱 Portrait-Optimized Fixed 5-Column Grid Layout */
+    /* 📱 Portrait-Optimized Grid Layout with Corrected Frame Padding */
     #board {
       display: grid;
-      /* Exactly 1 column for hint box + 4 columns for letter tiles */
-      grid-template-columns: 82px repeat(4, 62px);
-      grid-template-rows: repeat(4, 62px);
+      /* Hint column + 4 tile columns */
+      grid-template-columns: 80px repeat(4, 59px);
+      grid-template-rows: repeat(4, 59px);
       gap: 4px;
 
       background-color: transparent;
@@ -146,7 +146,8 @@
       background-position: center;
       background-repeat: no-repeat;
 
-      padding: 8px;
+      /* Increased left/right padding to keep shells nicely inside the stone border */
+      padding: 10px 12px;
       border-radius: 14px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
       touch-action: manipulation;
@@ -160,7 +161,7 @@
       background-color: transparent;
       color: #ffffff;
  
-      font-size: clamp(0.6rem, 2vw, 0.75rem);
+      font-size: clamp(0.55rem, 1.8vw, 0.7rem);
       font-weight: 800;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 
@@ -186,7 +187,7 @@
       background-repeat: no-repeat;
       
       color: #ffffff;
-      font-size: 1.35rem;
+      font-size: 1.3rem;
       font-weight: bold;
       
       text-shadow: 
