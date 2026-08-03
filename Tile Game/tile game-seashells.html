@@ -55,7 +55,7 @@
       justify-content: center;
       min-height: 100vh;
       margin: 0;
-      padding: 8px;
+      padding: 6px;
       
       /* Prevent screen pull-to-refresh / bouncing on iOS/Android */
       overscroll-behavior: none;
@@ -74,18 +74,18 @@
       background-color: rgba(31, 41, 55, 0.85);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      padding: 0.4rem 0.8rem;
-      border-radius: 12px;
+      padding: 0.3rem 0.6rem;
+      border-radius: 10px;
       border: 1px solid rgba(255, 255, 255, 0.15);
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       text-align: center;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.25rem;
       max-width: 100%;
     }
 
     h1 {
-      margin: 0 0 0.1rem 0;
-      font-size: clamp(1.2rem, 4vw, 2.0rem);
+      margin: 0 0 0.05rem 0;
+      font-size: clamp(1.1rem, 3.5vw, 1.8rem);
       color: #ffffff;
       text-align: center;
     }
@@ -94,17 +94,17 @@
       margin: 0;
       color: #d1d5db;
       text-align: center;
-      font-size: clamp(0.7rem, 2vw, 0.95rem);
+      font-size: clamp(0.7rem, 1.8vw, 0.85rem);
     }
 
     .theme-badge {
       background-color: #e0e7ff;
       color: #3730a3;
-      padding: 0.2rem 0.7rem;
+      padding: 0.15rem 0.6rem;
       border-radius: 20px;
       font-weight: 700;
-      font-size: 0.8rem;
-      margin-bottom: 0.3rem;
+      font-size: 0.75rem;
+      margin-bottom: 0.25rem;
       border: 1px solid #c7d2fe;
     }
 
@@ -116,28 +116,28 @@
       background-color: rgba(31, 41, 55, 0.85);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      padding: 0.3rem 0.9rem;
+      padding: 0.25rem 0.8rem;
       border-radius: 20px;
       border: 1px solid rgba(255, 255, 255, 0.15);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 600;
       color: #ffffff;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.25rem;
     }
 
     #move-count {
       color: #fbbf24;
-      margin-left: 0.4rem;
-      font-size: 1rem;
+      margin-left: 0.3rem;
+      font-size: 0.95rem;
     }
 
-    /* 📱 Portrait-Optimized Responsive Grid Layout */
+    /* 📱 Portrait-Optimized Square Grid Layout */
     #board {
       display: grid;
-      /* Scaled down slightly for mobile portrait viewports to prevent overflow */
-      grid-template-columns: 95px repeat(4, 1fr);
-      grid-template-rows: repeat(4, minmax(55px, 70px));
+      /* Using exact uniform dimensions to protect tile aspect ratio */
+      grid-template-columns: 85px repeat(4, 62px);
+      grid-template-rows: repeat(4, 62px);
       gap: 4px;
 
       background-color: transparent;
@@ -147,10 +147,8 @@
       background-repeat: no-repeat;
 
       padding: 8px;
-      border-radius: 16px;
+      border-radius: 14px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-      width: 100%;
-      max-width: 400px;
       touch-action: manipulation;
     }
 
@@ -162,7 +160,7 @@
       background-color: transparent;
       color: #ffffff;
  
-      font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+      font-size: clamp(0.65rem, 2.2vw, 0.85rem);
       font-weight: 800;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 
@@ -188,7 +186,7 @@
       background-repeat: no-repeat;
       
       color: #ffffff;
-      font-size: clamp(1.2rem, 5vw, 1.6rem);
+      font-size: 1.35rem;
       font-weight: bold;
       
       text-shadow: 
@@ -217,10 +215,10 @@
     }
 
     #message {
-      margin-top: 0.3rem;
-      height: 1rem;
+      margin-top: 0.25rem;
+      height: 0.9rem;
       font-weight: bold;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #059669;
       text-align: center;
     }
@@ -232,17 +230,17 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      margin-top: 0.3rem;
+      margin-top: 0.25rem;
       width: 100%;
-      max-width: 400px;
+      max-width: 350px;
       padding: 0 5px;
     }
 
     button {
       flex: 1;
-      padding: 0.5rem 0.3rem;
+      padding: 0.45rem 0.2rem;
       
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 600;
       color: white;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
@@ -254,7 +252,7 @@
       background-repeat: no-repeat;
 
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
       touch-action: manipulation;
@@ -323,8 +321,6 @@
         grid-template-rows: repeat(4, 90px);
         gap: 8px;
         padding: 14px;
-        max-width: none;
-        width: auto;
         background-size: contain;
       }
 
