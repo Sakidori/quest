@@ -132,10 +132,10 @@
       font-size: 1.05rem;
     }
 
-    /* 📱 Fluid Responsive Grid Layout with slight left art shift */
+    /* 📱 Fluid Responsive Grid Layout */
     #board {
       display: grid;
-      grid-template-columns: 28% repeat(4, 18%);
+      grid-template-columns: 26% repeat(4, 18.5%);
       grid-template-rows: repeat(4, minmax(0, 1fr));
       aspect-ratio: 4 / 3;
       
@@ -143,13 +143,12 @@
       max-width: 420px;
       
       background-color: transparent;
-      /* Shifts the background image slightly to the left (-2px horizontal offset) to align shells with slots */
       background-image: url('board.webp');
       background-size: 100% 100%;
-      background-position: calc(50% - 2px) center;
+      background-position: center;
       background-repeat: no-repeat;
 
-      padding: 3% 4%;
+      padding: 3% 2% 3% 4%;
       gap: 1.5%;
       
       border-radius: 16px;
@@ -606,7 +605,6 @@
     function buildSolution() {
       solutionArray = [];
 
-      currentWords.append = null; // safe
       currentWords.forEach((item, r) => {
         const letters = item.word.split('');
         const rowShellImage = TILE_IMAGES[r % TILE_IMAGES.length];
