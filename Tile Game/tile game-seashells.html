@@ -334,57 +334,64 @@
 
     /* 🖥️ PC / Desktop Optimized View */
     @media (min-width: 768px) {
+      body {
+        padding: 6px 6px; /* Tighter padding to prevent vertical overflow */
+      }
+
       #board {
-        grid-template-columns: 145px repeat(4, 90px);
-        grid-template-rows: repeat(4, 90px);
-        gap: 8px;
-        padding: 14px 12px 14px 32px;
+        grid-template-columns: 130px repeat(4, 82px); /* Slightly condensed to fit perfectly */
+        grid-template-rows: repeat(4, 82px);
+        gap: 6px;
+        padding: 10px 10px 10px 26px;
         background-size: contain;
       }
 
       .hint-box {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         padding: 4px;
       }
 
       .tile {
-        font-size: 1.9rem;
+        font-size: 1.7rem;
       }
 
       .controls {
-        max-width: 500px;
-        margin-top: 0.5rem; /* Moved controls up closer to the board on desktop */
+        max-width: 440px;
+        margin-top: 0.3rem; 
       }
 
       button {
-        padding: 0.65rem 0.5rem;
-        font-size: 1.05rem;
+        padding: 0.5rem 0.4rem;
+        font-size: 0.95rem;
       }
 
       .title-bubble {
-        padding: 0.6rem 1.2rem;
+        padding: 0.3rem 1rem;
+        margin-bottom: 0.15rem;
       }
 
       h1 {
-        font-size: 2.1rem;
+        font-size: 1.6rem;
       }
 
       p.sub {
-        font-size: 0.95rem;
+        font-size: 0.85rem;
       }
 
       .theme-badge {
-        font-size: 0.95rem;
-        padding: 0.3rem 1rem;
+        font-size: 0.85rem;
+        padding: 0.2rem 0.8rem;
+        margin-bottom: 0.15rem;
       }
 
       .stats {
-        font-size: 1.05rem;
-        padding: 0.4rem 1.2rem;
+        font-size: 0.95rem;
+        padding: 0.25rem 1rem;
+        margin-bottom: 0.15rem;
       }
 
       #move-count {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
       }
     }
   </style>
