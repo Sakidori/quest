@@ -8,7 +8,6 @@
     * {
       box-sizing: border-box;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      /* Prevents mobile tap highlights/flashes on tiles */
       -webkit-tap-highlight-color: transparent; 
     }
 
@@ -19,17 +18,12 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-  
       background-image: url('caustics3.webp'); 
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-  
       opacity: 1.0; 
-  
-      /* CRITICAL: Lets all clicks/taps pass through to buttons and board */
       pointer-events: none; 
-  
       z-index: 9999;
       animation: floatLight 12s ease-in-out infinite alternate;
     }
@@ -56,20 +50,15 @@
       min-height: 100vh;
       margin: 0;
       padding: 10px;
-      
-      /* Prevent screen pull-to-refresh / bouncing on iOS/Android */
       overscroll-behavior: none;
-      
       background-image: url('seafloor-BG.webp');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       background-attachment: fixed;
-      
       color: #1f2937;
     }
 
-    /* Container for title and subtitle bubble */
     .title-bubble {
       background-color: rgba(31, 41, 55, 0.85);
       backdrop-filter: blur(8px);
@@ -108,7 +97,6 @@
       border: 1px solid #c7d2fe;
     }
 
-    /* Stats "Moves" Bubble */
     .stats {
       display: flex;
       align-items: center;
@@ -135,7 +123,7 @@
     /* 📱 Fluid Responsive Grid Layout */
     #board {
       display: grid;
-      grid-template-columns: 26% repeat(4, 18.5%);
+      grid-template-columns: 22% repeat(4, 19.5%);
       grid-template-rows: repeat(4, minmax(0, 1fr));
       aspect-ratio: 4 / 3;
       
@@ -148,30 +136,29 @@
       background-position: center;
       background-repeat: no-repeat;
 
-      padding: 3% 2% 3% 4%;
-      gap: 1.5%;
+      padding: 3.5% 3.5% 3.5% 3.5%;
+      gap: 1.2%;
       
       border-radius: 16px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
       touch-action: manipulation;
     }
 
-    /* Row Hint Labels */
     .hint-box {
       display: flex;
       align-items: center;
       justify-content: center;
       background-color: transparent;
       color: #ffffff;
-      font-size: clamp(0.65rem, 2.5vw, 0.95rem);
+      font-size: clamp(0.6rem, 2.2vw, 0.85rem);
       font-weight: 800;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-      text-transform: uppercase;
       text-align: center;
       user-select: none;
+      padding: 0 2px;
+      word-break: break-all;
     }
 
-    /* Interactive Letter Tiles */
     .tile {
       display: flex;
       align-items: center;
@@ -218,7 +205,6 @@
       text-align: center;
     }
 
-    /* 🎛️ Bottom Control Bar - Unified into a single horizontal row */
     .controls {
       display: flex;
       flex-direction: row;
@@ -234,18 +220,15 @@
     button {
       flex: 1;
       padding: 0.55rem 0.4rem;
-      
       font-size: 0.9rem;
       font-weight: 600;
       color: white;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-
       background-color: transparent;
       background-image: url('water.webp');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-
       border: none;
       border-radius: 10px;
       cursor: pointer;
@@ -254,7 +237,6 @@
       white-space: nowrap;
     }
 
-    /* Completion Popup Modal */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -313,10 +295,8 @@
 
 <body>
 
-  <!-- Fullscreen underwater light overlay -->
   <div class="light-overlay"></div>
  
-  <!-- Title & Subtitle Bubble Container -->
   <div class="title-bubble">
     <h1>Sea Shell Shuffle</h1>
     <p class="sub">Slide letters to spell the target words!</p>
@@ -324,7 +304,6 @@
   
   <div class="theme-badge">Theme: <span id="theme-name">Loading...</span> </div>
 
-  <!-- Moves Count Bubble -->
   <div class="stats">
     <div>Moves: <span id="move-count">0</span></div>
   </div>
@@ -333,7 +312,6 @@
 
   <div id="message"></div>
 
-  <!-- Completion Popup Modal -->
   <div id="win-modal" class="modal-overlay">
     <div class="modal-content">
       <img src="tile_game_completed.webp" alt="Puzzle Completed">
@@ -342,18 +320,13 @@
     </div>
   </div>
 
-  <!-- Background Music Audio Element -->
   <audio id="bg-music" loop preload="auto">
     <source src="ocean-bg.mp3" type="audio/mpeg">
  </audio>
 
- <!-- Move Sound Effect Audio Element -->
  <audio id="move-sound" src="move-sfx.mp3" preload="auto"></audio>
-
- <!-- Win Sound Effect Audio Element -->
  <audio id="win-sound" src="flag.mp3" preload="auto"></audio>
   
-  <!-- Single-row horizontal button layout -->
   <div class="controls">
     <button id="shuffle-btn">New</button>
     <button id="music-btn">🔇 Music</button>
