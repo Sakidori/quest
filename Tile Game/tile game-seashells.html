@@ -48,24 +48,28 @@
       }
     }
 
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      /* Prevent screen pull-to-refresh / bouncing and eliminate white gaps */
+      overscroll-behavior: none;
+      background-image: url('seafloor-BG.webp');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
     body {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      margin: 0;
+      min-height: 100dvh; /* Adapts properly to mobile browser dynamic toolbars */
       padding: 6px;
-      
-      /* Prevent screen pull-to-refresh / bouncing on iOS/Android */
-      overscroll-behavior: none;
-      
-      background-image: url('seafloor-BG.webp');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      
       color: #1f2937;
     }
 
@@ -132,7 +136,7 @@
       font-size: 0.95rem;
     }
 
-    /* 📱 Portrait-Optimized Grid Layout with Further Increased Left Padding */
+    /* 📱 Portrait-Optimized Grid Layout */
     #board {
       display: grid;
       /* Hint column + 4 tile columns */
@@ -146,8 +150,7 @@
       background-position: center;
       background-repeat: no-repeat;
 
-      /* Increased left padding further to center shells completely inside the frame */
-      padding: 10px 8px 10px 26px;
+      padding: 10px 8px 10px 32px;
       border-radius: 14px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
       touch-action: manipulation;
