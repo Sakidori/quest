@@ -294,7 +294,7 @@ canvas {
         <!-- Stage 2: Success & Memo Image (Initially Hidden) -->
         <div id="success-section" style="display: none;">
             <h2 style="font-size: 1.3rem; margin-top: 0; margin-bottom: 6px;">Good Job!</h2>
-            <img src="rpg_answer.jpg" alt="RPG Answer" class="win-image" onerror="this.style.display='none'" style="max-width: 130px; height: auto; border-radius: 8px; margin: 6px 0; display: block; margin-left: auto; margin-right: auto;">
+            <img src="rpg_answer.webp" alt="RPG Answer" class="win-image" onerror="this.style.display='none'" style="max-width: 130px; height: auto; border-radius: 8px; margin: 6px 0; display: block; margin-left: auto; margin-right: auto;">
             <p style="color: #d1d5db; text-align: center; font-size: 0.8rem; margin: 4px 0 10px 0;">これをメモしておいてね!</p>
             <div>
                 <button onclick="restartGame()" style="font-size: 14px; padding: 8px 14px;">Play Again</button>
@@ -417,14 +417,14 @@ window.addEventListener("orientationchange", () => {
     }
 
     const spriteFiles = {
-      idle: "male_hero-idle.png",
-      run: "male_hero-run.png",
-      jump: "male_hero-jump.png",
-      fall: "male_hero-fall.png",
-      walk: "male_hero-walk.png",
-      attack: "male_hero-combo_1.png",
-      attack_end: "male_hero-combo_1_end.png",
-      booger: "Booger Buddy.png"
+      idle: "male_hero-idle.webp",
+      run: "male_hero-run.webp",
+      jump: "male_hero-jump.webp",
+      fall: "male_hero-fall.webp",
+      walk: "male_hero-walk.webp",
+      attack: "male_hero-combo_1.webp",
+      attack_end: "male_hero-combo_1_end.webp",
+      booger: "Booger Buddy.webp"
     };
 
     const sprites = {};
@@ -457,7 +457,7 @@ window.addEventListener("orientationchange", () => {
 
     goalImage.onload = assetLoaded;
     goalImage.onerror = assetLoaded;
-    goalImage.src = "goal_flag.png";
+    goalImage.src = "goal_flag.webp";
 
     const GRAVITY = 0.6;
     const MOVE_SPEED = 4.8;
@@ -1226,7 +1226,7 @@ if (player.isAttacking) {
     document.querySelectorAll('.control-btn').forEach(btn => {
         const triggerInput = (code, state) => {
             keys[code] = state;
-            if (code === "KeyX" && state === true) {
+            if (code === "KeyX" === true) {
                 if (!player.isAttacking) {
                     player.isAttacking = true;
                     player.playerFrameIndex = 0;
