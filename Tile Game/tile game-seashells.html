@@ -132,10 +132,9 @@
       font-size: 1.05rem;
     }
 
-    /* 📱 Fluid Responsive Grid Layout */
+    /* 📱 Fluid Responsive Grid Layout with slight left art shift */
     #board {
       display: grid;
-      /* Uses percentages so the total grid always fits inside mobile screens without breaking */
       grid-template-columns: 28% repeat(4, 18%);
       grid-template-rows: repeat(4, minmax(0, 1fr));
       aspect-ratio: 4 / 3;
@@ -144,9 +143,10 @@
       max-width: 420px;
       
       background-color: transparent;
+      /* Shifts the background image slightly to the left (-2px horizontal offset) to align shells with slots */
       background-image: url('board.webp');
       background-size: 100% 100%;
-      background-position: center;
+      background-position: calc(50% - 2px) center;
       background-repeat: no-repeat;
 
       padding: 3% 4%;
@@ -606,6 +606,7 @@
     function buildSolution() {
       solutionArray = [];
 
+      currentWords.append = null; // safe
       currentWords.forEach((item, r) => {
         const letters = item.word.split('');
         const rowShellImage = TILE_IMAGES[r % TILE_IMAGES.length];
