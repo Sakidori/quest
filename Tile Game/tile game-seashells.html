@@ -8,6 +8,7 @@
     * {
       box-sizing: border-box;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      /* Prevents mobile tap highlights/flashes on tiles */
       -webkit-tap-highlight-color: transparent; 
     }
 
@@ -18,12 +19,17 @@
       left: 0;
       width: 100vw;
       height: 100vh;
+  
       background-image: url('caustics3.webp'); 
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
+  
       opacity: 1.0; 
+  
+      /* CRITICAL: Lets all clicks/taps pass through to buttons and board */
       pointer-events: none; 
+  
       z-index: 9999;
       animation: floatLight 12s ease-in-out infinite alternate;
     }
@@ -49,16 +55,21 @@
       justify-content: center;
       min-height: 100vh;
       margin: 0;
-      padding: 10px;
+      padding: 8px; /* Compact padding for mobile portrait */
+      
+      /* Prevent screen pull-to-refresh / bouncing on iOS/Android */
       overscroll-behavior: none;
+      
       background-image: url('seafloor-BG.webp');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       background-attachment: fixed;
+      
       color: #1f2937;
     }
 
+    /* Container for title and subtitle bubble */
     .title-bubble {
       background-color: rgba(31, 41, 55, 0.85);
       backdrop-filter: blur(8px);
@@ -74,7 +85,7 @@
 
     h1 {
       margin: 0 0 0.15rem 0;
-      font-size: clamp(1.3rem, 4vw, 2.0rem);
+      font-size: clamp(1.2rem, 4.5vw, 1.8rem);
       color: #ffffff;
       text-align: center;
     }
@@ -83,20 +94,21 @@
       margin: 0;
       color: #d1d5db;
       text-align: center;
-      font-size: clamp(0.75rem, 2vw, 0.95rem);
+      font-size: clamp(0.75rem, 3vw, 0.9rem);
     }
 
     .theme-badge {
       background-color: #e0e7ff;
       color: #3730a3;
-      padding: 0.25rem 0.8rem;
+      padding: 0.25rem 0.75rem;
       border-radius: 20px;
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       margin-bottom: 0.4rem;
       border: 1px solid #c7d2fe;
     }
 
+    /* Stats "Moves" Bubble */
     .stats {
       display: flex;
       align-items: center;
@@ -116,63 +128,68 @@
 
     #move-count {
       color: #fbbf24;
-      margin-left: 0.4rem;
+      margin-left: 0.35rem;
       font-size: 1.05rem;
     }
 
-    /* 📱 Fluid Responsive Grid Layout */
+    /* 📱 Responsive Grid Layout - Optimized for strict portrait fit */
     #board {
       display: grid;
-      grid-template-columns: 22% repeat(4, 19.5%);
-      grid-template-rows: repeat(4, minmax(0, 1fr));
-      aspect-ratio: 4 / 3;
-      
-      width: 100%;
-      max-width: 420px;
-      
+      grid-template-columns: minmax(70px, 100px) repeat(4, minmax(42px, 60px));
+      grid-template-rows: repeat(4, minmax(42px, 60px));
+      gap: 4px;
+
       background-color: transparent;
       background-image: url('board.webp');
-      background-size: 100% 100%;
+      background-size: contain;
       background-position: center;
       background-repeat: no-repeat;
+      background-attachment: local;
 
-      padding: 3.5% 3.5% 3.5% 3.5%;
-      gap: 1.2%;
-      
-      border-radius: 16px;
+      padding: 8px;
+      border-radius: 12px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      max-width: 100vw;
       touch-action: manipulation;
     }
 
+    /* Row Hint Labels */
     .hint-box {
       display: flex;
       align-items: center;
       justify-content: center;
       background-color: transparent;
       color: #ffffff;
-      font-size: clamp(0.6rem, 2.2vw, 0.85rem);
+ 
+      -webkit-text-stroke: 0px #000000;
+      font-size: clamp(0.65rem, 2vw, 0.85rem);
       font-weight: 800;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+
+      text-transform: uppercase;
       text-align: center;
+      padding: 2px;
+      border-radius: 8px;
       user-select: none;
-      padding: 0 2px;
-      word-break: break-all;
+      line-height: 1.1;
     }
 
+    /* Interactive Letter Tiles */
     .tile {
       display: flex;
       align-items: center;
       justify-content: center;
       
       background-color: transparent; 
-      background-size: 100% 100%;
+      background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       
       color: #ffffff;
-      font-size: clamp(1rem, 4vw, 1.6rem);
+      font-size: clamp(1rem, 4.5vw, 1.5rem);
       font-weight: bold;
       
+      /* Crisp multi-directional shadow to avoid mobile stroke bleeding */
       text-shadow: 
         -1px -1px 0 #000,  
          1px -1px 0 #000,
@@ -180,6 +197,7 @@
          1px  1px 0 #000,
          0 2px 4px rgba(0, 0, 0, 0.8);
       
+      border: 0px solid #4b5563;
       cursor: pointer;
       user-select: none;
       touch-action: manipulation;
@@ -189,6 +207,7 @@
     .tile.empty {
       background-image: none !important;
       background-color: transparent;
+      border: 0px solid #4b5563;
       cursor: default;
     }
 
@@ -205,38 +224,43 @@
       text-align: center;
     }
 
+    /* 🎛️ Bottom Control Bar - Unified into a single horizontal row */
     .controls {
       display: flex;
       flex-direction: row;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      margin-top: 0.6rem;
+      gap: 6px;
+      margin-top: 0.5rem;
       width: 100%;
       max-width: 420px;
       padding: 0 5px;
     }
 
     button {
-      flex: 1;
-      padding: 0.55rem 0.4rem;
-      font-size: 0.9rem;
+      flex: 1; /* Distributes available space evenly across buttons */
+      padding: 0.55rem 0.2rem;
+      
+      font-size: clamp(0.75rem, 2.5vw, 0.9rem);
       font-weight: 600;
       color: white;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+
       background-color: transparent;
       background-image: url('water.webp');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
+
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
       touch-action: manipulation;
-      white-space: nowrap;
+      white-space: nowrap; /* Prevents text wrapping inside buttons */
     }
 
+    /* Completion Popup Modal */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -262,13 +286,13 @@
 
     .modal-content {
       background-color: rgba(31, 41, 55, 0.95);
-      padding: 1.5rem;
+      padding: 1.25rem;
       border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
       text-align: center;
       max-width: 90vw;
-      width: 340px;
+      width: 320px;
     }
 
     .modal-content img {
@@ -282,7 +306,7 @@
     .modal-content p {
       color: #ffffff;
       font-weight: 600;
-      font-size: 1.05rem;
+      font-size: 1rem;
       margin-bottom: 1rem;
     }
 
@@ -295,8 +319,10 @@
 
 <body>
 
+  <!-- Fullscreen underwater light overlay -->
   <div class="light-overlay"></div>
  
+  <!-- Title & Subtitle Bubble Container -->
   <div class="title-bubble">
     <h1>Sea Shell Shuffle</h1>
     <p class="sub">Slide letters to spell the target words!</p>
@@ -304,6 +330,7 @@
   
   <div class="theme-badge">Theme: <span id="theme-name">Loading...</span> </div>
 
+  <!-- Moves Count Bubble -->
   <div class="stats">
     <div>Moves: <span id="move-count">0</span></div>
   </div>
@@ -312,6 +339,7 @@
 
   <div id="message"></div>
 
+  <!-- Completion Popup Modal -->
   <div id="win-modal" class="modal-overlay">
     <div class="modal-content">
       <img src="tile_game_completed.webp" alt="Puzzle Completed">
@@ -320,13 +348,18 @@
     </div>
   </div>
 
+  <!-- Background Music Audio Element -->
   <audio id="bg-music" loop preload="auto">
     <source src="ocean-bg.mp3" type="audio/mpeg">
  </audio>
 
+ <!-- Move Sound Effect Audio Element -->
  <audio id="move-sound" src="move-sfx.mp3" preload="auto"></audio>
+
+ <!-- Win Sound Effect Audio Element -->
  <audio id="win-sound" src="flag.mp3" preload="auto"></audio>
   
+  <!-- Single-row horizontal button layout -->
   <div class="controls">
     <button id="shuffle-btn">New</button>
     <button id="music-btn">🔇 Music</button>
