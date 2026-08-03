@@ -74,7 +74,7 @@
       color: #1f2937;
     }
 
-    /* FIX: When rotated to landscape or on short screens, disable flex locking so normal page flow allows smooth vertical scrolling */
+    /* When rotated to landscape or on short screens, disable flex locking so normal page flow allows smooth vertical scrolling */
     @media (max-height: 600px), (orientation: landscape) {
       html, body {
         height: auto !important;
@@ -353,6 +353,7 @@
 
       .controls {
         max-width: 500px;
+        margin-top: 0.5rem; /* Moved controls up closer to the board on desktop */
       }
 
       button {
