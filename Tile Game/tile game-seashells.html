@@ -20,21 +20,17 @@
       width: 100vw;
       height: 100vh;
   
-      /* Updated to WebP */
       background-image: url('caustics3.webp'); 
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
   
-      /* Adjust opacity to make it subtle */
       opacity: 1.0; 
   
       /* CRITICAL: Lets all clicks/taps pass through to buttons and board */
       pointer-events: none; 
   
-      /* Ensures it stays above game elements */
       z-index: 9999;
-      /* Subtle breathing/drifting motion */
       animation: floatLight 12s ease-in-out infinite alternate;
     }
 
@@ -59,12 +55,11 @@
       justify-content: center;
       min-height: 100vh;
       margin: 0;
-      padding: 10px; /* Prevents edge touching on small devices */
+      padding: 15px;
       
       /* Prevent screen pull-to-refresh / bouncing on iOS/Android */
       overscroll-behavior: none;
       
-      /* Wallpaper - Updated to WebP */
       background-image: url('seafloor-BG.webp');
       background-size: cover;
       background-position: center;
@@ -76,39 +71,40 @@
 
     /* Container for title and subtitle bubble */
     .title-bubble {
-      background-color: rgba(31, 41, 55, 0.85); /* Semi-transparent dark grey */
-      backdrop-filter: blur(8px);               /* Glassmorphism blur effect */
+      background-color: rgba(31, 41, 55, 0.85);
+      backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      padding: 0.8rem 1.5rem;
-      border-radius: 16px;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.15);
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       text-align: center;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.6rem;
+      max-width: 100%;
     }
 
     h1 {
       margin: 0 0 0.25rem 0;
-      font-size: clamp(1.5rem, 5vw, 2.2rem); /* Dynamic title sizing */
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
       color: #ffffff;
       text-align: center;
     }
 
     p.sub {
       margin: 0;
-      color: #d1d5db; /* Light grey for subtext legibility */
+      color: #d1d5db;
       text-align: center;
-      font-size: clamp(0.85rem, 3.5vw, 1rem);
+      font-size: clamp(0.85rem, 2vw, 1rem);
     }
 
     .theme-badge {
       background-color: #e0e7ff;
       color: #3730a3;
-      padding: 0.4rem 1rem;
+      padding: 0.35rem 1rem;
       border-radius: 20px;
       font-weight: 700;
       font-size: 0.9rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0.6rem;
       border: 1px solid #c7d2fe;
     }
 
@@ -127,39 +123,34 @@
       font-size: 1.05rem;
       font-weight: 600;
       color: #ffffff;
-      margin-bottom: 1rem;
+      margin-bottom: 0.6rem;
     }
 
-    /* Accent highlight for move counter */
     #move-count {
-      color: #fbbf24; /* Warm yellow */
-      margin-left: 0.35rem;
+      color: #fbbf24;
+      margin-left: 0.4rem;
       font-size: 1.15rem;
     }
 
-    /* 📱 Responsive Grid Layout */
+    /* 📱 Responsive Grid Layout - Restored original desktop sizing */
     #board {
       display: grid;
-      /* Column 1 for Hints (min 80px, max 120px) | Columns 2-5 flexible tile sizing */
-      grid-template-columns: minmax(80px, 120px) repeat(4, minmax(50px, 70px));
-      grid-template-rows: repeat(4, minmax(50px, 70px));
+      grid-template-columns: 120px repeat(4, 75px);
+      grid-template-rows: repeat(4, 75px);
       gap: 6px;
 
       background-color: transparent;
-
-      /* Updated to WebP */
       background-image: url('board.webp');
       background-size: contain;
       background-position: center;
       background-repeat: no-repeat;
       background-attachment: local;
 
-
-      padding: 10px;
-      border-radius: 12px;
+      padding: 12px;
+      border-radius: 16px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
       max-width: 100vw;
-      touch-action: manipulation; /* Improves touch responsiveness */
+      touch-action: manipulation;
     }
 
     /* Row Hint Labels */
@@ -170,18 +161,17 @@
       background-color: transparent;
       color: #ffffff;
  
-      -webkit-text-stroke: 0.0px #000000;
-      font-size: clamp(0.75rem, 2.2vw, 0.95rem); /* Responsive text size */
+      -webkit-text-stroke: 0px #000000;
+      font-size: 0.95rem;
       font-weight: 800;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8); /* Dark shadow makes white text pop over shells */
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 
       text-transform: uppercase;
       text-align: center;
       padding: 4px;
       border-radius: 8px;
-      border: 0px solid #4b5563;
       user-select: none;
-      line-height: 1.2;
+      line-height: 1.1;
     }
 
     /* Interactive Letter Tiles */
@@ -190,21 +180,22 @@
       align-items: center;
       justify-content: center;
       
-      /* Fallback color if image fails to load */
       background-color: transparent; 
-      
-      /* Image sizing & fit */
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       
-      /* Text readability over dynamic textures */
-      /* 1. Black outline around the letters */
-      -webkit-text-stroke: 1.5px #000000;
       color: #ffffff;
-      font-size: clamp(1.2rem, 5vw, 1.75rem);
+      font-size: 1.6rem;
       font-weight: bold;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8); /* Dark shadow makes white text pop over shells */
+      
+      /* Crisp multi-directional shadow to avoid mobile stroke bleeding */
+      text-shadow: 
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000,
+         0 2px 4px rgba(0, 0, 0, 0.8);
       
       border: 0px solid #4b5563;
       cursor: pointer;
@@ -213,54 +204,60 @@
       transition: transform 0.1s ease;
     }
 
-    /* Empty Slot */
     .tile.empty {
-      background-image: none !important; /* Removes shell image from empty slot */
+      background-image: none !important;
       background-color: transparent;
       border: 0px solid #4b5563;
       cursor: default;
     }
 
     .tile:active {
-      transform: scale(0.95); /* Slight press feedback for touchscreens */
-    }
-
-    .controls {
-      margin-top: 1.25rem;
-    }
-
-    button {
-      padding: 0.75rem 1.75rem;
-      
-      /* Text readability over dynamic textures */
-      /* 1. Black outline around the letters */
-      font-size: 1rem;
-      font-weight: 600;
-      color: white;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8); /* Dark shadow makes white text pop over shells */
-
-      background-color: transparent;
-      /* Updated to WebP */
-      background-image: url('water.webp');
-      background-size: contain;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: local;
-
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      touch-action: manipulation;
+      transform: scale(0.95);
     }
 
     #message {
-      margin-top: 0.75rem;
-      height: 1.5rem;
+      margin-top: 0.6rem;
+      height: 1.4rem;
       font-weight: bold;
       font-size: 1rem;
       color: #059669;
       text-align: center;
+    }
+
+    /* 🎛️ Bottom Control Bar - Unified into a single horizontal row */
+    .controls {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 0.8rem;
+      width: 100%;
+      max-width: 440px;
+      padding: 0 5px;
+    }
+
+    button {
+      flex: 1; /* Distributes available space evenly across buttons */
+      padding: 0.65rem 0.5rem;
+      
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+
+      background-color: transparent;
+      background-image: url('water.webp');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      touch-action: manipulation;
+      white-space: nowrap; /* Prevents text wrapping inside buttons */
     }
 
     /* Completion Popup Modal */
@@ -302,29 +299,20 @@
       width: 100%;
       height: auto;
       border-radius: 10px;
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
       border: 2px solid rgba(255, 255, 255, 0.15);
     }
 
     .modal-content p {
       color: #ffffff;
       font-weight: 600;
-      font-size: 1.1rem;
-      margin-bottom: 1.25rem;
+      font-size: 1.05rem;
+      margin-bottom: 1rem;
     }
 
     .modal-content button {
       width: 100%;
-    }
-
-    /* Extra Tweaks for Small Mobile Screens (< 400px width) */
-    @media (max-width: 400px) {
-      #board {
-        grid-template-columns: 80px repeat(4, 52px);
-        grid-template-rows: repeat(4, 52px);
-        gap: 4px;
-        padding: 6px;
-      }
+      flex: none;
     }
   </style>
 </head>
@@ -336,8 +324,8 @@
  
   <!-- Title & Subtitle Bubble Container -->
   <div class="title-bubble">
-    <h1>Sea Shell Shuffle Spelling</h1>
-    <p class="sub">Slide the letters to spell the target words in each row!</p>
+    <h1>Sea Shell Shuffle</h1>
+    <p class="sub">Slide letters to spell the target words!</p>
   </div>
   
   <div class="theme-badge">Theme: <span id="theme-name">Loading...</span> </div>
@@ -371,17 +359,17 @@
  <!-- Win Sound Effect Audio Element -->
  <audio id="win-sound" src="flag.mp3" preload="auto"></audio>
   
+  <!-- Single-row horizontal button layout -->
   <div class="controls">
-    <button id="shuffle-btn">New Game</button>
-    <button id="music-btn">🔇 Music: Off</button>
-    <button id="sfx-btn">🔊 Sound: On</button>
+    <button id="shuffle-btn">New</button>
+    <button id="music-btn">🔇 Music</button>
+    <button id="sfx-btn">🔊 SFX</button>
   </div>
 
   <script>
     const ROWS = 4;
     const COLS = 4;
 
-    /* Updated to WebP shell images */
     const TILE_IMAGES = [
       'shell1.webp',
       'shell2.webp',
@@ -389,25 +377,24 @@
       'shell4.webp',
     ];
 
-    // Word Bank grouped by Themes
     const WORD_BANK = [
       {
         theme: "Animals 🐾",
         fourLetter: [
-          { word: "FISH", hint: "🐟 Swims in the sea" },
-          { word: "BIRD", hint: "🐦 Can fly in the sky" },
-          { word: "BEAR", hint: "🐻 Kumamoto and Pooh" },
-          { word: "FROG", hint: "🐸 Green jumping animal" },
-          { word: "LION", hint: "🦁 Very big cat" },
-          { word: "WOLF", hint: "🐺 Very big dog" },
-          { word: "GOAT", hint: "🐐 Lives in mountains" }
+          { word: "FISH", hint: "🐟 Swims" },
+          { word: "BIRD", hint: "🐦 Flies" },
+          { word: "BEAR", hint: "🐻 Pooh" },
+          { word: "FROG", hint: "🐸 Green" },
+          { word: "LION", hint: "🦁 Big cat" },
+          { word: "WOLF", hint: "🐺 Wild dog" },
+          { word: "GOAT", hint: "🐐 Horns" }
         ],
         threeLetter: [
-          { word: "CAT", hint: "🐱 Cute pet that says 'Meow!'" },
-          { word: "DOG", hint: "🐶 Cute pet that says 'Woof!'" },
-          { word: "PIG", hint: "🐷 Pink animal that eats a lot!" },
-          { word: "OWL", hint: "🦉 A quiet night bird" },
-          { word: "BAT", hint: "🦇 Black flying animal" }
+          { word: "CAT", hint: "🐱 Meow" },
+          { word: "DOG", hint: "🐶 Woof" },
+          { word: "PIG", hint: "🐷 Pink" },
+          { word: "OWL", hint: "🦉 Night bird" },
+          { word: "BAT", hint: "🦇 Flies" }
         ]
       },
       {
@@ -417,7 +404,6 @@
           { word: "PLAY", hint: "遊ぶ" },
           { word: "JUMP", hint: "跳ぶ" },
           { word: "WALK", hint: "歩く" },
-          { word: "READ", hint: "読む" },
           { word: "READ", hint: "読む" },
           { word: "LIVE", hint: "住む" }
         ],
@@ -449,38 +435,38 @@
       {
         theme: "Food & Drinks 🍎",
         fourLetter: [
-          { word: "COLA", hint: "A dark soda" },
-          { word: "MILK", hint: "A drink from a cow" },
+          { word: "COLA", hint: "Soda" },
+          { word: "MILK", hint: "From cow" },
           { word: "SALT", hint: "塩" },
-          { word: "SOUP", hint: "Miso is one kind" },
-          { word: "RICE", hint: "Japanese eat it a lot" },
-          { word: "CAKE", hint: "Birthday food" },
+          { word: "SOUP", hint: "Miso" },
+          { word: "RICE", hint: "ご飯" },
+          { word: "CAKE", hint: "Sweet" },
           { word: "MEAT", hint: "肉" },
-          { word: "TACO", hint: "A mexican food" }
+          { word: "TACO", hint: "Mexican" }
         ],
         threeLetter: [
-          { word: "TEA", hint: "A hot drink" },
-          { word: "PIE", hint: "Sweet baked food" },
-          { word: "JAM", hint: "Good on toast" },
-          { word: "BUN", hint: "Bread for a hamburger" }
+          { word: "TEA", hint: "Hot drink" },
+          { word: "PIE", hint: "Baked" },
+          { word: "JAM", hint: "On toast" },
+          { word: "BUN", hint: "Bread" }
         ]
       },
       {
         theme: "ゲーム 🎮☗",
         fourLetter: [
-          { word: "GAME", hint: "Something to play" },
+          { word: "GAME", hint: "Play" },
           { word: "PLAY", hint: "遊ぶ" },
           { word: "LOSE", hint: "負ける" },
           { word: "CARD", hint: "カード" },
           { word: "RULE", hint: "ルール" },
           { word: "TEAM", hint: "チーム" },
-          { word: "RACE", hint: "'Fastest-is-the-winner' game" }
+          { word: "RACE", hint: "Race" }
         ],
         threeLetter: [
           { word: "WIN", hint: "勝つ" },
           { word: "FUN", hint: "楽しい" },
-          { word: "RPG", hint: "意味は'Role-Playing Game'" },
-          { word: "BET", hint: "ベットをする" }
+          { word: "RPG", hint: "RPG" },
+          { word: "BET", hint: "ベット" }
         ]
       },
       {
@@ -511,7 +497,7 @@
           { word: "NOSE", hint: "鼻" },
           { word: "BODY", hint: "体" },
           { word: "HAND", hint: "手" },
-          { word: "FOOT", hint: "足元" },
+          { word: "FOOT", hint: "足" },
           { word: "BACK", hint: "背中" },
           { word: "BONE", hint: "骨" },
           { word: "NECK", hint: "首" }
@@ -527,14 +513,14 @@
         theme: "Adjectives（形容詞）",
         fourLetter: [
           { word: "CUTE", hint: "かわいい" },
-          { word: "NICE", hint: "すてきな" },     
+          { word: "NICE", hint: "すてき" },     
           { word: "KIND", hint: "優しい" },
           { word: "FAST", hint: "早い" },
           { word: "SLOW", hint: "遅い" },
           { word: "COLD", hint: "寒い" },
           { word: "BUSY", hint: "忙しい" },
-          { word: "HARD", hint: "大変な" },
-          { word: "EASY", hint: "簡単な" },
+          { word: "HARD", hint: "大変" },
+          { word: "EASY", hint: "簡単" },
           { word: "DARK", hint: "暗い" },
           { word: "MANY", hint: "多い" }
         ],
@@ -543,40 +529,34 @@
           { word: "BIG", hint: "大きい" },
           { word: "HOT", hint: "熱い" },
           { word: "OLD", hint: "古い" },
-          { word: "NEW", hint: "新たな" },
+          { word: "NEW", hint: "新しい" },
           { word: "FAR", hint: "遠い" }
         ]
       }
     ];
 
-    // Background Music Elements & State
     const bgMusic = document.getElementById('bg-music');
     const musicBtn = document.getElementById('music-btn');
     const sfxBtn = document.getElementById('sfx-btn');
     let isMusicPlaying = false;
     let isSFXPlaying = true;
  
-    // Sound Effect Elements
     const moveSound = document.getElementById('move-sound');
     moveSound.volume = 0.5;
 
     const winSound = document.getElementById('win-sound');
     winSound.volume = 0.6;
 
-    // Lower volume slightly so it doesn't overpower the gameplay
     bgMusic.volume = 0.3; 
 
-    // Toggle Music Play/Pause
     function toggleMusic() {
       if (isMusicPlaying) {
         bgMusic.pause();
-        musicBtn.textContent = '🔇 Music: Off';
-        musicBtn.classList.remove('playing');
+        musicBtn.textContent = '🔇 Music';
         isMusicPlaying = false;
       } else {
-          bgMusic.play().then(() => {
-          musicBtn.textContent = '🔊 Music: On';
-          musicBtn.classList.add('playing');
+        bgMusic.play().then(() => {
+          musicBtn.textContent = '🔊 Music';
           isMusicPlaying = true;
         }).catch(err => {
           console.log('Autoplay blocked or audio file missing:', err);
@@ -584,13 +564,12 @@
       }
     }
     
-    // Toggle SFX 
     function toggleSFX() {
       if (isSFXPlaying) {
-        sfxBtn.textContent = '🔇 Sound: Off';
+        sfxBtn.textContent = '🔇 SFX';
         isSFXPlaying = false;
       } else {
-        sfxBtn.textContent = '🔊 Sound: On';
+        sfxBtn.textContent = '🔊 SFX';
         isSFXPlaying = true;
       }
     }
@@ -741,7 +720,7 @@
 
       if (isSolved) {
         isGameOver = true;
-        messageElement.textContent = `You finished the puzzle in ${moves} moves!`;
+        messageElement.textContent = `Solved in ${moves} moves!`;
         
         if (isSFXPlaying) {
           winSound.currentTime = 0;
