@@ -8,6 +8,7 @@
     * {
       box-sizing: border-box;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      /* Prevents mobile tap highlights/flashes on tiles */
       -webkit-tap-highlight-color: transparent; 
     }
 
@@ -18,12 +19,17 @@
       left: 0;
       width: 100vw;
       height: 100vh;
+  
       background-image: url('caustics3.webp'); 
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
+  
       opacity: 1.0; 
+  
+      /* CRITICAL: Lets all clicks/taps pass through to buttons and board */
       pointer-events: none; 
+  
       z-index: 9999;
       animation: floatLight 12s ease-in-out infinite alternate;
     }
@@ -47,6 +53,7 @@
       height: 100%;
       margin: 0;
       padding: 0;
+      /* Fallback dark background prevents any white strip during mobile toolbar shifts */
       background-color: #111827; 
       overscroll-behavior: none;
       background-image: url('seafloor-BG.webp');
@@ -54,7 +61,6 @@
       background-position: center;
       background-repeat: no-repeat;
       background-attachment: fixed;
-      overflow: hidden; /* Locks the page so it doesn't drift or show white strips */
     }
 
     body {
@@ -62,9 +68,9 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      height: 100dvh;
-      padding: 4px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 6px;
       color: #1f2937;
     }
 
@@ -73,18 +79,18 @@
       background-color: rgba(31, 41, 55, 0.85);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      padding: 0.2rem 0.5rem;
-      border-radius: 8px;
+      padding: 0.3rem 0.6rem;
+      border-radius: 10px;
       border: 1px solid rgba(255, 255, 255, 0.15);
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       text-align: center;
-      margin-bottom: 0.15rem;
+      margin-bottom: 0.25rem;
       max-width: 100%;
     }
 
     h1 {
-      margin: 0 0 0.02rem 0;
-      font-size: clamp(1rem, 3vw, 1.6rem);
+      margin: 0 0 0.05rem 0;
+      font-size: clamp(1.1rem, 3.5vw, 1.8rem);
       color: #ffffff;
       text-align: center;
     }
@@ -93,17 +99,17 @@
       margin: 0;
       color: #d1d5db;
       text-align: center;
-      font-size: clamp(0.65rem, 1.5vw, 0.8rem);
+      font-size: clamp(0.7rem, 1.8vw, 0.85rem);
     }
 
     .theme-badge {
       background-color: #e0e7ff;
       color: #3730a3;
-      padding: 0.1rem 0.5rem;
+      padding: 0.15rem 0.6rem;
       border-radius: 20px;
       font-weight: 700;
-      font-size: 0.7rem;
-      margin-bottom: 0.15rem;
+      font-size: 0.75rem;
+      margin-bottom: 0.25rem;
       border: 1px solid #c7d2fe;
     }
 
@@ -115,28 +121,29 @@
       background-color: rgba(31, 41, 55, 0.85);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      padding: 0.15rem 0.6rem;
+      padding: 0.25rem 0.8rem;
       border-radius: 20px;
       border: 1px solid rgba(255, 255, 255, 0.15);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      font-size: 0.75rem;
+      font-size: 0.85rem;
       font-weight: 600;
       color: #ffffff;
-      margin-bottom: 0.15rem;
+      margin-bottom: 0.25rem;
     }
 
     #move-count {
       color: #fbbf24;
       margin-left: 0.3rem;
-      font-size: 0.85rem;
+      font-size: 0.95rem;
     }
 
-    /* 📱 Portrait & Landscape Responsive Grid Layout */
+    /* 📱 Portrait-Optimized Grid Layout */
     #board {
       display: grid;
-      grid-template-columns: 80px repeat(4, 52px);
-      grid-template-rows: repeat(4, 52px);
-      gap: 3px;
+      /* Hint column + 4 tile columns */
+      grid-template-columns: 80px repeat(4, 59px);
+      grid-template-rows: repeat(4, 59px);
+      gap: 4px;
 
       background-color: transparent;
       background-image: url('board.webp');
@@ -144,8 +151,8 @@
       background-position: center;
       background-repeat: no-repeat;
 
-      padding: 8px 6px 8px 28px;
-      border-radius: 12px;
+      padding: 10px 8px 10px 32px;
+      border-radius: 14px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
       touch-action: manipulation;
     }
@@ -157,9 +164,11 @@
       justify-content: center;
       background-color: transparent;
       color: #ffffff;
-      font-size: clamp(0.5rem, 1.6vw, 0.65rem);
+ 
+      font-size: clamp(0.55rem, 1.8vw, 0.7rem);
       font-weight: 800;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+
       text-transform: uppercase;
       text-align: center;
       padding: 2px;
@@ -175,19 +184,23 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      
       background-color: transparent; 
       background-size: 100% 100%;
       background-position: center;
       background-repeat: no-repeat;
+      
       color: #ffffff;
-      font-size: 1.15rem;
+      font-size: 1.3rem;
       font-weight: bold;
+      
       text-shadow: 
         -1px -1px 0 #000,  
          1px -1px 0 #000,
         -1px  1px 0 #000,
          1px  1px 0 #000,
          0 2px 4px rgba(0, 0, 0, 0.8);
+      
       border: 0px solid #4b5563;
       cursor: pointer;
       user-select: none;
@@ -207,10 +220,10 @@
     }
 
     #message {
-      margin-top: 0.15rem;
-      height: 0.8rem;
+      margin-top: 0.25rem;
+      height: 0.9rem;
       font-weight: bold;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: #059669;
       text-align: center;
     }
@@ -222,24 +235,27 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      margin-top: 0.15rem;
+      margin-top: 0.25rem;
       width: 100%;
-      max-width: 320px;
+      max-width: 350px;
       padding: 0 5px;
     }
 
     button {
       flex: 1;
-      padding: 0.35rem 0.2rem;
-      font-size: 0.75rem;
+      padding: 0.45rem 0.2rem;
+      
+      font-size: 0.8rem;
       font-weight: 600;
       color: white;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+
       background-color: transparent;
       background-image: url('water.webp');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
+
       border: none;
       border-radius: 8px;
       cursor: pointer;
@@ -274,28 +290,28 @@
 
     .modal-content {
       background-color: rgba(31, 41, 55, 0.95);
-      padding: 1.2rem;
+      padding: 1.5rem;
       border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
       text-align: center;
       max-width: 90vw;
-      width: 300px;
+      width: 340px;
     }
 
     .modal-content img {
       width: 100%;
       height: auto;
       border-radius: 10px;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
       border: 2px solid rgba(255, 255, 255, 0.15);
     }
 
     .modal-content p {
       color: #ffffff;
       font-weight: 600;
-      font-size: 0.95rem;
-      margin-bottom: 0.8rem;
+      font-size: 1.05rem;
+      margin-bottom: 1rem;
     }
 
     .modal-content button {
@@ -505,8 +521,7 @@
       },
       {
         theme: "Items and Things",
-        fourLetter: [
-          { word: "BOOK", hint: "本" },    
+        fourLetter: [ 
           { word: "FILE", hint: "ファイル" },
           { word: "BIKE", hint: "自転車" },
           { word: "COIN", hint: "コイン" },
@@ -531,10 +546,9 @@
           { word: "NOSE", hint: "鼻" },
           { word: "BODY", hint: "体" },
           { word: "HAND", hint: "手" },
-          { word: "FOOT", hint: "Foot" },
-          { word: "BACK", hint: "Back" },
-          { word: "BONE", hint: "Bone" },
-          { word: "NECK", hint: "Neck" }
+          { word: "BACK", hint: "背" },
+          { word: "BONE", hint: "骨" },
+          { word: "NECK", hint: "首" }
         ],
         threeLetter: [
           { word: "ARM", hint: "Arm" },
@@ -572,7 +586,7 @@
     const bgMusic = document.getElementById('bg-music');
     const musicBtn = document.getElementById('music-btn');
     const sfxBtn = document.getElementById('sfx-btn');
-    let isMusicPlaying = false;
+    let isMusicPlaying = true;
     let isSFXPlaying = true;
  
     const moveSound = document.getElementById('move-sound');
