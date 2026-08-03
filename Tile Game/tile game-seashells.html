@@ -85,7 +85,7 @@
 
     h1 {
       margin: 0 0 0.15rem 0;
-      font-size: clamp(1.3rem, 4vw, 2rem);
+      font-size: clamp(1.3rem, 4vw, 2.0rem);
       color: #ffffff;
       text-align: center;
     }
@@ -135,9 +135,9 @@
     /* 📱 Responsive Grid Layout - Fully synchronized sizing between PC and mobile */
     #board {
       display: grid;
-      grid-template-columns: clamp(80px, 22vw, 120px) repeat(4, clamp(55px, 15vw, 75px));
-      grid-template-rows: repeat(4, clamp(55px, 15vw, 75px));
-      gap: 5px;
+      grid-template-columns: 120px repeat(4, 75px);
+      grid-template-rows: repeat(4, 75px);
+      gap: 6px;
 
       background-color: transparent;
       background-image: url('board.webp');
@@ -146,7 +146,7 @@
       background-repeat: no-repeat;
       background-attachment: local;
 
-      padding: 10px;
+      padding: 12px;
       border-radius: 16px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
       max-width: 100vw;
@@ -162,13 +162,13 @@
       color: #ffffff;
  
       -webkit-text-stroke: 0px #000000;
-      font-size: clamp(0.75rem, 2vw, 0.95rem);
+      font-size: 0.95rem;
       font-weight: 800;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 
       text-transform: uppercase;
       text-align: center;
-      padding: 2px;
+      padding: 4px;
       border-radius: 8px;
       user-select: none;
       line-height: 1.1;
@@ -181,13 +181,13 @@
       justify-content: center;
       
       background-color: transparent; 
-      /* Ensures background asset scales and centers perfectly inside the grid slot */
-      background-size: 96% 96%;
+      /* Explicit sizing and centering to lock background asset alignment */
+      background-size: 100% 100%;
       background-position: center;
       background-repeat: no-repeat;
       
       color: #ffffff;
-      font-size: clamp(1.2rem, 4vw, 1.6rem);
+      font-size: 1.6rem;
       font-weight: bold;
       
       /* Crisp multi-directional shadow to avoid mobile stroke bleeding */
@@ -234,7 +234,7 @@
       gap: 8px;
       margin-top: 0.6rem;
       width: 100%;
-      max-width: 400px;
+      max-width: 440px;
       padding: 0 5px;
     }
 
@@ -654,26 +654,28 @@
     }
 
     function getValidNeighbors(index) {
-      const neighbors = [];
+      const neighbors = plugins = [];
       const row = Math.floor(index / COLS);
       const col = index % COLS;
 
-      if (row > 0) neighbors.push(index - COLS);        
-      if (row < ROWS - 1) neighbors.push(index + COLS);   
-      if (col > 0) neighbors.push(index - 1);           
-      if (col < COLS - 1) neighbors.push(index + 1);    
+      const neighborsArr = [];
+      if (row > 0) neighborsArr.push(index - COLS);        
+      if (row < ROWS - 1) neighborsArr.push(index + COLS);   
+      if (col > 0) neighborsArr.push(index - 1);           
+      if (col < COLS - 1) neighborsArr.push(index + 1);    
 
-      return neighbors;
+      return neighborsArr;
     }
 
     function renderBoard() {
       boardElement.innerHTML = '';
 
       for (let r = 0; r < ROWS; r++) {
-        const hintTile = document.createElement('div');
-        hintTile.classList.add('hint-box');
-        hintTile.textContent = currentWords[r].hint;
-        boardElement.appendChild(hintTile);
+        const hintTile = document.getElementById('board') ? document.createElement('div') : null; // safe create
+        const hint = document.createElement('div');
+        hint.classList.add('hint-box');
+        hint.textContent = currentWords[r].hint;
+        boardElement.appendChild(hint);
 
         for (let c = 0; c < COLS; c++) {
           const tileIndex = r * COLS + c;
