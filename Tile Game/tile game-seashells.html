@@ -316,57 +316,57 @@
       flex: none;
     }
 
-    /* 🖥️ PC / Desktop Larger View Styles (Only applies on screens wider than 768px) */
+    /* 🖥️ PC / Desktop Optimized View (Slightly reduced to fit comfortably without scrolling) */
     @media (min-width: 768px) {
       #board {
-        grid-template-columns: 180px repeat(4, 110px);
-        grid-template-rows: repeat(4, 110px);
-        gap: 10px;
-        padding: 18px;
+        grid-template-columns: 145px repeat(4, 90px);
+        grid-template-rows: repeat(4, 90px);
+        gap: 8px;
+        padding: 14px;
         max-width: none;
       }
 
       .hint-box {
-        font-size: 1.35rem;
+        font-size: 1.15rem;
       }
 
       .tile {
-        font-size: 2.4rem;
+        font-size: 1.9rem;
       }
 
       .controls {
-        max-width: 620px;
+        max-width: 500px;
       }
 
       button {
-        padding: 0.8rem 0.6rem;
-        font-size: 1.2rem;
+        padding: 0.65rem 0.5rem;
+        font-size: 1.05rem;
       }
 
       .title-bubble {
-        padding: 0.8rem 1.5rem;
+        padding: 0.6rem 1.2rem;
       }
 
       h1 {
-        font-size: 2.6rem;
+        font-size: 2.1rem;
       }
 
       p.sub {
-        font-size: 1.2rem;
+        font-size: 0.95rem;
       }
 
       .theme-badge {
-        font-size: 1.1rem;
-        padding: 0.4rem 1.2rem;
+        font-size: 0.95rem;
+        padding: 0.3rem 1rem;
       }
 
       .stats {
-        font-size: 1.2rem;
-        padding: 0.5rem 1.4rem;
+        font-size: 1.05rem;
+        padding: 0.4rem 1.2rem;
       }
 
       #move-count {
-        font-size: 1.3rem;
+        font-size: 1.15rem;
       }
     }
   </style>
