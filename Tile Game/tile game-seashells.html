@@ -132,12 +132,12 @@
       font-size: 0.95rem;
     }
 
-    /* 📱 Portrait-Optimized Fluid Grid Layout */
+    /* 📱 Portrait-Optimized Fixed 5-Column Grid Layout */
     #board {
       display: grid;
-      /* Fixed hint column + 4 equal flexible columns that fit any phone screen cleanly */
-      grid-template-columns: 75px repeat(4, 1fr);
-      grid-template-rows: repeat(4, minmax(50px, 65px));
+      /* Exactly 1 column for hint box + 4 columns for letter tiles */
+      grid-template-columns: 82px repeat(4, 62px);
+      grid-template-rows: repeat(4, 62px);
       gap: 4px;
 
       background-color: transparent;
@@ -149,8 +149,6 @@
       padding: 8px;
       border-radius: 14px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-      width: 100%;
-      max-width: 380px;
       touch-action: manipulation;
     }
 
@@ -162,7 +160,7 @@
       background-color: transparent;
       color: #ffffff;
  
-      font-size: clamp(0.6rem, 2.2vw, 0.8rem);
+      font-size: clamp(0.6rem, 2vw, 0.75rem);
       font-weight: 800;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 
@@ -181,7 +179,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      aspect-ratio: 1 / 1;
       
       background-color: transparent; 
       background-size: 100% 100%;
@@ -189,7 +186,7 @@
       background-repeat: no-repeat;
       
       color: #ffffff;
-      font-size: clamp(1.1rem, 4.5vw, 1.5rem);
+      font-size: 1.35rem;
       font-weight: bold;
       
       text-shadow: 
@@ -235,7 +232,7 @@
       gap: 6px;
       margin-top: 0.25rem;
       width: 100%;
-      max-width: 380px;
+      max-width: 350px;
       padding: 0 5px;
     }
 
@@ -324,8 +321,6 @@
         grid-template-rows: repeat(4, 90px);
         gap: 8px;
         padding: 14px;
-        max-width: none;
-        width: auto;
         background-size: contain;
       }
 
