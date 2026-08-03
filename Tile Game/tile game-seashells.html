@@ -132,7 +132,7 @@
       font-size: 1.05rem;
     }
 
-    /* 📱 Responsive Grid Layout - Fully synchronized sizing between PC and mobile */
+    /* 📱 Responsive Grid Layout */
     #board {
       display: grid;
       grid-template-columns: 120px repeat(4, 75px);
@@ -181,7 +181,6 @@
       justify-content: center;
       
       background-color: transparent; 
-      /* Explicit sizing and centering to lock background asset alignment */
       background-size: 100% 100%;
       background-position: center;
       background-repeat: no-repeat;
@@ -190,7 +189,6 @@
       font-size: 1.6rem;
       font-weight: bold;
       
-      /* Crisp multi-directional shadow to avoid mobile stroke bleeding */
       text-shadow: 
         -1px -1px 0 #000,  
          1px -1px 0 #000,
@@ -225,21 +223,21 @@
       text-align: center;
     }
 
-    /* 🎛️ Bottom Control Bar - Unified into a single horizontal row */
+    /* 🎛️ Bottom Control Bar */
     .controls {
       display: flex;
       flex-direction: row;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      margin-top: 0.6rem;
+      margin-top: 0.4rem; /* Lifted up slightly from previous */
       width: 100%;
       max-width: 440px;
       padding: 0 5px;
     }
 
     button {
-      flex: 1; /* Distributes available space evenly across buttons */
+      flex: 1;
       padding: 0.55rem 0.4rem;
       
       font-size: 0.9rem;
@@ -258,7 +256,7 @@
       cursor: pointer;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
       touch-action: manipulation;
-      white-space: nowrap; /* Prevents text wrapping inside buttons */
+      white-space: nowrap;
     }
 
     /* Completion Popup Modal */
@@ -374,10 +372,8 @@
 
 <body>
 
-  <!-- Fullscreen underwater light overlay -->
   <div class="light-overlay"></div>
  
-  <!-- Title & Subtitle Bubble Container -->
   <div class="title-bubble">
     <h1>Sea Shell Shuffle</h1>
     <p class="sub">Slide letters to spell the target words!</p>
@@ -385,7 +381,6 @@
   
   <div class="theme-badge">Theme: <span id="theme-name">Loading...</span> </div>
 
-  <!-- Moves Count Bubble -->
   <div class="stats">
     <div>Moves: <span id="move-count">0</span></div>
   </div>
@@ -394,7 +389,6 @@
 
   <div id="message"></div>
 
-  <!-- Completion Popup Modal -->
   <div id="win-modal" class="modal-overlay">
     <div class="modal-content">
       <img src="tile_game_completed.webp" alt="Puzzle Completed">
@@ -403,18 +397,13 @@
     </div>
   </div>
 
-  <!-- Background Music Audio Element -->
   <audio id="bg-music" loop preload="auto">
     <source src="ocean-bg.mp3" type="audio/mpeg">
  </audio>
 
- <!-- Move Sound Effect Audio Element -->
  <audio id="move-sound" src="move-sfx.mp3" preload="auto"></audio>
-
- <!-- Win Sound Effect Audio Element -->
  <audio id="win-sound" src="flag.mp3" preload="auto"></audio>
   
-  <!-- Single-row horizontal button layout -->
   <div class="controls">
     <button id="shuffle-btn">New</button>
     <button id="music-btn">🔇 Music</button>
@@ -708,10 +697,6 @@
     }
 
     function getValidNeighbors(index) {
-      const row = Math.floor(index / COLS);
-      const col = index < COLS ? index % COLS : index % COLS; // standard indexing
-
-      // Proper grid boundary neighbor calculation
       const r = Math.floor(index / COLS);
       const c = index % COLS;
 
@@ -787,7 +772,7 @@
         }
 
         winModalText.textContent = `You finished in ${moves} moves!`;
-        winModal.classList.0 ? winModal.classList.add('show') : winModal.classList.add('show');
+        winModal.classList.add('show');
       }
     }
 
