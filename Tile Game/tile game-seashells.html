@@ -50,7 +50,7 @@
 
     html, body {
       width: 100%;
-      min-height: 100%; /* Changed from height: 100% to allow proper content expansion */
+      min-height: 100%; /* Changed from height: 100% so it doesn't lock the scroll height */
       margin: 0;
       padding: 0;
       /* Fallback dark background prevents any white strip during mobile toolbar shifts */
@@ -61,7 +61,6 @@
       background-position: center;
       background-repeat: no-repeat;
       background-attachment: fixed;
-      overflow-y: auto; /* Changed from overflow: hidden to allow scrolling up in landscape mode */
     }
 
     body {
@@ -71,8 +70,15 @@
       justify-content: center;
       min-height: 100vh;
       min-height: 100dvh;
-      padding: 6px;
+      padding: 20px 6px; /* Added some top/bottom padding to give it breathing room */
       color: #1f2937;
+    }
+
+    /* FIX: Prevents flexbox from pushing the top of the game off-screen in landscape mode */
+    @media (max-height: 750px) {
+      body {
+        justify-content: flex-start; 
+      }
     }
 
     /* Container for title and subtitle bubble */
