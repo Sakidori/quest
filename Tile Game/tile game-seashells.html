@@ -132,7 +132,7 @@
       font-size: 1.05rem;
     }
 
-    /* 📱 Responsive Grid Layout - Flexible scale using clamp for both PC and Mobile */
+    /* 📱 Responsive Grid Layout - Fully synchronized sizing between PC and mobile */
     #board {
       display: grid;
       grid-template-columns: clamp(80px, 22vw, 120px) repeat(4, clamp(55px, 15vw, 75px));
@@ -181,7 +181,8 @@
       justify-content: center;
       
       background-color: transparent; 
-      background-size: cover;
+      /* Ensures background asset scales and centers perfectly inside the grid slot */
+      background-size: 96% 96%;
       background-position: center;
       background-repeat: no-repeat;
       
