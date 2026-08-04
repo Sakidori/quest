@@ -559,6 +559,27 @@
         const cheatSequence = ['ArrowUp', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyX', 'ArrowUp'];
         let cheatProgress = 0;
 
+        function checkCheat(inputCode) {
+            let normalizedCode = inputCode;
+            if (inputCode === 'ArrowUpTouch') normalizedCode = 'ArrowUp';
+            if (inputCode === 'ArrowLeftTouch') normalizedCode = 'ArrowLeft';
+            if (inputCode === 'ArrowRightTouch') normalizedCode = 'ArrowRight';
+            if (inputCode === 'Fire') normalizedCode = 'KeyX';
+
+            if (normalizedCode === cheatSequence[cheatProgress]) {
+                cheatProgress++;
+                if (cheatProgress === cheatSequence.length) {
+                    cheatProgress = 0;
+                    godMode = !godMode;
+                    if (godMode) {
+                        playSound(sfxVictory);
+                    }
+                }
+            } else {
+                cheatProgress = (normalizedCode === cheatSequence[0]) ? 1 : 0;
+            }
+        }
+
         for(let i=0; i<100; i++) {
             stars.push({
                 x: Math.random() * canvas.width, y: Math.random() * canvas.height,
@@ -581,19 +602,7 @@
         window.addEventListener('keydown', e => { 
             if(e.code === 'Space') e.preventDefault(); 
             keys[e.code] = true; 
-
-            if (e.code === cheatSequence[cheatProgress]) {
-                cheatProgress++;
-                if (cheatProgress === cheatSequence.length) {
-                    cheatProgress = 0;
-                    godMode = !godMode;
-                    if (godMode) {
-                        playSound(sfxVictory);
-                    }
-                }
-            } else {
-                cheatProgress = (e.code === cheatSequence[0]) ? 1 : 0;
-            }
+            checkCheat(e.code);
         });
         window.addEventListener('keyup', e => keys[e.code] = false);
 
@@ -1440,6 +1449,9 @@
                 activePointers.set(e.pointerId, { code, btn });
                 keys[code] = true;
                 btn.classList.add('touched');
+                
+                checkCheat(code);
+
                 try { btn.setPointerCapture(e.pointerId); } catch(err) {}
             });
 
