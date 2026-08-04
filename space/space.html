@@ -1210,10 +1210,19 @@
             for(let i=0; i<30; i++) {
                 particles.push({ x: ship.x, y: ship.y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12, life: 1, decay: 0.02, size: Math.random()*5+2, color: Math.random()>0.5?'#ff003c':sparkColor, type: Math.random()>0.7?1:0 });
             }
-            document.getElementById('game-over-stats').textContent = `LETTERS: ${collectedLetters.length} / 6`;
+           document.getElementById('game-over-stats').textContent = `LETTERS: ${collectedLetters.length} / 6`;
             let scBtn = document.getElementById('secret-btn'), lMsg = document.getElementById('secret-lock-msg');
-            if (targetLetters.every(l => collectedLetters.includes(l))) { scBtn.disabled = false; lMsg.className = 'sys-msg msg-success'; lMsg.textContent = "DEFEATED BY BOSS!"; }
-            else { scBtn.disabled = false; lMsg.className = 'sys-msg msg-error'; lMsg.textContent = "GET THE LETTERS!"; }
+            
+            // Only unlock the password button if the boss was already defeated (gameState 5)
+            if (gameState === 5) { 
+                scBtn.disabled = false; 
+                lMsg.className = 'sys-msg msg-success'; 
+                lMsg.textContent = "VICTORY!"; 
+            } else { 
+                scBtn.disabled = true; 
+                lMsg.className = 'sys-msg msg-error'; 
+                lMsg.textContent = "DEFEAT THE BOSS TO UNLOCK!"; 
+            }
             setTimeout(() => gameOverScreen.classList.remove('hidden'), 800);
         }
 
