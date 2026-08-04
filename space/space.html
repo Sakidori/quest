@@ -179,7 +179,7 @@
 
         input[type="text"] {
             background: rgba(0, 0, 0, 0.6);
-            border: 2px solid rgba(0, 243, 255, 0.5);
+            border: 2px solid rgba(0, 243, 255, );
             padding: 14px 20px;
             font-family: 'Orbitron', sans-serif;
             font-size: 20px; color: var(--neon-gold);
@@ -216,7 +216,7 @@
             width: 26px;
             height: 26px;
             background-color: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 234, 0, 0.5);
+            border: 1px solid rgba(255, 234, 0, );
             display: flex;
             justify-content: center;
             align-items: center;
@@ -751,8 +751,8 @@
                 y: canvas.height / 2,
                 w: 90,
                 h: 160,
-                hp: 120,    // Increased health from 50 to 120 for a longer fight
-                maxHp: 120, // Updated maxHp accordingly
+                hp: 200,    // Increased health from 50 to 120 for a longer fight
+                maxHp: 200, // Updated maxHp accordingly
                 attackTimer: 0,
                 minionSpawnTimer: 0,
                 exploding: false
@@ -1002,7 +1002,7 @@
                     let dx = ship.x - m.x;
                     let dy = ship.y - m.y;
                     if (dx*dx + dy*dy < (ship.radius + m.r)*(ship.radius + m.r)) {
-                        damageShip(0.5, '#ff003c'); // Reduced minion contact damage
+                        damageShip(1, '#ff003c'); // Reduced minion contact damage
                         bossMinions.splice(i, 1);
                     }
                     if (m.x < -50) {
