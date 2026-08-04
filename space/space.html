@@ -645,7 +645,7 @@
             cameraShake = 20;
             playSound(sfxExplosion);
 
-            playlist = [{ name: "Boss", src: "gameover.mp3" }];
+            playlist = [{ name: "Boss", src: "../music/gameover.mp3" }];
             currentTrackIndex = 0;
             playCurrentTrack();
 
@@ -758,7 +758,7 @@
                     document.getElementById('secret-msg').style.display = 'none';
                     document.getElementById('secret-answer-container').style.display = 'none';
                     
-                    playlist = [{ name: "16.Endless", src: "hateshinaimichi.mp3" }];
+                    playlist = [{ name: "16.Endless", src: "../music/hateshinaimichi.mp3" }];
                     currentTrackIndex = 0;
                     playCurrentTrack();
 
@@ -1119,7 +1119,7 @@
         function die(sparkColor) {
             cameraShake = 20; gameState = 2;
             
-            playlist = [{ name: "16.Endless", src: "hateshinaimichi.mp3" }];
+            playlist = [{ name: "16.Endless", src: "../music/hateshinaimichi.mp3" }];
             currentTrackIndex = 0;
             playCurrentTrack();
 
@@ -1493,7 +1493,7 @@
         });
 
         let playlist = [
-            { name: "16.Endless", src: "hateshinaimichi.mp3" }, 
+            { name: "16.Endless", src: "../music/hateshinaimichi.mp3" }, 
         ];
         let currentTrackIndex = 0; 
         const bgMusic = document.getElementById('bg-music');
