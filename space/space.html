@@ -751,8 +751,8 @@
                 y: canvas.height / 2,
                 w: 90,
                 h: 160,
-                hp: 200,    // Increased health from 50 to 120 for a longer fight
-                maxHp: 200, // Updated maxHp accordingly
+                hp: 300,    // Increased health from 50 to 120 for a longer fight
+                maxHp: 300, // Updated maxHp accordingly
                 attackTimer: 0,
                 minionSpawnTimer: 0,
                 exploding: false
@@ -1042,7 +1042,7 @@
                             let dx = l.x - o.x;
                             let dy = l.y - o.y;
                             if (dx*dx + dy*dy < (l.r + o.r)*(l.r + o.r)) {
-                                score += 150;
+                                score += 1000;
                                 cameraShake = 8;
                                 playSound(sfxExplosion);
                                 for (let k = 0; k < 14; k++) {
@@ -1221,7 +1221,7 @@
             } else { 
                 scBtn.disabled = true; 
                 lMsg.className = 'sys-msg msg-error'; 
-                lMsg.textContent = "DEFEAT THE BOSS TO UNLOCK!"; 
+                lMsg.textContent = "Collect all 6 letters!"; 
             }
             setTimeout(() => gameOverScreen.classList.remove('hidden'), 800);
         }
