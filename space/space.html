@@ -330,7 +330,6 @@
             background: rgba(0, 243, 255, 0.35);
         }
 
-        /* Full D-Pad Layout */
         #btn-up { position: absolute; top: 0; left: 44px; width: 42px; height: 42px; }
         #btn-left { position: absolute; top: 44px; left: 0; width: 42px; height: 42px; }
         #btn-right { position: absolute; top: 44px; left: 88px; width: 42px; height: 42px; }
@@ -430,7 +429,6 @@
             const winWidth = window.innerWidth;
             const winHeight = window.innerHeight;
             
-            // Calculate scale ratio to fit screen perfectly while preserving 5:3 aspect ratio
             const scaleX = winWidth / baseWidth;
             const scaleY = winHeight / baseHeight;
             const scale = Math.min(scaleX, scaleY);
@@ -445,6 +443,18 @@
         window.addEventListener('resize', resizeGame);
         window.addEventListener('orientationchange', () => setTimeout(resizeGame, 200));
         resizeGame();
+
+        // Function to Request Fullscreen Mode Safely
+        function requestFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => {});
+            } else if (elem.webkitRequestFullscreen) { /* Safari / iOS fallback */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d', { alpha: false });
@@ -554,7 +564,10 @@
             });
         });
         
-        document.getElementById('start-btn').onclick = startGame;
+        document.getElementById('start-btn').onclick = () => {
+            requestFullscreen(); // Force fullscreen on click
+            startGame();
+        };
         document.getElementById('restart-btn').onclick = startGame;
         document.getElementById('back-to-over-btn').onclick = () => { secretScreen.classList.add('hidden'); gameOverScreen.classList.remove('hidden'); gameState = 2; };
         
