@@ -275,14 +275,14 @@
         .msg-error { color: var(--neon-red); border-left: 3px solid var(--neon-red); }
         .msg-success { color: var(--neon-cyan); border-left: 3px solid var(--neon-cyan); }
 
-        /* Compact, Semi-Transparent Gray Touch Controls Pinned to Viewport Edges */
+        /* Compact, Semi-Transparent Gray Touch Controls Pinned to Inside of Game Container */
         #controls {
             display: none;
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             z-index: 100;
         }
@@ -293,26 +293,33 @@
             }
         }
 
+        /* Hide controls entirely when in portrait orientation warning screen */
+        @media screen and (orientation: portrait) {
+            #controls {
+                display: none !important;
+            }
+        }
+
         .control-group {
             position: absolute;
-            bottom: max(15px, env(safe-area-inset-bottom));
+            bottom: 15px;
             display: flex;
             gap: 8px;
             pointer-events: auto;
         }
 
         #dpad {
-            left: max(15px, env(safe-area-inset-left));
+            left: 15px;
             display: grid;
-            grid-template-columns: 55px 55px 55px;
-            grid-template-rows: 55px 55px;
-            gap: 6px;
+            grid-template-columns: 50px 50px 50px;
+            grid-template-rows: 50px 50px;
+            gap: 5px;
         }
 
         #actions {
-            right: max(15px, env(safe-area-inset-right));
+            right: 15px;
             display: flex;
-            gap: 12px;
+            gap: 10px;
             align-items: flex-end;
             padding-bottom: 2px;
         }
@@ -322,9 +329,9 @@
             border: 1.5px solid rgba(255, 255, 255, 0.25);
             color: rgba(255, 255, 255, 0.65);
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -342,16 +349,16 @@
             color: #fff;
         }
 
-        #btn-up { grid-column: 2; grid-row: 1; height: 55px; }
-        #btn-left { grid-column: 1; grid-row: 2; height: 55px; }
-        #btn-right { grid-column: 3; grid-row: 2; height: 55px; }
-        #btn-down { grid-column: 2; grid-row: 2; height: 55px; }
+        #btn-up { grid-column: 2; grid-row: 1; height: 50px; }
+        #btn-left { grid-column: 1; grid-row: 2; height: 50px; }
+        #btn-right { grid-column: 3; grid-row: 2; height: 50px; }
+        #btn-down { grid-column: 2; grid-row: 2; height: 50px; }
 
         .action-btn {
-            width: 65px;
-            height: 65px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
     </style>
 </head>
@@ -417,19 +424,19 @@
             </div>
             <div id="secret-msg" class="sys-msg" style="display:none;"></div>
         </div>
-    </div>
 
-    <!-- Virtual On-Screen Controls Pinned to Screen Edges -->
-    <div id="controls">
-        <div id="dpad" class="control-group">
-            <div id="btn-up" class="control-btn">▲</div>
-            <div id="btn-left" class="control-btn">◀</div>
-            <div id="btn-right" class="control-btn">▶</div>
-            <div id="btn-down" class="control-btn">▼</div>
-        </div>
-        <div id="actions" class="control-group">
-            <div id="btn-boost" class="control-btn action-btn">BOOST</div>
-            <div id="btn-fire" class="control-btn action-btn">FIRE</div>
+        <!-- Virtual On-Screen Controls Pinned Inside Game Container (Scaled Properly) -->
+        <div id="controls">
+            <div id="dpad" class="control-group">
+                <div id="btn-up" class="control-btn">▲</div>
+                <div id="btn-left" class="control-btn">◀</div>
+                <div id="btn-right" class="control-btn">▶</div>
+                <div id="btn-down" class="control-btn">▼</div>
+            </div>
+            <div id="actions" class="control-group">
+                <div id="btn-boost" class="control-btn action-btn">BOOST</div>
+                <div id="btn-fire" class="control-btn action-btn">FIRE</div>
+            </div>
         </div>
     </div>
 
