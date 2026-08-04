@@ -275,7 +275,7 @@
         .msg-error { color: var(--neon-red); border-left: 3px solid var(--neon-red); }
         .msg-success { color: var(--neon-cyan); border-left: 3px solid var(--neon-cyan); }
 
-        /* Compact, Semi-Transparent Gray Touch Controls Pinned to Inside of Game Container */
+        /* Large, Ergonomic, Multi-Touch Friendly On-Screen Controls */
         #controls {
             display: none;
             position: absolute;
@@ -287,7 +287,7 @@
             z-index: 100;
         }
 
-        @media (hover: none), (pointer: coarse), (max-width: 900px) {
+        @media (hover: none), (pointer: coarse), (max-width: 1024px) {
             #controls {
                 display: block;
             }
@@ -302,63 +302,82 @@
 
         .control-group {
             position: absolute;
-            bottom: 15px;
+            bottom: 20px;
             display: flex;
-            gap: 8px;
+            gap: 12px;
             pointer-events: auto;
+            touch-action: none;
         }
 
         #dpad {
-            left: 15px;
+            left: 25px;
             display: grid;
-            grid-template-columns: 50px 50px 50px;
-            grid-template-rows: 50px 50px;
-            gap: 5px;
+            grid-template-columns: 75px 75px 75px;
+            grid-template-rows: 75px 75px;
+            gap: 8px;
         }
 
         #actions {
-            right: 15px;
+            right: 25px;
             display: flex;
-            gap: 10px;
+            gap: 18px;
             align-items: flex-end;
-            padding-bottom: 2px;
+            padding-bottom: 5px;
         }
 
         .control-btn {
-            background: rgba(50, 55, 65, 0.35);
-            border: 1.5px solid rgba(255, 255, 255, 0.25);
-            color: rgba(255, 255, 255, 0.65);
+            background: rgba(30, 35, 50, 0.5);
+            border: 2px solid rgba(0, 243, 255, 0.4);
+            color: rgba(255, 255, 255, 0.85);
             font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
+            font-size: 1.3rem;
             font-weight: 700;
-            border-radius: 10px;
+            border-radius: 14px;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            transition: background 0.1s, color 0.1s, border-color 0.1s;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            transition: background 0.08s, color 0.08s, border-color 0.08s, transform 0.08s;
             touch-action: none;
             user-select: none;
+            -webkit-user-select: none;
         }
 
         .control-btn:active, .control-btn.touched {
-            background: rgba(100, 110, 130, 0.6);
-            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(0, 243, 255, 0.35);
+            border-color: var(--neon-cyan);
             color: #fff;
+            transform: scale(0.96);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
         }
 
-        #btn-up { grid-column: 2; grid-row: 1; height: 50px; }
-        #btn-left { grid-column: 1; grid-row: 2; height: 50px; }
-        #btn-right { grid-column: 3; grid-row: 2; height: 50px; }
-        #btn-down { grid-column: 2; grid-row: 2; height: 50px; }
+        #btn-up { grid-column: 2; grid-row: 1; height: 75px; }
+        #btn-left { grid-column: 1; grid-row: 2; height: 75px; }
+        #btn-right { grid-column: 3; grid-row: 2; height: 75px; }
+        #btn-down { grid-column: 2; grid-row: 2; height: 75px; }
 
         .action-btn {
-            width: 60px;
-            height: 60px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
-            font-size: 0.8rem;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            border-color: rgba(255, 0, 122, 0.5);
+        }
+
+        #btn-boost.touched, #btn-boost:active {
+            background: rgba(255, 0, 122, 0.4);
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 122, 0.5);
+        }
+
+        #btn-fire.touched, #btn-fire:active {
+            background: rgba(255, 234, 0, 0.4);
+            border-color: var(--neon-gold);
+            color: var(--neon-gold);
+            box-shadow: 0 0 15px rgba(255, 234, 0, 0.5);
         }
     </style>
 </head>
@@ -1418,7 +1437,7 @@
 
             btn.addEventListener('pointerdown', (e) => {
                 e.preventDefault();
-                activePointers.set(e.pointerId, btn);
+                activePointers.set(e.pointerId, { code, btn });
                 keys[code] = true;
                 btn.classList.add('touched');
                 try { btn.setPointerCapture(e.pointerId); } catch(err) {}
@@ -1427,14 +1446,26 @@
             btn.addEventListener('pointerup', (e) => {
                 e.preventDefault();
                 activePointers.delete(e.pointerId);
-                keys[code] = false;
+                
+                let stillPressed = false;
+                activePointers.forEach(item => {
+                    if (item.code === code) stillPressed = true;
+                });
+                if (!stillPressed) keys[code] = false;
+
                 btn.classList.remove('touched');
                 try { btn.releasePointerCapture(e.pointerId); } catch(err) {}
             });
 
             btn.addEventListener('pointercancel', (e) => {
                 activePointers.delete(e.pointerId);
-                keys[code] = false;
+                
+                let stillPressed = false;
+                activePointers.forEach(item => {
+                    if (item.code === code) stillPressed = true;
+                });
+                if (!stillPressed) keys[code] = false;
+
                 btn.classList.remove('touched');
             });
         });
@@ -1444,14 +1475,14 @@
                 activePointers.delete(e.pointerId);
                 Object.values(btnMap).forEach(code => {
                     let stillPressed = false;
-                    activePointers.forEach((btn) => {
-                        if (btnMap[btn.id] === code) stillPressed = true;
+                    activePointers.forEach(item => {
+                        if (item.code === code) stillPressed = true;
                     });
                     if (!stillPressed) keys[code] = false;
                 });
                 document.querySelectorAll('.control-btn').forEach(b => {
                     let hasPointer = false;
-                    activePointers.forEach((btn) => { if (btn === b) hasPointer = true; });
+                    activePointers.forEach(item => { if (item.btn === b) hasPointer = true; });
                     if (!hasPointer) b.classList.remove('touched');
                 });
             }
