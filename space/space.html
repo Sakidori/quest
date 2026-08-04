@@ -505,6 +505,7 @@
         let gameState = 0; 
         let score = 0, collectedLetters = [], time = 0, cameraShake = 0, boostIntensity = 0, shootCooldown = 0;
         let animationFrameId = null; 
+        let isGameRunning = false; // Guard to prevent overlapping loops
         const targetLetters = ['T', 'R', 'A', 'V', 'E', 'L'];
         let secretWord = "TRAVEL"; 
         
@@ -565,7 +566,7 @@
         });
         
         document.getElementById('start-btn').onclick = () => {
-            requestFullscreen(); // Force fullscreen on click
+            requestFullscreen();
             startGame();
         };
         document.getElementById('restart-btn').onclick = startGame;
@@ -613,11 +614,16 @@
         }
 
         function startGame() {
+            // Cancel any existing animation frame loop to prevent multi-loop speedups
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
             }
 
-            startScreen.classList.add('hidden'); gameOverScreen.classList.add('hidden'); secretScreen.classList.add('hidden');
+            startScreen.classList.add('hidden'); 
+            gameOverScreen.classList.add('hidden'); 
+            secretScreen.classList.add('hidden');
+            
             ship.x = 180; ship.y = 300; ship.vy = 0; ship.tilt = 0;
             ship.hp = ship.maxHp; ship.invulnerableTimer = 0;
             buildings = []; obstacles = []; letterItems = []; particles = []; lasers = []; bossProjectiles = []; bossMinions = []; boss = null;
@@ -628,7 +634,11 @@
             sfxHum.currentTime = 0;
             sfxHum.play().catch(e => {});
 
-            updateUI(); gameState = 1;
+            updateUI(); 
+            gameState = 1;
+            
+            // Start a single fresh animation loop
+            isGameRunning = true;
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
@@ -1366,22 +1376,23 @@
             "btn-fire": "Fire"
         };
 
+        // Clean Touch Handlers to clear keys properly and avoid sticky states
         document.querySelectorAll('.control-btn').forEach(btn => {
             const code = btnMap[btn.id];
 
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 keys[code] = true;
-            });
+            }, { passive: false });
 
             btn.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 keys[code] = false;
-            });
+            }, { passive: false });
 
             btn.addEventListener('touchcancel', (e) => {
                 keys[code] = false;
-            });
+            }, { passive: false });
         });
 
         render(4.5);
