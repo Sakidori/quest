@@ -64,7 +64,6 @@
             box-sizing: border-box;
         }
 
-        /* Show orientation lock screen when in portrait on mobile */
         @media screen and (orientation: portrait) {
             #rotate-screen {
                 display: flex;
@@ -276,7 +275,7 @@
         .msg-error { color: var(--neon-red); border-left: 3px solid var(--neon-red); }
         .msg-success { color: var(--neon-cyan); border-left: 3px solid var(--neon-cyan); }
 
-        /* Virtual On-Screen Controls Pinned to Viewport Edges (Out of Game Container) */
+        /* Compact, Semi-Transparent Gray Touch Controls Pinned to Viewport Edges */
         #controls {
             display: none;
             position: fixed;
@@ -296,70 +295,63 @@
 
         .control-group {
             position: absolute;
-            bottom: max(25px, env(safe-area-inset-bottom));
+            bottom: max(15px, env(safe-area-inset-bottom));
             display: flex;
-            gap: 15px;
+            gap: 8px;
             pointer-events: auto;
         }
 
         #dpad {
-            left: max(25px, env(safe-area-inset-left));
+            left: max(15px, env(safe-area-inset-left));
             display: grid;
-            grid-template-columns: 80px 80px 80px;
-            grid-template-rows: 80px 80px;
-            gap: 10px;
+            grid-template-columns: 55px 55px 55px;
+            grid-template-rows: 55px 55px;
+            gap: 6px;
         }
 
         #actions {
-            right: max(25px, env(safe-area-inset-right));
+            right: max(15px, env(safe-area-inset-right));
             display: flex;
-            gap: 20px;
+            gap: 12px;
             align-items: flex-end;
-            padding-bottom: 5px;
+            padding-bottom: 2px;
         }
 
         .control-btn {
-            background: rgba(10, 10, 25, 0.65);
-            border: 2px solid var(--neon-cyan);
-            color: var(--neon-cyan);
+            background: rgba(50, 55, 65, 0.35);
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            color: rgba(255, 255, 255, 0.65);
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 900;
-            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 12px;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2) inset;
-            transition: background 0.1s, color 0.1s;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            transition: background 0.1s, color 0.1s, border-color 0.1s;
             touch-action: none;
             user-select: none;
         }
 
         .control-btn:active, .control-btn.touched {
-            background: var(--neon-cyan);
-            color: var(--dark-bg);
-            box-shadow: 0 0 30px var(--neon-cyan);
+            background: rgba(100, 110, 130, 0.6);
+            border-color: rgba(255, 255, 255, 0.6);
+            color: #fff;
         }
 
-        #btn-up { grid-column: 2; grid-row: 1; height: 80px; }
-        #btn-left { grid-column: 1; grid-row: 2; height: 80px; }
-        #btn-right { grid-column: 3; grid-row: 2; height: 80px; }
-        #btn-down { grid-column: 2; grid-row: 2; height: 80px; }
+        #btn-up { grid-column: 2; grid-row: 1; height: 55px; }
+        #btn-left { grid-column: 1; grid-row: 2; height: 55px; }
+        #btn-right { grid-column: 3; grid-row: 2; height: 55px; }
+        #btn-down { grid-column: 2; grid-row: 2; height: 55px; }
 
         .action-btn {
-            width: 95px;
-            height: 95px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
-            border-color: var(--neon-pink);
-            color: var(--neon-pink);
-            font-size: 1.1rem;
-            box-shadow: 0 0 20px rgba(255, 0, 122, 0.2) inset;
-        }
-        .action-btn:active, .action-btn.touched {
-            background: var(--neon-pink);
-            color: #fff;
-            box-shadow: 0 0 35px var(--neon-pink);
+            font-size: 0.85rem;
         }
     </style>
 </head>
@@ -436,13 +428,12 @@
             <div id="btn-down" class="control-btn">▼</div>
         </div>
         <div id="actions" class="control-group">
-            <div id="btn-boost" class="control-btn action-btn" style="font-size: 13px;">BOOST</div>
+            <div id="btn-boost" class="control-btn action-btn">BOOST</div>
             <div id="btn-fire" class="control-btn action-btn">FIRE</div>
         </div>
     </div>
 
   <script>
-        // Automatic Dynamic Resolution & Scaling for Any Screen Size
         const baseWidth = 1000;
         const baseHeight = 600;
         const gameContainer = document.getElementById('game-container');
@@ -466,12 +457,11 @@
         window.addEventListener('orientationchange', () => setTimeout(resizeGame, 200));
         resizeGame();
 
-        // Function to Request Fullscreen Mode Safely
         function requestFullscreen() {
             const elem = document.documentElement;
             if (elem.requestFullscreen) {
                 elem.requestFullscreen().catch(err => {});
-            } else if (elem.webkitRequestFullscreen) { /* Safari / iOS fallback */
+            } else if (elem.webkitRequestFullscreen) {
                 elem.webkitRequestFullscreen();
             } else if (elem.msRequestFullscreen) {
                 elem.msRequestFullscreen();
@@ -1382,7 +1372,7 @@
 
         let lastTime = performance.now();
         let accumulator = 0;
-        const timeStep = 1000 / 60; // Locked strictly to 60 FPS
+        const timeStep = 1000 / 60;
 
         function gameLoop(timestamp) {
             let frameTime = timestamp - lastTime;
