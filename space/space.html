@@ -2,323 +2,358 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CYBER TRAVELER</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Space Survival</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --neon-blue: #00f3ff;
+            --neon-cyan: #00f3ff;
             --neon-pink: #ff007a;
-            --neon-yellow: #ffea00;
             --neon-red: #ff003c;
-            --bg-dark: #05050f;
-        }
-
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
+            --neon-gold: #ffea00;
+            --dark-bg: #050510;
+            --glass-bg: rgba(5, 5, 16, 0.75);
+            --ui-glow: 0 0 15px rgba(0, 243, 255, 0.5);
+            --danger-glow: 0 0 20px rgba(255, 0, 60, 0.6);
         }
 
         body {
             margin: 0;
             padding: 0;
-            background-color: #000;
-            overflow: hidden;
-            font-family: 'Orbitron', sans-serif;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             width: 100vw;
             height: 100vh;
+            font-family: 'Rajdhani', sans-serif;
+            color: #fff;
+            overflow: hidden;
+            perspective: 1000px;
+            touch-action: none;
         }
 
         #game-container {
             position: absolute;
-            transform-origin: top left;
-            background-color: var(--bg-dark);
+            width: 1000px;
+            height: 600px;
+            border-radius: 4px;
             overflow: hidden;
-            box-shadow: 0 0 50px rgba(0, 243, 255, 0.2);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            background: radial-gradient(circle at 70% 30%, rgba(255, 0, 122, 0.15) 0%, rgba(0, 243, 255, 0.05) 40%, var(--dark-bg) 80%);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.1), 0 0 80px rgba(255, 0, 122, 0.05);
+            filter: contrast(1.1) saturate(1.2);
+            transform-origin: center center;
+        }
+
+        /* Portrait Block Screen / Rotate Prompt */
+        #rotate-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #050510;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        /* Show orientation lock screen when in portrait on mobile */
+        @media screen and (orientation: portrait) {
+            #rotate-screen {
+                display: flex;
+            }
+        }
+
+        .rotate-icon {
+            font-size: 64px;
+            color: var(--neon-cyan);
+            animation: rotatePulse 1.5s ease-in-out infinite alternate;
+            margin-bottom: 20px;
+        }
+
+        @keyframes rotatePulse {
+            0% { transform: rotate(0deg) scale(1); text-shadow: 0 0 10px var(--neon-cyan); }
+            100% { transform: rotate(90deg) scale(1.1); text-shadow: 0 0 25px var(--neon-pink); }
         }
 
         canvas {
             display: block;
-            background: radial-gradient(circle at center, #0f0c29 0%, #302b63 50%, #24243e 100%);
-        }
-
-        /* UI Overlays */
-        .screen {
             position: absolute;
             top: 0;
             left: 0;
+            z-index: 1;
             width: 100%;
             height: 100%;
+        }
+
+        .post-process {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), 
+                radial-gradient(circle at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6) 100%);
+            background-size: 100% 4px, 100% 100%;
+            z-index: 10;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+        }
+
+        .chromatic-edge {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            box-shadow: inset 4px 0 10px rgba(255,0,0,0.1), inset -4px 0 10px rgba(0,255,255,0.1);
+            z-index: 11;
+            pointer-events: none;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(5, 5, 15, 0.85);
-            backdrop-filter: blur(5px);
-            z-index: 10;
-            transition: opacity 0.3s ease;
+            text-align: center;
+            padding: 40px;
+            box-sizing: border-box;
+            z-index: 20;
+            animation: fadeIn 0.3s ease-out;
+            overflow-y: auto;
         }
 
-        .hidden {
-            display: none !important;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(1.02); }
+            to { opacity: 1; transform: scale(1); }
         }
+
+        .hidden { display: none !important; opacity: 0; pointer-events: none; }
 
         h1 {
-            font-size: 4rem;
-            font-weight: 900;
-            color: #fff;
-            text-transform: uppercase;
-            margin: 0 0 20px 0;
-            text-align: center;
-            letter-spacing: 4px;
-            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue), 0 0 40px var(--neon-blue);
-        }
-
-        p {
-            color: #aaccff;
-            font-size: 1.1rem;
-            letter-spacing: 2px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .cyber-btn {
-            background: transparent;
-            color: var(--neon-blue);
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-            padding: 15px 40px;
-            border: 2px solid var(--neon-blue);
-            cursor: pointer;
+            font-size: 54px;
+            font-weight: 900;
+            margin: 0 0 10px 0;
+            background: linear-gradient(to bottom, #fff 0%, var(--neon-cyan) 50%, var(--neon-pink) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        h2 { font-family: 'Orbitron', sans-serif; font-size: 36px; margin: 0 0 15px 0; letter-spacing: 2px; }
+        p { margin: 0 0 20px 0; color: #b2c2d1; font-size: 16px; max-width: 650px; line-height: 1.4; }
+        strong { color: var(--neon-cyan); }
+
+        button {
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            padding: 14px 35px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
             letter-spacing: 2px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.2s ease;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2) inset;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            margin: 8px;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
 
-        .cyber-btn:hover, .cyber-btn:active {
-            background: var(--neon-blue);
-            color: var(--bg-dark);
-            box-shadow: 0 0 30px var(--neon-blue);
+        button:hover:not(:disabled) {
+            background: rgba(0, 243, 255, 0.25);
             transform: scale(1.05);
+            color: #fff;
         }
+        button:active:not(:disabled) { transform: scale(0.95); }
+        button:disabled { border-color: rgba(255,0,60,0.3); color: rgba(255,255,255,0.3); }
 
-        /* HUD Overlay Elements */
+        input[type="text"] {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(0, 243, 255, 0.5);
+            padding: 14px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px; color: var(--neon-gold);
+            text-align: center; margin-bottom: 20px; text-transform: uppercase; width: 260px;
+            outline: none; transition: all 0.3s;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        input[type="text"]:focus { border-color: var(--neon-cyan); background: rgba(0,243,255,0.1); }
+
         #ui-top {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: none;
-            z-index: 5;
+            position: absolute; top: 20px; left: 25px; right: 25px;
+            display: flex; justify-content: space-between; z-index: 30; pointer-events: none;
         }
 
         .hud-panel {
-            background: rgba(10, 10, 20, 0.7);
-            border: 1px solid var(--neon-blue);
-            padding: 10px 20px;
-            color: #fff;
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.15) 0%, rgba(0,0,0,0.6) 100%);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            padding: 10px 20px; font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 700;
+            color: #fff; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            backdrop-filter: blur(4px);
         }
 
-        #score-display {
-            border-left: 4px solid var(--neon-pink);
+        #score-display { border-left: 4px solid var(--neon-pink); display: flex; flex-direction: column; gap: 4px; min-width: 160px; }
+        
+        #letters-display { 
+            border-right: 4px solid var(--neon-gold); 
+            color: var(--neon-gold); 
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .collected-letter-box {
+            width: 26px;
+            height: 26px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 234, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--neon-gold);
         }
 
         #hearts-container {
             display: flex;
             gap: 5px;
+            margin-top: 2px;
+            font-size: 14px;
+            letter-spacing: 2px;
         }
-
         .heart {
-            color: var(--neon-pink);
-            font-size: 1.2rem;
-            text-shadow: 0 0 8px var(--neon-pink);
+            color: var(--neon-cyan);
+            text-shadow: 0 0 6px var(--neon-cyan);
+            transition: transform 0.2s, opacity 0.2s;
         }
-
         .heart.lost {
-            color: #441122;
+            color: rgba(255, 255, 255, 0.15);
             text-shadow: none;
         }
 
-        #letters-display {
+        #boss-display {
+            border-left: 4px solid var(--neon-red);
             display: flex;
-            gap: 8px;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 200px;
         }
-
-        .collected-letter-box {
-            width: 32px;
-            height: 38px;
-            border: 1px solid var(--neon-yellow);
-            background: rgba(255, 234, 0, 0.1);
-            color: var(--neon-yellow);
-            font-weight: 900;
-            font-size: 1.2rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-shadow: 0 0 8px var(--neon-yellow);
-            box-shadow: 0 0 10px rgba(255, 234, 0, 0.2) inset;
-        }
-
-        /* Boss HUD */
         .boss-hud-inner {
             display: flex;
             flex-direction: column;
-            gap: 5px;
-            width: 150px;
+            gap: 4px;
+            min-width: 200px;
         }
         .boss-hp-container {
             width: 100%;
-            height: 8px;
-            background: #220011;
+            height: 10px;
+            background: rgba(255, 0, 60, 0.2);
             border: 1px solid var(--neon-red);
+            position: relative;
+            overflow: hidden;
         }
         #boss-hp-fill {
             width: 100%;
             height: 100%;
             background: var(--neon-red);
-            box-shadow: 0 0 8px var(--neon-red);
             transition: width 0.1s linear;
+            box-shadow: 0 0 8px var(--neon-red);
         }
 
-        /* Virtual On-Screen Controls for Mobile */
-        #mobile-controls {
-            position: absolute;
-            bottom: 0;
+        .sys-msg { font-family: 'Orbitron', sans-serif; font-weight: 700; margin-top: 15px; padding: 8px 16px; background: rgba(0,0,0,0.5); font-size: 14px; }
+        .msg-error { color: var(--neon-red); border-left: 3px solid var(--neon-red); }
+        .msg-success { color: var(--neon-cyan); border-left: 3px solid var(--neon-cyan); }
+
+        #controls {
+            display: none;
+            position: absolute; 
+            top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 6;
+            z-index: 25;
         }
 
-        .control-group {
+        @media (hover: none), (pointer: coarse), (max-width: 900px) {
+            #controls {
+                display: block;
+            }
+        }
+
+        .left-controls {
             position: absolute;
+            left: 25px;
             bottom: 20px;
-            display: flex;
-            gap: 10px;
+            width: 130px;
+            height: 130px;
             pointer-events: auto;
         }
 
-        #dpad {
-            left: 20px;
-            display: grid;
-            grid-template-columns: 60px 60px 60px;
-            grid-template-rows: 60px 60px;
-            gap: 5px;
-        }
-
-        #actions {
-            right: 20px;
+        .right-controls {
+            position: absolute;
+            right: 25px;
+            bottom: 20px;
             display: flex;
-            gap: 15px;
+            gap: 12px;
             align-items: flex-end;
-            padding-bottom: 10px;
+            pointer-events: auto;
         }
 
         .control-btn {
-            background: rgba(10, 10, 25, 0.6);
-            border: 2px solid var(--neon-blue);
-            color: var(--neon-blue);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.2rem;
-            font-weight: 900;
+            background: rgba(0, 243, 255, 0.15);
+            border: 2px solid rgba(0, 243, 255, 0.4);
             border-radius: 12px;
             display: flex;
-            justify-content: center;
             align-items: center;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.15) inset;
-            transition: background 0.1s, color 0.1s;
-            touch-action: none; /* Crucial fix to bypass mobile 300ms delay & layout thrashing */
+            justify-content: center;
+            font-size: 18px;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-cyan);
+            user-select: none;
+            touch-action: none;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+        .control-btn:active {
+            background: rgba(0, 243, 255, 0.35);
         }
 
-        .control-btn:active, .control-btn.touched {
-            background: var(--neon-blue);
-            color: var(--bg-dark);
-            box-shadow: 0 0 20px var(--neon-blue);
-        }
-
-        #btn-up { grid-column: 2; grid-row: 1; }
-        #btn-left { grid-column: 1; grid-row: 2; }
-        #btn-right { grid-column: 3; grid-row: 2; }
-        #btn-down { grid-column: 2; grid-row: 2; }
+        #btn-up { position: absolute; top: 0; left: 44px; width: 42px; height: 42px; }
+        #btn-left { position: absolute; top: 44px; left: 0; width: 42px; height: 42px; }
+        #btn-right { position: absolute; top: 44px; left: 88px; width: 42px; height: 42px; }
+        #btn-down { position: absolute; top: 88px; left: 44px; width: 42px; height: 42px; }
 
         .action-btn {
-            width: 75px;
-            height: 75px;
-            border-radius: 50%;
-            border-color: var(--neon-pink);
-            color: var(--neon-pink);
-            box-shadow: 0 0 15px rgba(255, 0, 122, 0.15) inset;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
         }
-        .action-btn:active, .action-btn.touched {
-            background: var(--neon-pink);
-            color: #fff;
-            box-shadow: 0 0 25px var(--neon-pink);
-        }
-
-        /* Secret Terminal Screen */
-        #secret-screen {
-            background: rgba(2, 2, 8, 0.95);
-        }
-        .terminal-box {
-            background: rgba(0, 20, 10, 0.8);
-            border: 2px solid #00ff66;
-            padding: 30px;
-            max-width: 600px;
-            width: 90%;
-            box-shadow: 0 0 30px rgba(0, 255, 102, 0.2);
-            text-align: left;
-        }
-        .terminal-box h2 {
-            color: #00ff66;
-            margin-top: 0;
-            text-shadow: 0 0 10px #00ff66;
-        }
-        .terminal-input-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        #secret-input {
-            flex: 1;
-            background: #000;
-            border: 1px solid #00ff66;
-            color: #00ff66;
-            font-family: 'Orbitron', monospace;
-            padding: 12px;
-            font-size: 1.2rem;
-            outline: none;
-            box-shadow: 0 0 10px rgba(0, 255, 102, 0.2) inset;
-        }
-        .sys-msg {
-            margin-top: 15px;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            display: none;
-        }
-        .msg-success { color: #00ff66; text-shadow: 0 0 8px #00ff66; }
-        .msg-error { color: var(--neon-red); text-shadow: 0 0 8px var(--neon-red); }
     </style>
 </head>
 <body>
 
+    <!-- Rotation Warning Screen for Portrait Mode -->
+    <div id="rotate-screen">
+        <div class="rotate-icon">📱 ↺</div>
+        <h2 style="color: var(--neon-cyan); margin-bottom: 10px;">Please Rotate Your Device</h2>
+        <p>This game is designed for landscape mode only. Turn your phone sideways to play!</p>
+    </div>
+
     <div id="game-container">
-        <!-- Top HUD -->
+        <div class="post-process"></div>
+        <div class="chromatic-edge"></div>
         <div id="ui-top">
             <div id="score-display" class="hud-panel">
                 <span>SCORE // 00000</span>
@@ -329,65 +364,62 @@
                 </div>
             </div>
             <div id="letters-display" class="hud-panel">
-                <!-- Dynamic Letter Boxes -->
+                <div class="collected-letter-box">·</div>
+                <div class="collected-letter-box">·</div>
+                <div class="collected-letter-box">·</div>
+                <div class="collected-letter-box">·</div>
+                <div class="collected-letter-box">·</div>
+                <div class="collected-letter-box">·</div>
             </div>
         </div>
 
         <canvas id="gameCanvas" width="1000" height="600"></canvas>
 
-        <!-- On-Screen Mobile Controls -->
-        <div id="mobile-controls">
-            <div id="dpad" class="control-group">
+        <div id="controls">
+            <div id="dpad" class="left-controls">
                 <div id="btn-up" class="control-btn">▲</div>
                 <div id="btn-left" class="control-btn">◀</div>
                 <div id="btn-right" class="control-btn">▶</div>
                 <div id="btn-down" class="control-btn">▼</div>
             </div>
-            <div id="actions" class="control-group">
-                <div id="btn-boost" class="control-btn action-btn">BOOST</div>
+            <div id="action-buttons" class="right-controls">
+                <div id="btn-boost" class="control-btn action-btn" style="font-size: 10px;">BOOST</div>
                 <div id="btn-fire" class="control-btn action-btn">FIRE</div>
             </div>
         </div>
 
-        <!-- Start Screen -->
-        <div id="start-screen" class="screen">
-            <h1>Cyber Traveler</h1>
-            <p>Navigate the grid, collect letters, destroy obstacles, and defeat the boss!</p>
-            <button id="start-btn" class="cyber-btn">INITIALIZE</button>
+        <div id="start-screen" class="overlay">
+            <h1>Space Survival</h1>
+            <p>Navigate using <strong>D-PAD</strong> or <strong>ARROW KEYS / WASD</strong>.<br>Tap <strong>BOOST</strong> or hold <strong>SPACEBAR</strong> to Boost.<br>Tap <strong>FIRE</strong> or press <strong>X / F</strong> to shoot.<br>Collect all 6 letters to trigger the Boss!<br>Secret God Mode Code: <strong>UP, UP, LEFT, RIGHT, LEFT, RIGHT, FIRE, UP</strong></p>
+            <button id="start-btn">START</button>
         </div>
 
-        <!-- Game Over Screen -->
-        <div id="game-over-screen" class="screen hidden">
-            <h1 style="color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red);">System Failure</h1>
-            <p id="game-over-stats">LETTERS: 0 / 6</p>
-            <div style="display: flex; gap: 20px; flex-direction: column; align-items: center;">
-                <button id="restart-btn" class="cyber-btn">RE-BOOT</button>
-                <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
-                    <button id="secret-btn" class="cyber-btn" style="border-color: #00ff66; color: #00ff66;" disabled>DECRYPT LOG</button>
-                    <span id="secret-lock-msg" class="sys-msg msg-error" style="display: block;">COLLECT ALL LETTERS TO UNLOCK</span>
-                </div>
+        <div id="game-over-screen" class="overlay hidden">
+            <h2 style="color: var(--neon-red);">GAME OVER</h2>
+            <p id="game-over-stats">Letters: X / 6</p>
+            <div style="display: flex; gap: 15px; margin-top: 5px;">
+                <button id="restart-btn" style="border-color: var(--neon-pink); color: var(--neon-pink);">Restart</button>
+                <button id="secret-btn">Password</button>
             </div>
+            <div id="secret-lock-msg" class="sys-msg"></div>
         </div>
 
-        <!-- Secret Screen -->
-        <div id="secret-screen" class="screen hidden">
-            <div class="terminal-box">
-                <h2>SECURE_DATA_ARCHIVE //</h2>
-                <p style="text-align: left; margin-bottom: 10px;">ENTER DECRYPTION PASSPHRASE ACQUIRED THROUGH MISSION LOG:</p>
-                <div class="terminal-input-group">
-                    <input type="text" id="secret-input" placeholder="ENTER WORD..." autocomplete="off">
-                    <button id="submit-secret-btn" class="cyber-btn" style="padding: 0 20px; font-size: 1rem;">SEND</button>
-                </div>
-                <div id="secret-msg" class="sys-msg"></div>
-                <div id="secret-answer-container" style="margin-top: 20px; display: none; text-align: center;">
-                    <p style="color: #00ff66; font-size: 1.2rem; text-shadow: 0 0 8px #00ff66;">ACCESS GRANTED: WELCOME TO THE INNER NETWORK.</p>
-                    <button id="back-to-over-btn" class="cyber-btn" style="margin-top: 15px; font-size: 1rem;">BACK</button>
-                </div>
+        <div id="secret-screen" class="overlay hidden">
+            <h2 style="color: var(--neon-cyan);">CONGRATULATIONS</h2>
+            <p>Type the secret code formed by your collected letters:</p>
+            <input type="text" id="secret-input" placeholder="ENTER LETTERS" maxlength="6" autocomplete="off" spellcheck="false">
+            <div style="display: flex; gap: 15px;">
+                <button id="submit-secret-btn">ENTER</button>
+                <button id="back-to-over-btn" style="border-color: #666; color: #aaa;">EXIT</button>
             </div>
+            <div id="secret-answer-container" style="margin-top: 10px; display: none;">
+                <img id="secret-answer-img" src="ssanswer.webp" alt="Secret Answer" style="max-width: 100%; max-height: 160px; border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.5);">
+            </div>
+            <div id="secret-msg" class="sys-msg" style="display:none;"></div>
         </div>
     </div>
 
-    <script>
+  <script>
         // Automatic Dynamic Resolution & Scaling for Any Screen Size
         const baseWidth = 1000;
         const baseHeight = 600;
@@ -1335,7 +1367,7 @@
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
-        const btnMap = {
+const btnMap = {
             "btn-up": "ArrowUpTouch",
             "btn-down": "ArrowDownTouch",
             "btn-left": "ArrowLeftTouch",
@@ -1344,7 +1376,15 @@
             "btn-fire": "Fire"
         };
 
-        // Robust Pointer Events Handler to prevent mobile layout thrashing and speed spikes
+        // Fully reset keys helper to prevent sticky states
+        function clearTouchStates() {
+            Object.values(btnMap).forEach(code => {
+                keys[code] = false;
+            });
+            document.querySelectorAll('.control-btn').forEach(b => b.classList.remove('touched'));
+        }
+
+        // Robust Pointer Events Handler with complete release safety
         document.querySelectorAll('.control-btn').forEach(btn => {
             const code = btnMap[btn.id];
 
@@ -1366,9 +1406,16 @@
                 keys[code] = false;
                 btn.classList.remove('touched');
             });
+
+            btn.addEventListener('pointerleave', (e) => {
+                keys[code] = false;
+                btn.classList.remove('touched');
+            });
         });
 
-        render(4.5);
+        // Global safety net: clear inputs if the user drags entirely off or loses focus
+        window.addEventListener('blur', clearTouchStates);
+        document.addEventListener('pointerup', clearTouchStates);
     </script>
 </body>
 </html>
