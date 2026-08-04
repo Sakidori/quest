@@ -276,10 +276,11 @@
         .msg-error { color: var(--neon-red); border-left: 3px solid var(--neon-red); }
         .msg-success { color: var(--neon-cyan); border-left: 3px solid var(--neon-cyan); }
 
+        /* Virtual On-Screen Controls for Mobile - Larger & Multi-Touch Optimized */
         #controls {
             display: none;
-            position: absolute; 
-            top: 0;
+            position: absolute;
+            bottom: 0;
             left: 0;
             width: 100%;
             height: 100%;
@@ -293,52 +294,72 @@
             }
         }
 
-        .left-controls {
+        .control-group {
             position: absolute;
-            left: 25px;
-            bottom: 20px;
-            width: 130px;
-            height: 130px;
+            bottom: 30px;
+            display: flex;
+            gap: 15px;
             pointer-events: auto;
         }
 
-        .right-controls {
-            position: absolute;
-            right: 25px;
-            bottom: 20px;
+        #dpad {
+            left: 30px;
+            display: grid;
+            grid-template-columns: 80px 80px 80px;
+            grid-template-rows: 80px 80px;
+            gap: 10px;
+        }
+
+        #actions {
+            right: 30px;
             display: flex;
-            gap: 12px;
+            gap: 20px;
             align-items: flex-end;
-            pointer-events: auto;
+            padding-bottom: 5px;
         }
 
         .control-btn {
-            background: rgba(0, 243, 255, 0.15);
-            border: 2px solid rgba(0, 243, 255, 0.4);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
+            background: rgba(10, 10, 25, 0.65);
+            border: 2px solid var(--neon-blue);
+            color: var(--neon-blue);
             font-family: 'Orbitron', sans-serif;
-            color: var(--neon-cyan);
-            user-select: none;
+            font-size: 1.5rem;
+            font-weight: 900;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2) inset;
+            transition: background 0.1s, color 0.1s;
             touch-action: none;
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
-        }
-        .control-btn:active {
-            background: rgba(0, 243, 255, 0.35);
+            user-select: none;
         }
 
-        #btn-up { position: absolute; top: 0; left: 44px; width: 42px; height: 42px; }
-        #btn-left { position: absolute; top: 44px; left: 0; width: 42px; height: 42px; }
-        #btn-right { position: absolute; top: 44px; left: 88px; width: 42px; height: 42px; }
-        #btn-down { position: absolute; top: 88px; left: 44px; width: 42px; height: 42px; }
+        .control-btn:active, .control-btn.touched {
+            background: var(--neon-cyan);
+            color: var(--dark-bg);
+            box-shadow: 0 0 30px var(--neon-cyan);
+        }
+
+        #btn-up { grid-column: 2; grid-row: 1; height: 80px; }
+        #btn-left { grid-column: 1; grid-row: 2; height: 80px; }
+        #btn-right { grid-column: 3; grid-row: 2; height: 80px; }
+        #btn-down { grid-column: 2; grid-row: 2; height: 80px; }
 
         .action-btn {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
+            width: 95px;
+            height: 95px;
+            border-radius: 50%;
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            font-size: 1.1rem;
+            box-shadow: 0 0 20px rgba(255, 0, 122, 0.2) inset;
+        }
+        .action-btn:active, .action-btn.touched {
+            background: var(--neon-pink);
+            color: #fff;
+            box-shadow: 0 0 35px var(--neon-pink);
         }
     </style>
 </head>
@@ -376,14 +397,14 @@
         <canvas id="gameCanvas" width="1000" height="600"></canvas>
 
         <div id="controls">
-            <div id="dpad" class="left-controls">
+            <div id="dpad" class="control-group">
                 <div id="btn-up" class="control-btn">▲</div>
                 <div id="btn-left" class="control-btn">◀</div>
                 <div id="btn-right" class="control-btn">▶</div>
                 <div id="btn-down" class="control-btn">▼</div>
             </div>
-            <div id="action-buttons" class="right-controls">
-                <div id="btn-boost" class="control-btn action-btn" style="font-size: 10px;">BOOST</div>
+            <div id="actions" class="control-group">
+                <div id="btn-boost" class="control-btn action-btn" style="font-size: 13px;">BOOST</div>
                 <div id="btn-fire" class="control-btn action-btn">FIRE</div>
             </div>
         </div>
@@ -505,7 +526,7 @@
         let gameState = 0; 
         let score = 0, collectedLetters = [], time = 0, cameraShake = 0, boostIntensity = 0, shootCooldown = 0;
         let animationFrameId = null; 
-        let isGameRunning = false; // Guard to prevent overlapping loops
+        let isGameRunning = false;
         const targetLetters = ['T', 'R', 'A', 'V', 'E', 'L'];
         let secretWord = "TRAVEL"; 
         
@@ -614,7 +635,6 @@
         }
 
         function startGame() {
-            // Cancel any existing animation frame loop to prevent multi-loop speedups
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
                 animationFrameId = null;
@@ -637,7 +657,6 @@
             updateUI(); 
             gameState = 1;
             
-            // Start a single fresh animation loop
             isGameRunning = true;
             animationFrameId = requestAnimationFrame(gameLoop);
         }
@@ -1360,7 +1379,7 @@
             ctx.restore();
         }
 
-let lastTime = performance.now();
+        let lastTime = performance.now();
         let accumulator = 0;
         const timeStep = 1000 / 60; // Locked strictly to 60 FPS
 
@@ -1368,7 +1387,6 @@ let lastTime = performance.now();
             let frameTime = timestamp - lastTime;
             lastTime = timestamp;
 
-            // Prevent spiral of death / speed-up bursts if frame drops or events stutter
             if (frameTime > 250) frameTime = 250;
 
             accumulator += frameTime;
@@ -1386,7 +1404,7 @@ let lastTime = performance.now();
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
-const btnMap = {
+        const btnMap = {
             "btn-up": "ArrowUpTouch",
             "btn-down": "ArrowDownTouch",
             "btn-left": "ArrowLeftTouch",
@@ -1395,20 +1413,15 @@ const btnMap = {
             "btn-fire": "Fire"
         };
 
-        // Fully reset keys helper to prevent sticky states
-        function clearTouchStates() {
-            Object.values(btnMap).forEach(code => {
-                keys[code] = false;
-            });
-            document.querySelectorAll('.control-btn').forEach(b => b.classList.remove('touched'));
-        }
+        // Track active pointer IDs per control for full multi-touch support
+        const activePointers = new Map();
 
-        // Robust Pointer Events Handler with complete release safety
         document.querySelectorAll('.control-btn').forEach(btn => {
             const code = btnMap[btn.id];
 
             btn.addEventListener('pointerdown', (e) => {
                 e.preventDefault();
+                activePointers.set(e.pointerId, btn);
                 keys[code] = true;
                 btn.classList.add('touched');
                 try { btn.setPointerCapture(e.pointerId); } catch(err) {}
@@ -1416,25 +1429,37 @@ const btnMap = {
 
             btn.addEventListener('pointerup', (e) => {
                 e.preventDefault();
+                activePointers.delete(e.pointerId);
                 keys[code] = false;
                 btn.classList.remove('touched');
                 try { btn.releasePointerCapture(e.pointerId); } catch(err) {}
             });
 
             btn.addEventListener('pointercancel', (e) => {
-                keys[code] = false;
-                btn.classList.remove('touched');
-            });
-
-            btn.addEventListener('pointerleave', (e) => {
+                activePointers.delete(e.pointerId);
                 keys[code] = false;
                 btn.classList.remove('touched');
             });
         });
 
-        // Global safety net: clear inputs if the user drags entirely off or loses focus
-        window.addEventListener('blur', clearTouchStates);
-        document.addEventListener('pointerup', clearTouchStates);
+        // Global safeguard to clear inputs if touches drift offscreen entirely
+        window.addEventListener('pointerup', (e) => {
+            if (activePointers.has(e.pointerId)) {
+                activePointers.delete(e.pointerId);
+                Object.values(btnMap).forEach(code => {
+                    let stillPressed = false;
+                    activePointers.forEach((btn) => {
+                        if (btnMap[btn.id] === code) stillPressed = true;
+                    });
+                    if (!stillPressed) keys[code] = false;
+                });
+                document.querySelectorAll('.control-btn').forEach(b => {
+                    let hasPointer = false;
+                    activePointers.forEach((btn) => { if (btn === b) hasPointer = true; });
+                    if (!hasPointer) b.classList.remove('touched');
+                });
+            }
+        });
     </script>
 </body>
 </html>
