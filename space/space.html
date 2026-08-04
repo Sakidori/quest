@@ -6,6 +6,59 @@
     <title>Space Survival</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
+        #music-widget {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10000;
+            color: white;
+            font-family: sans-serif;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            pointer-events: auto !important;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .music-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            line-height: 1;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        .music-btn:hover { 
+            transform: scale(1.15); 
+            opacity: 0.8; 
+            background: none;
+        }
+
+        #track-title {
+            font-size: 14px;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
         :root {
             --neon-cyan: #00f3ff;
             --neon-pink: #ff007a;
@@ -46,33 +99,21 @@
             transform-origin: center center;
         }
 
-        /* Portrait Block Screen / Rotate Prompt */
         #rotate-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: #050510;
-            z-index: 100;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 30px;
-            box-sizing: border-box;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #050510; z-index: 100;
+            display: none; flex-direction: column;
+            justify-content: center; align-items: center;
+            text-align: center; padding: 30px; box-sizing: border-box;
         }
 
         @media screen and (orientation: portrait) {
-            #rotate-screen {
-                display: flex;
-            }
+            #rotate-screen { display: flex; }
         }
 
         .rotate-icon {
-            font-size: 64px;
-            color: var(--neon-cyan);
+            font-size: 64px; color: var(--neon-cyan);
             animation: rotatePulse 1.5s ease-in-out infinite alternate;
             margin-bottom: 20px;
         }
@@ -83,51 +124,27 @@
         }
 
         canvas {
-            display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            width: 100%;
-            height: 100%;
+            display: block; position: absolute; top: 0; left: 0; z-index: 1; width: 100%; height: 100%;
         }
 
         .post-process {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: 
-                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), 
-                radial-gradient(circle at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6) 100%);
-            background-size: 100% 4px, 100% 100%;
-            z-index: 10;
-            pointer-events: none;
-            mix-blend-mode: overlay;
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), radial-gradient(circle at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6) 100%);
+            background-size: 100% 4px, 100% 100%; z-index: 10; pointer-events: none; mix-blend-mode: overlay;
         }
 
         .chromatic-edge {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             box-shadow: inset 4px 0 10px rgba(255,0,0,0.1), inset -4px 0 10px rgba(0,255,255,0.1);
-            z-index: 11;
-            pointer-events: none;
+            z-index: 11; pointer-events: none;
         }
 
         .overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 40px;
-            box-sizing: border-box;
-            z-index: 20;
-            animation: fadeIn 0.3s ease-out;
-            overflow-y: auto;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 40px; box-sizing: border-box; z-index: 20;
+            animation: fadeIn 0.3s ease-out; overflow-y: auto;
         }
 
         @keyframes fadeIn {
@@ -138,15 +155,9 @@
         .hidden { display: none !important; opacity: 0; pointer-events: none; }
 
         h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 54px;
-            font-weight: 900;
-            margin: 0 0 10px 0;
+            font-family: 'Orbitron', sans-serif; font-size: 54px; font-weight: 900; margin: 0 0 10px 0;
             background: linear-gradient(to bottom, #fff 0%, var(--neon-cyan) 50%, var(--neon-pink) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
-            letter-spacing: 4px;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: 4px;
         }
 
         h2 { font-family: 'Orbitron', sans-serif; font-size: 36px; margin: 0 0 15px 0; letter-spacing: 2px; }
@@ -154,37 +165,20 @@
         strong { color: var(--neon-cyan); }
 
         button {
-            background: rgba(0, 243, 255, 0.1);
-            color: var(--neon-cyan);
-            border: 1px solid var(--neon-cyan);
-            padding: 14px 35px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            margin: 8px;
+            background: rgba(0, 243, 255, 0.1); color: var(--neon-cyan); border: 1px solid var(--neon-cyan);
+            padding: 14px 35px; font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 700;
+            letter-spacing: 2px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; margin: 8px;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
 
-        button:hover:not(:disabled) {
-            background: rgba(0, 243, 255, 0.25);
-            transform: scale(1.05);
-            color: #fff;
-        }
+        button:hover:not(:disabled) { background: rgba(0, 243, 255, 0.25); transform: scale(1.05); color: #fff; }
         button:active:not(:disabled) { transform: scale(0.95); }
         button:disabled { border-color: rgba(255,0,60,0.3); color: rgba(255,255,255,0.3); }
 
         input[type="text"] {
-            background: rgba(0, 0, 0, 0.6);
-            border: 2px solid rgba(0, 243, 255, );
-            padding: 14px 20px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 20px; color: var(--neon-gold);
-            text-align: center; margin-bottom: 20px; text-transform: uppercase; width: 260px;
-            outline: none; transition: all 0.3s;
+            background: rgba(0, 0, 0, 0.6); border: 2px solid rgba(0, 243, 255, 0.5); padding: 14px 20px;
+            font-family: 'Orbitron', sans-serif; font-size: 20px; color: var(--neon-gold); text-align: center;
+            margin-bottom: 20px; text-transform: uppercase; width: 260px; outline: none; transition: all 0.3s;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
         input[type="text"]:focus { border-color: var(--neon-cyan); background: rgba(0,243,255,0.1); }
@@ -196,161 +190,64 @@
 
         .hud-panel {
             background: linear-gradient(135deg, rgba(0, 243, 255, 0.15) 0%, rgba(0,0,0,0.6) 100%);
-            border: 1px solid rgba(0, 243, 255, 0.3);
-            padding: 10px 20px; font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 700;
-            color: #fff; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            border: 1px solid rgba(0, 243, 255, 0.3); padding: 10px 20px; font-family: 'Orbitron', sans-serif;
+            font-size: 18px; font-weight: 700; color: #fff; 
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
             backdrop-filter: blur(4px);
         }
 
         #score-display { border-left: 4px solid var(--neon-pink); display: flex; flex-direction: column; gap: 4px; min-width: 160px; }
         
         #letters-display { 
-            border-right: 4px solid var(--neon-gold); 
-            color: var(--neon-gold); 
-            display: flex;
-            gap: 6px;
-            align-items: center;
+            border-right: 4px solid var(--neon-gold); color: var(--neon-gold); display: flex; gap: 6px; align-items: center;
         }
 
         .collected-letter-box {
-            width: 26px;
-            height: 26px;
-            background-color: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 234, 0, );
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--neon-gold);
+            width: 26px; height: 26px; background-color: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 234, 0, 0.5); display: flex; justify-content: center;
+            align-items: center; font-size: 14px; font-weight: bold; color: var(--neon-gold);
         }
 
-        #hearts-container {
-            display: flex;
-            gap: 5px;
-            margin-top: 2px;
-            font-size: 14px;
-            letter-spacing: 2px;
-        }
-        .heart {
-            color: var(--neon-cyan);
-            text-shadow: 0 0 6px var(--neon-cyan);
-            transition: transform 0.2s, opacity 0.2s;
-        }
-        .heart.lost {
-            color: rgba(255, 255, 255, 0.15);
-            text-shadow: none;
-        }
+        #hearts-container { display: flex; gap: 5px; margin-top: 2px; font-size: 14px; letter-spacing: 2px; }
+        .heart { color: var(--neon-cyan); text-shadow: 0 0 6px var(--neon-cyan); transition: transform 0.2s, opacity 0.2s; }
+        .heart.lost { color: rgba(255, 255, 255, 0.15); text-shadow: none; }
 
-        #boss-display {
-            border-left: 4px solid var(--neon-red);
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-width: 200px;
-        }
-        .boss-hud-inner {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-width: 200px;
-        }
-        .boss-hp-container {
-            width: 100%;
-            height: 10px;
-            background: rgba(255, 0, 60, 0.2);
-            border: 1px solid var(--neon-red);
-            position: relative;
-            overflow: hidden;
-        }
-        #boss-hp-fill {
-            width: 100%;
-            height: 100%;
-            background: var(--neon-red);
-            transition: width 0.1s linear;
-            box-shadow: 0 0 8px var(--neon-red);
-        }
+        #boss-display { border-left: 4px solid var(--neon-red); display: flex; flex-direction: column; gap: 4px; min-width: 200px; }
+        .boss-hud-inner { display: flex; flex-direction: column; gap: 4px; min-width: 200px; }
+        .boss-hp-container { width: 100%; height: 10px; background: rgba(255, 0, 60, 0.2); border: 1px solid var(--neon-red); position: relative; overflow: hidden; }
+        #boss-hp-fill { width: 100%; height: 100%; background: var(--neon-red); transition: width 0.1s linear; box-shadow: 0 0 8px var(--neon-red); }
 
         .sys-msg { font-family: 'Orbitron', sans-serif; font-weight: 700; margin-top: 15px; padding: 8px 16px; background: rgba(0,0,0,0.5); font-size: 14px; }
         .msg-error { color: var(--neon-red); border-left: 3px solid var(--neon-red); }
         .msg-success { color: var(--neon-cyan); border-left: 3px solid var(--neon-cyan); }
 
-        /* Large, Ergonomic, Multi-Touch Friendly On-Screen Controls */
         #controls {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 100;
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100;
         }
 
         @media (hover: none), (pointer: coarse), (max-width: 1024px) {
-            #controls {
-                display: block;
-            }
+            #controls { display: block; }
         }
 
-        /* Hide controls entirely when in portrait orientation warning screen */
         @media screen and (orientation: portrait) {
-            #controls {
-                display: none !important;
-            }
+            #controls { display: none !important; }
         }
 
-        .control-group {
-            position: absolute;
-            bottom: 20px;
-            display: flex;
-            gap: 12px;
-            pointer-events: auto;
-            touch-action: none;
-        }
+        .control-group { position: absolute; bottom: 20px; display: flex; gap: 12px; pointer-events: auto; touch-action: none; }
 
-        #dpad {
-            left: 25px;
-            display: grid;
-            grid-template-columns: 75px 75px 75px;
-            grid-template-rows: 75px 75px;
-            gap: 8px;
-        }
-
-        #actions {
-            right: 25px;
-            display: flex;
-            gap: 18px;
-            align-items: flex-end;
-            padding-bottom: 5px;
-        }
+        #dpad { left: 25px; display: grid; grid-template-columns: 75px 75px 75px; grid-template-rows: 75px 75px; gap: 8px; }
+        #actions { right: 25px; display: flex; gap: 18px; align-items: flex-end; padding-bottom: 5px; }
 
         .control-btn {
-            background: rgba(30, 35, 50, 0.5);
-            border: 2px solid rgba(0, 243, 255, 0.4);
-            color: rgba(255, 255, 255, 0.85);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.3rem;
-            font-weight: 700;
-            border-radius: 14px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            transition: background 0.08s, color 0.08s, border-color 0.08s, transform 0.08s;
-            touch-action: none;
-            user-select: none;
-            -webkit-user-select: none;
+            background: rgba(30, 35, 50, 0.5); border: 2px solid rgba(0, 243, 255, 0.4); color: rgba(255, 255, 255, 0.85);
+            font-family: 'Orbitron', sans-serif; font-size: 1.3rem; font-weight: 700; border-radius: 14px;
+            display: flex; justify-content: center; align-items: center; cursor: pointer; backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px); transition: background 0.08s, color 0.08s, border-color 0.08s, transform 0.08s;
+            touch-action: none; user-select: none; -webkit-user-select: none;
         }
 
         .control-btn:active, .control-btn.touched {
-            background: rgba(0, 243, 255, 0.35);
-            border-color: var(--neon-cyan);
-            color: #fff;
-            transform: scale(0.96);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+            background: rgba(0, 243, 255, 0.35); border-color: var(--neon-cyan); color: #fff; transform: scale(0.96); box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
         }
 
         #btn-up { grid-column: 2; grid-row: 1; height: 75px; }
@@ -358,36 +255,26 @@
         #btn-right { grid-column: 3; grid-row: 2; height: 75px; }
         #btn-down { grid-column: 2; grid-row: 2; height: 75px; }
 
-        .action-btn {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            font-size: 0.95rem;
-            letter-spacing: 1px;
-            border-color: rgba(255, 0, 122, 0.5);
-        }
-
-        #btn-boost.touched, #btn-boost:active {
-            background: rgba(255, 0, 122, 0.4);
-            border-color: var(--neon-pink);
-            box-shadow: 0 0 15px rgba(255, 0, 122, 0.5);
-        }
-
-        #btn-fire.touched, #btn-fire:active {
-            background: rgba(255, 234, 0, 0.4);
-            border-color: var(--neon-gold);
-            color: var(--neon-gold);
-            box-shadow: 0 0 15px rgba(255, 234, 0, 0.5);
-        }
+        .action-btn { width: 90px; height: 90px; border-radius: 50%; font-size: 0.95rem; letter-spacing: 1px; border-color: rgba(255, 0, 122, 0.5); }
+        #btn-boost.touched, #btn-boost:active { background: rgba(255, 0, 122, 0.4); border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 122, 0.5); }
+        #btn-fire.touched, #btn-fire:active { background: rgba(255, 234, 0, 0.4); border-color: var(--neon-gold); color: var(--neon-gold); box-shadow: 0 0 15px rgba(255, 234, 0, 0.5); }
     </style>
 </head>
 <body>
 
-    <!-- Rotation Warning Screen for Portrait Mode -->
     <div id="rotate-screen">
         <div class="rotate-icon">📱 ↺</div>
         <h2 style="color: var(--neon-cyan); margin-bottom: 10px;">Please Rotate Your Device</h2>
         <p>This game is designed for landscape mode only. Turn your phone sideways to play!</p>
+    </div>
+
+    <audio id="bg-music" preload="auto"></audio>
+
+    <div id="music-widget">
+        <span id="track-title">16.Endless</span>
+        <div class="controls-group">
+            <button class="music-btn" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">❚❚</button>
+        </div>
     </div>
 
     <div id="game-container">
@@ -416,7 +303,7 @@
 
         <div id="start-screen" class="overlay">
             <h1>Space Survival</h1>
-            <p>Navigate using <strong>D-PAD</strong> or <strong>ARROW KEYS / WASD</strong>.<br>Tap <strong>BOOST</strong> or hold <strong>SPACEBAR</strong> to Boost.<br>Tap <strong>FIRE</strong> or press <strong>X / F</strong> to shoot.<br>Collect all 6 letters to trigger the Boss!<br>Secret God Mode Code: <strong>UP, UP, LEFT, RIGHT, LEFT, RIGHT, FIRE, UP</strong></p>
+            <p>Navigate using <strong>D-PAD</strong> or <strong>ARROW KEYS / WASD</strong>.<br>Tap <strong>BOOST</strong> or hold <strong>SPACEBAR</strong> to Boost.<br>Tap <strong>FIRE</strong> or press <strong>X / F</strong> to shoot.<br>Collect all 6 letters!</p>
             <button id="start-btn">START</button>
         </div>
 
@@ -425,7 +312,6 @@
             <p id="game-over-stats">Letters: X / 6</p>
             <div style="display: flex; gap: 15px; margin-top: 5px;">
                 <button id="restart-btn" style="border-color: var(--neon-pink); color: var(--neon-pink);">Restart</button>
-                <button id="secret-btn">Password</button>
             </div>
             <div id="secret-lock-msg" class="sys-msg"></div>
         </div>
@@ -444,7 +330,6 @@
             <div id="secret-msg" class="sys-msg" style="display:none;"></div>
         </div>
 
-        <!-- Virtual On-Screen Controls Pinned Inside Game Container (Scaled Properly) -->
         <div id="controls">
             <div id="dpad" class="control-group">
                 <div id="btn-up" class="control-btn">▲</div>
@@ -459,7 +344,7 @@
         </div>
     </div>
 
-  <script>
+    <script>
         const baseWidth = 1000;
         const baseHeight = 600;
         const gameContainer = document.getElementById('game-container');
@@ -618,12 +503,6 @@
         };
         document.getElementById('restart-btn').onclick = startGame;
         document.getElementById('back-to-over-btn').onclick = () => { secretScreen.classList.add('hidden'); gameOverScreen.classList.remove('hidden'); gameState = 2; };
-        
-        document.getElementById('secret-btn').onclick = () => {
-            gameOverScreen.classList.add('hidden'); secretScreen.classList.remove('hidden');
-            document.getElementById('secret-input').value = ''; document.getElementById('secret-msg').style.display = 'none'; gameState = 3;
-            document.getElementById('secret-answer-container').style.display = 'none'; 
-        };
 
         document.getElementById('submit-secret-btn').onclick = () => {
             let v = document.getElementById('secret-input').value.toUpperCase().trim();
@@ -666,6 +545,9 @@
                 animationFrameId = null;
             }
 
+            currentTrackIndex = 0;
+            playCurrentTrack();
+
             startScreen.classList.add('hidden'); 
             gameOverScreen.classList.add('hidden'); 
             secretScreen.classList.add('hidden');
@@ -705,7 +587,7 @@
             `;
 
             let bossDisplay = document.getElementById('boss-display');
-            if ((gameState === 4 || gameState === 5) && boss) {
+            if ((gameState === 4 || gameState === 5 || gameState === 6) && boss) {
                 if (!bossDisplay) {
                     bossDisplay = document.createElement('div');
                     bossDisplay.id = 'boss-display';
@@ -741,22 +623,32 @@
         }
 
         function triggerBossFight() {
-            gameState = 4;
+            gameState = 6;
             buildings = [];
             obstacles = [];
             letterItems = [];
+            particles = []; 
             boss = {
                 x: canvas.width + 150,
                 targetX: canvas.width - 220,
                 y: canvas.height / 2,
                 w: 90,
                 h: 160,
-                hp: 300,    // Increased health from 50 to 120 for a longer fight
-                maxHp: 300, // Updated maxHp accordingly
+                hp: 300,
+                maxHp: 300,
                 attackTimer: 0,
                 minionSpawnTimer: 0,
+                introTimer: 320, 
                 exploding: false
             };
+            
+            cameraShake = 20;
+            playSound(sfxExplosion);
+
+            playlist = [{ name: "Boss", src: "gameover.mp3" }];
+            currentTrackIndex = 0;
+            playCurrentTrack();
+
             updateUI();
         }
 
@@ -768,7 +660,7 @@
             playSound(sfxExplosion);
             playSound(sfxVictory);
             cameraShake = 35;
-            
+
             for (let k = 0; k < 100; k++) {
                 particles.push({
                     x: boss.x + (Math.random() - 0.5) * boss.w,
@@ -787,31 +679,55 @@
         }
 
         function update() {
-            if (gameState !== 1 && gameState !== 4 && gameState !== 5) return;
+            if (gameState !== 1 && gameState !== 4 && gameState !== 5 && gameState !== 6) return;
             
+            if (gameState === 6) {
+                if (boss) {
+                    boss.introTimer--;
+                    boss.x += (boss.targetX - boss.x) * 0.05;
+                    boss.y += (canvas.height / 2 - boss.y) * 0.05;
+
+                    let spdX = ship.normalSpeedX;
+                    let accY = ship.normalAccY;
+                    let tTilt = 0;
+
+                    if (keys['ArrowUp'] || keys['KeyW'] || keys['ArrowUpTouch']) { ship.vy -= accY; tTilt = -0.35; }
+                    if (keys['ArrowDown'] || keys['KeyS'] || keys['ArrowDownTouch']) { ship.vy += accY; tTilt = 0.35; }
+                    if (keys['ArrowLeft'] || keys['KeyA'] || keys['ArrowLeftTouch']) ship.x -= spdX; 
+                    if (keys['ArrowRight'] || keys['KeyD'] || keys['ArrowRightTouch']) ship.x += spdX;
+
+                    ship.vy *= ship.friction; 
+                    ship.y += ship.vy;
+                    ship.tilt += (tTilt - ship.tilt) * 0.15;
+                    
+                    if (ship.y < ship.radius) ship.y = ship.radius;
+                    if (ship.y > canvas.height - ship.radius) ship.y = canvas.height - ship.radius;
+                    if (ship.x < 50) ship.x = 50; if (ship.x > canvas.width / 2) ship.x = canvas.width / 2;
+
+                    if (time % 6 === 0) {
+                        particles.push({
+                            x: ship.x - 20, y: ship.y + (Math.random()*6-3),
+                            vx: -4 - Math.random()*2, vy: ship.vy * 0.4,
+                            life: 0.8, decay: 0.05, size: 2,
+                            color: '#ff007a', type: 0
+                        });
+                    }
+
+                    if (cameraShake > 0) cameraShake *= 0.9;
+
+                    if (boss.introTimer <= 0) {
+                        gameState = 4;
+                    }
+                }
+                return;
+            }
+
             if (gameState === 5) {
                 victoryTimer++;
                 
                 if (boss) {
                     boss.x -= 2;
                     boss.y += Math.sin(victoryTimer * 0.1) * 2;
-                    if (victoryTimer % 10 === 0) {
-                        playSound(sfxExplosion);
-                        cameraShake = 10;
-                        for (let k = 0; k < 12; k++) {
-                            particles.push({
-                                x: boss.x + (Math.random() - 0.5) * boss.w,
-                                y: boss.y + (Math.random() - 0.5) * boss.h,
-                                vx: (Math.random() - 0.5) * 10,
-                                vy: (Math.random() - 0.5) * 10,
-                                life: 1.0,
-                                decay: 0.03,
-                                size: Math.random() * 5 + 2,
-                                color: '#ffea00',
-                                type: 1
-                            });
-                        }
-                    }
                 }
 
                 ship.x += 16;
@@ -831,7 +747,7 @@
 
                 if (cameraShake > 0) cameraShake *= 0.8;
 
-                if (victoryTimer === 140) {
+                if (victoryTimer === 420) {
                     sfxHum.pause();
                     sfxHum.currentTime = 0;
                     
@@ -842,6 +758,10 @@
                     document.getElementById('secret-msg').style.display = 'none';
                     document.getElementById('secret-answer-container').style.display = 'none';
                     
+                    playlist = [{ name: "16.Endless", src: "hateshinaimichi.mp3" }];
+                    currentTrackIndex = 0;
+                    playCurrentTrack();
+
                     secretScreen.classList.remove('hidden');
                     gameState = 3;
                 }
@@ -892,7 +812,7 @@
             }
 
             if (shootCooldown > 0) shootCooldown--;
-            let isShooting = keys['KeyX'] || keys['KeyF'] || keys['Fire'];
+            let isShooting = (gameState !== 6) && (keys['KeyX'] || keys['KeyF'] || keys['Fire']);
             if (isShooting && shootCooldown <= 0) {
                 fireLaser();
                 shootCooldown = 14; 
@@ -1002,7 +922,7 @@
                     let dx = ship.x - m.x;
                     let dy = ship.y - m.y;
                     if (dx*dx + dy*dy < (ship.radius + m.r)*(ship.radius + m.r)) {
-                        damageShip(1, '#ff003c'); // Reduced minion contact damage
+                        damageShip(1, '#ff003c');
                         bossMinions.splice(i, 1);
                     }
                     if (m.x < -50) {
@@ -1059,7 +979,7 @@
                             }
                         }
                     }
-                } else if (gameState === 4 && boss) {
+                } else if ((gameState === 4 || gameState === 6) && boss) {
                     for (let j = bossMinions.length - 1; j >= 0; j--) {
                         let m = bossMinions[j];
                         let dx = l.x - m.x;
@@ -1082,7 +1002,7 @@
                         }
                     }
 
-                    if (!laserDead) {
+                    if (!laserDead && gameState === 4) {
                         let dx = l.x - boss.x;
                         let dy = l.y - boss.y;
                         if (Math.abs(dx) < boss.w / 2 && Math.abs(dy) < boss.h / 2) {
@@ -1117,7 +1037,7 @@
                     let dx = ship.x - bp.x;
                     let dy = ship.y - bp.y;
                     if (dx*dx + dy*dy < (ship.radius + bp.r)*(ship.radius + bp.r)) {
-                        damageShip(0.5, '#ff003c'); // Reduced boss laser damage from 1 to 0.5 per hit
+                        damageShip(0.5, '#ff003c');
                         bossProjectiles.splice(i, 1);
                     } else if (bp.x < -50) {
                         bossProjectiles.splice(i, 1);
@@ -1199,6 +1119,10 @@
         function die(sparkColor) {
             cameraShake = 20; gameState = 2;
             
+            playlist = [{ name: "16.Endless", src: "hateshinaimichi.mp3" }];
+            currentTrackIndex = 0;
+            playCurrentTrack();
+
             sfxHum.pause();
             sfxHum.currentTime = 0;
             sfxBoost1.pause();
@@ -1210,20 +1134,66 @@
             for(let i=0; i<30; i++) {
                 particles.push({ x: ship.x, y: ship.y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12, life: 1, decay: 0.02, size: Math.random()*5+2, color: Math.random()>0.5?'#ff003c':sparkColor, type: Math.random()>0.7?1:0 });
             }
-           document.getElementById('game-over-stats').textContent = `LETTERS: ${collectedLetters.length} / 6`;
-            let scBtn = document.getElementById('secret-btn'), lMsg = document.getElementById('secret-lock-msg');
+            document.getElementById('game-over-stats').textContent = `LETTERS: ${collectedLetters.length} / 6`;
+            let lMsg = document.getElementById('secret-lock-msg');
             
-            // Only unlock the password button if the boss was already defeated (gameState 5)
             if (gameState === 5) { 
-                scBtn.disabled = false; 
                 lMsg.className = 'sys-msg msg-success'; 
                 lMsg.textContent = "VICTORY!"; 
             } else { 
-                scBtn.disabled = true; 
                 lMsg.className = 'sys-msg msg-error'; 
                 lMsg.textContent = "Collect all 6 letters!"; 
             }
             setTimeout(() => gameOverScreen.classList.remove('hidden'), 800);
+        }
+
+        function drawBossIntroCinematics(ctx, canvas, timer, maxTimer) {
+            const progress = 1 - (timer / maxTimer); 
+
+            let barPhase = Math.min(progress * 10, (1 - progress) * 10, 1);
+            let barHeight = barPhase * 70; 
+            
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, barHeight); 
+            ctx.fillRect(0, canvas.height - barHeight, canvas.width, barHeight); 
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            if (timer > 200) {
+                let alpha = Math.min(1, (maxTimer - timer) / 20); 
+                let pulse = 0.5 + 0.5 * Math.abs(Math.sin(Date.now() / 150)); 
+                
+                ctx.fillStyle = `rgba(255, 0, 60, ${alpha * pulse})`; 
+                ctx.font = '900 48px "Orbitron"';
+                ctx.letterSpacing = '8px'; 
+                ctx.fillText("WARNING!", canvas.width / 2, canvas.height / 2);
+                ctx.letterSpacing = '0px'; 
+            } 
+            else if (timer > 0) {
+                let alpha = Math.min(1, timer / 60); 
+                let scale = 1 + Math.max(0, (timer - 150) / 50 * 0.5); 
+                
+                ctx.save();
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.scale(scale, scale);
+                
+                ctx.globalCompositeOperation = 'screen';
+                ctx.font = '900 64px "Orbitron"';
+                
+                let glitch = (Math.random() > 0.8 && timer > 100) ? 5 : 2; 
+
+                ctx.fillStyle = `rgba(255, 0, 60, ${alpha})`;
+                ctx.fillText("MEGA SPACE BOSS", glitch, 0); 
+                
+                ctx.fillStyle = `rgba(0, 243, 255, ${alpha})`;
+                ctx.fillText("MEGA SPACE BOSS", -glitch, 0); 
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.fillText("MEGA SPACE BOSS", 0, 0); 
+                
+                ctx.restore();
+            }
         }
 
         function render(effSpd) {
@@ -1236,6 +1206,15 @@
                 ctx.translate(canvas.width/2, canvas.height/2);
                 ctx.scale(1 + boostIntensity*0.05, 1 - boostIntensity*0.02);
                 ctx.translate(-canvas.width/2, -canvas.height/2);
+            }
+
+            if (gameState === 6 && boss) {
+                const progress = 1 - (boss.introTimer / 320); 
+                const zoom = 1 + Math.sin(progress * Math.PI) * 0.12; 
+                
+                ctx.translate(canvas.width * 0.6, canvas.height * 0.5);
+                ctx.scale(zoom, zoom);
+                ctx.translate(-canvas.width * 0.6, -canvas.height * 0.5);
             }
 
             stars.forEach(st => {
@@ -1296,7 +1275,7 @@
                 });
             }
 
-            if ((gameState === 4 || (gameState === 5 && boss)) && boss) {
+            if ((gameState === 4 || gameState === 6 || (gameState === 5 && boss)) && boss) {
                 if (!boss.exploding) {
                     drawFauxGlow(boss.x, boss.y, 80, 'rgba(255,0,60,0.3)', 'rgba(255,0,60,0.1)');
                 }
@@ -1366,7 +1345,7 @@
             });
             ctx.globalAlpha = 1.0; ctx.globalCompositeOperation = 'source-over';
 
-            if (gameState === 1 || gameState === 4 || gameState === 5 || (gameState === 2 && cameraShake > 10)) {
+            if (gameState === 1 || gameState === 4 || gameState === 5 || gameState === 6 || (gameState === 2 && cameraShake > 10)) {
                 if (godMode || ship.invulnerableTimer <= 0 || Math.floor(ship.invulnerableTimer / 4) % 2 === 0) {
                     ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.tilt);
                     
@@ -1412,6 +1391,10 @@
             }
 
             ctx.restore();
+
+            if (gameState === 6 && boss) {
+                drawBossIntroCinematics(ctx, canvas, boss.introTimer, 320);
+            }
         }
 
         let lastTime = performance.now();
@@ -1427,7 +1410,7 @@
             accumulator += frameTime;
 
             while (accumulator >= timeStep) {
-                if (gameState === 1 || gameState === 4 || gameState === 5) {
+                if (gameState === 1 || gameState === 4 || gameState === 5 || gameState === 6) {
                     update();
                 }
                 accumulator -= timeStep;
@@ -1508,6 +1491,50 @@
                 });
             }
         });
+
+        let playlist = [
+            { name: "16.Endless", src: "hateshinaimichi.mp3" }, 
+        ];
+        let currentTrackIndex = 0; 
+        const bgMusic = document.getElementById('bg-music');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const trackTitleDisplay = document.getElementById('track-title');
+        bgMusic.volume = 0.5;
+
+        function playCurrentTrack() {
+            bgMusic.src = playlist[currentTrackIndex].src;
+            trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
+            bgMusic.play().then(() => {
+                playPauseBtn.textContent = "❚❚"; 
+            }).catch(e => console.log("Audio play blocked or waiting for interaction"));
+        }
+
+        bgMusic.addEventListener('ended', () => {
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            playCurrentTrack();
+        });
+
+        function togglePlayPause() {
+            if (bgMusic.paused) {
+                if (!bgMusic.src) {
+                    playCurrentTrack();
+                } else {
+                    bgMusic.play();
+                }
+                playPauseBtn.textContent = "❚❚";
+            } else {
+                bgMusic.pause();
+                playPauseBtn.textContent = "▶"; 
+            }
+        }
+
+        window.addEventListener('click', function initAudio() {
+            if (bgMusic.paused && !bgMusic.src) {
+                playCurrentTrack();
+            }
+            window.removeEventListener('click', initAudio);
+        }, { once: true });
     </script>
 </body>
 </html>
+```[cite: 4]
