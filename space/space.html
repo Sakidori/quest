@@ -12,7 +12,7 @@
             --neon-red: #ff003c;
             --neon-gold: #ffea00;
             --dark-bg: #050510;
-            --glass-bg: rgba(5, 5, 16, 0.6);
+            --glass-bg: rgba(5, 5, 16, 0.75);
             --ui-glow: 0 0 15px rgba(0, 243, 255, 0.5);
             --danger-glow: 0 0 20px rgba(255, 0, 60, 0.6);
         }
@@ -24,16 +24,17 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            width: 100vw;
             height: 100vh;
             font-family: 'Rajdhani', sans-serif;
             color: #fff;
             overflow: hidden;
             perspective: 1000px;
-            touch-action: manipulation;
+            touch-action: none;
         }
 
         #game-container {
-            position: relative;
+            position: absolute;
             width: 1000px;
             height: 600px;
             border-radius: 4px;
@@ -42,6 +43,44 @@
             background: radial-gradient(circle at 70% 30%, rgba(255, 0, 122, 0.15) 0%, rgba(0, 243, 255, 0.05) 40%, var(--dark-bg) 80%);
             box-shadow: 0 0 30px rgba(0, 243, 255, 0.1), 0 0 80px rgba(255, 0, 122, 0.05);
             filter: contrast(1.1) saturate(1.2);
+            transform-origin: center center;
+        }
+
+        /* Portrait Block Screen / Rotate Prompt */
+        #rotate-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #050510;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        /* Show orientation lock screen when in portrait on mobile */
+        @media screen and (orientation: portrait) {
+            #rotate-screen {
+                display: flex;
+            }
+        }
+
+        .rotate-icon {
+            font-size: 64px;
+            color: var(--neon-cyan);
+            animation: rotatePulse 1.5s ease-in-out infinite alternate;
+            margin-bottom: 20px;
+        }
+
+        @keyframes rotatePulse {
+            0% { transform: rotate(0deg) scale(1); text-shadow: 0 0 10px var(--neon-cyan); }
+            100% { transform: rotate(90deg) scale(1.1); text-shadow: 0 0 25px var(--neon-pink); }
         }
 
         canvas {
@@ -101,7 +140,7 @@
 
         h1 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 64px;
+            font-size: 54px;
             font-weight: 900;
             margin: 0 0 10px 0;
             background: linear-gradient(to bottom, #fff 0%, var(--neon-cyan) 50%, var(--neon-pink) 100%);
@@ -111,23 +150,23 @@
             letter-spacing: 4px;
         }
 
-        h2 { font-family: 'Orbitron', sans-serif; font-size: 42px; margin: 0 0 15px 0; letter-spacing: 2px; }
-        p { margin: 0 0 25px 0; color: #b2c2d1; font-size: 18px; max-width: 650px; line-height: 1.5; }
+        h2 { font-family: 'Orbitron', sans-serif; font-size: 36px; margin: 0 0 15px 0; letter-spacing: 2px; }
+        p { margin: 0 0 20px 0; color: #b2c2d1; font-size: 16px; max-width: 650px; line-height: 1.4; }
         strong { color: var(--neon-cyan); }
 
         button {
             background: rgba(0, 243, 255, 0.1);
             color: var(--neon-cyan);
             border: 1px solid var(--neon-cyan);
-            padding: 16px 40px;
+            padding: 14px 35px;
             font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             letter-spacing: 2px;
             cursor: pointer;
             transition: all 0.2s;
             text-transform: uppercase;
-            margin: 10px;
+            margin: 8px;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
 
@@ -142,61 +181,61 @@
         input[type="text"] {
             background: rgba(0, 0, 0, 0.6);
             border: 2px solid rgba(0, 243, 255, 0.5);
-            padding: 16px 24px;
+            padding: 14px 20px;
             font-family: 'Orbitron', sans-serif;
-            font-size: 24px; color: var(--neon-gold);
-            text-align: center; margin-bottom: 25px; text-transform: uppercase; width: 300px;
+            font-size: 20px; color: var(--neon-gold);
+            text-align: center; margin-bottom: 20px; text-transform: uppercase; width: 260px;
             outline: none; transition: all 0.3s;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
         input[type="text"]:focus { border-color: var(--neon-cyan); background: rgba(0,243,255,0.1); }
 
         #ui-top {
-            position: absolute; top: 25px; left: 30px; right: 30px;
+            position: absolute; top: 20px; left: 25px; right: 25px;
             display: flex; justify-content: space-between; z-index: 30; pointer-events: none;
         }
 
         .hud-panel {
             background: linear-gradient(135deg, rgba(0, 243, 255, 0.15) 0%, rgba(0,0,0,0.6) 100%);
             border: 1px solid rgba(0, 243, 255, 0.3);
-            padding: 12px 24px; font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700;
+            padding: 10px 20px; font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 700;
             color: #fff; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
             backdrop-filter: blur(4px);
         }
 
-        #score-display { border-left: 4px solid var(--neon-pink); display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
+        #score-display { border-left: 4px solid var(--neon-pink); display: flex; flex-direction: column; gap: 4px; min-width: 160px; }
         
         #letters-display { 
             border-right: 4px solid var(--neon-gold); 
             color: var(--neon-gold); 
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
         }
 
         .collected-letter-box {
-            width: 30px;
-            height: 30px;
+            width: 26px;
+            height: 26px;
             background-color: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 234, 0, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             color: var(--neon-gold);
         }
 
         #hearts-container {
             display: flex;
-            gap: 6px;
-            margin-top: 4px;
-            font-size: 16px;
+            gap: 5px;
+            margin-top: 2px;
+            font-size: 14px;
             letter-spacing: 2px;
         }
         .heart {
             color: var(--neon-cyan);
-            text-shadow: 0 0 8px var(--neon-cyan);
+            text-shadow: 0 0 6px var(--neon-cyan);
             transition: transform 0.2s, opacity 0.2s;
         }
         .heart.lost {
@@ -209,17 +248,17 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
-            min-width: 220px;
+            min-width: 200px;
         }
         .boss-hud-inner {
             display: flex;
             flex-direction: column;
-            gap: 5px;
-            min-width: 220px;
+            gap: 4px;
+            min-width: 200px;
         }
         .boss-hp-container {
             width: 100%;
-            height: 12px;
+            height: 10px;
             background: rgba(255, 0, 60, 0.2);
             border: 1px solid var(--neon-red);
             position: relative;
@@ -230,10 +269,10 @@
             height: 100%;
             background: var(--neon-red);
             transition: width 0.1s linear;
-            box-shadow: 0 0 10px var(--neon-red);
+            box-shadow: 0 0 8px var(--neon-red);
         }
 
-        .sys-msg { font-family: 'Orbitron', sans-serif; font-weight: 700; margin-top: 20px; padding: 10px 20px; background: rgba(0,0,0,0.5); }
+        .sys-msg { font-family: 'Orbitron', sans-serif; font-weight: 700; margin-top: 15px; padding: 8px 16px; background: rgba(0,0,0,0.5); font-size: 14px; }
         .msg-error { color: var(--neon-red); border-left: 3px solid var(--neon-red); }
         .msg-success { color: var(--neon-cyan); border-left: 3px solid var(--neon-cyan); }
 
@@ -248,41 +287,25 @@
             z-index: 25;
         }
 
-        /* Show mobile controls automatically on touch devices / smaller viewports */
         @media (hover: none), (pointer: coarse), (max-width: 900px) {
             #controls {
                 display: block;
             }
         }
 
-        /* Landscape orientation adjustments for mobile screens */
-        @media (max-height: 500px) {
-            #ui-top { top: 10px; left: 15px; right: 15px; }
-            .hud-panel { padding: 6px 12px; font-size: 14px; }
-            .collected-letter-box { width: 22px; height: 22px; font-size: 12px; }
-            h1 { font-size: 36px; margin-bottom: 5px; }
-            h2 { font-size: 28px; margin-bottom: 10px; }
-            p { font-size: 13px; margin-bottom: 15px; }
-            button { padding: 10px 20px; font-size: 14px; margin: 5px; }
-            .overlay { padding: 15px; }
-            .control-btn { width: 44px; height: 44px; font-size: 16px; border-radius: 10px; }
-            .left-controls { left: 10px; bottom: 10px; }
-            .right-controls { right: 10px; bottom: 10px; }
-        }
-
         .left-controls {
             position: absolute;
-            left: 20px;
-            bottom: 15px;
-            width: 140px;
-            height: 140px;
+            left: 25px;
+            bottom: 20px;
+            width: 130px;
+            height: 130px;
             pointer-events: auto;
         }
 
         .right-controls {
             position: absolute;
-            right: 20px;
-            bottom: 15px;
+            right: 25px;
+            bottom: 20px;
             display: flex;
             gap: 12px;
             align-items: flex-end;
@@ -292,11 +315,11 @@
         .control-btn {
             background: rgba(0, 243, 255, 0.15);
             border: 2px solid rgba(0, 243, 255, 0.4);
-            border-radius: 14px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 18px;
             font-family: 'Orbitron', sans-serif;
             color: var(--neon-cyan);
             user-select: none;
@@ -308,19 +331,26 @@
         }
 
         /* Full D-Pad Layout */
-        #btn-up { position: absolute; top: 0; left: 48px; width: 44px; height: 44px; }
-        #btn-left { position: absolute; top: 48px; left: 0; width: 44px; height: 44px; }
-        #btn-right { position: absolute; top: 48px; left: 96px; width: 44px; height: 44px; }
-        #btn-down { position: absolute; top: 96px; left: 48px; width: 44px; height: 44px; }
+        #btn-up { position: absolute; top: 0; left: 44px; width: 42px; height: 42px; }
+        #btn-left { position: absolute; top: 44px; left: 0; width: 42px; height: 42px; }
+        #btn-right { position: absolute; top: 44px; left: 88px; width: 42px; height: 42px; }
+        #btn-down { position: absolute; top: 88px; left: 44px; width: 42px; height: 42px; }
 
         .action-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 18px;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
         }
     </style>
 </head>
 <body>
+
+    <!-- Rotation Warning Screen for Portrait Mode -->
+    <div id="rotate-screen">
+        <div class="rotate-icon">📱 ↺</div>
+        <h2 style="color: var(--neon-cyan); margin-bottom: 10px;">Please Rotate Your Device</h2>
+        <p>This game is designed for landscape mode only. Turn your phone sideways to play!</p>
+    </div>
 
     <div id="game-container">
         <div class="post-process"></div>
@@ -354,21 +384,21 @@
                 <div id="btn-down" class="control-btn">▼</div>
             </div>
             <div id="action-buttons" class="right-controls">
-                <div id="btn-boost" class="control-btn action-btn" style="font-size: 11px;">BOOST</div>
+                <div id="btn-boost" class="control-btn action-btn" style="font-size: 10px;">BOOST</div>
                 <div id="btn-fire" class="control-btn action-btn">FIRE</div>
             </div>
         </div>
 
         <div id="start-screen" class="overlay">
             <h1>Space Survival</h1>
-            <p>Navigate using <strong>ARROW KEYS</strong> or <strong>WASD</strong>.<br>Hold <strong>SPACEBAR</strong> or <strong>SHIFT</strong> to Boost.<br>Hold or press <strong>X</strong> or <strong>F</strong> to shoot.<br>Collect all 6 letters to trigger the Boss!<br>Secret God Mode Code: <strong>UP, UP, LEFT, RIGHT, LEFT, RIGHT, X (Shoot), UP</strong></p>
+            <p>Navigate using <strong>D-PAD</strong> or <strong>ARROW KEYS / WASD</strong>.<br>Tap <strong>BOOST</strong> or hold <strong>SPACEBAR</strong> to Boost.<br>Tap <strong>FIRE</strong> or press <strong>X / F</strong> to shoot.<br>Collect all 6 letters to trigger the Boss!<br>Secret God Mode Code: <strong>UP, UP, LEFT, RIGHT, LEFT, RIGHT, FIRE, UP</strong></p>
             <button id="start-btn">START</button>
         </div>
 
         <div id="game-over-screen" class="overlay hidden">
             <h2 style="color: var(--neon-red);">GAME OVER</h2>
             <p id="game-over-stats">Letters: X / 6</p>
-            <div style="display: flex; gap: 15px; margin-top: 10px;">
+            <div style="display: flex; gap: 15px; margin-top: 5px;">
                 <button id="restart-btn" style="border-color: var(--neon-pink); color: var(--neon-pink);">Restart</button>
                 <button id="secret-btn">Password</button>
             </div>
@@ -383,14 +413,39 @@
                 <button id="submit-secret-btn">ENTER</button>
                 <button id="back-to-over-btn" style="border-color: #666; color: #aaa;">EXIT</button>
             </div>
-            <div id="secret-answer-container" style="margin-top: 15px; display: none;">
-                <img id="secret-answer-img" src="ssanswer.webp" alt="Secret Answer" style="max-width: 100%; max-height: 200px; border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.5);">
+            <div id="secret-answer-container" style="margin-top: 10px; display: none;">
+                <img id="secret-answer-img" src="ssanswer.webp" alt="Secret Answer" style="max-width: 100%; max-height: 160px; border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.5);">
             </div>
             <div id="secret-msg" class="sys-msg" style="display:none;"></div>
         </div>
     </div>
 
   <script>
+        // Automatic Dynamic Resolution & Scaling for Any Screen Size
+        const baseWidth = 1000;
+        const baseHeight = 600;
+        const gameContainer = document.getElementById('game-container');
+
+        function resizeGame() {
+            const winWidth = window.innerWidth;
+            const winHeight = window.innerHeight;
+            
+            // Calculate scale ratio to fit screen perfectly while preserving 5:3 aspect ratio
+            const scaleX = winWidth / baseWidth;
+            const scaleY = winHeight / baseHeight;
+            const scale = Math.min(scaleX, scaleY);
+
+            gameContainer.style.width = baseWidth + 'px';
+            gameContainer.style.height = baseHeight + 'px';
+            gameContainer.style.transform = `scale(${scale})`;
+            gameContainer.style.left = (winWidth - baseWidth) / 2 + 'px';
+            gameContainer.style.top = (winHeight - baseHeight) / 2 + 'px';
+        }
+
+        window.addEventListener('resize', resizeGame);
+        window.addEventListener('orientationchange', () => setTimeout(resizeGame, 200));
+        resizeGame();
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d', { alpha: false });
         const PI2 = Math.PI * 2;
