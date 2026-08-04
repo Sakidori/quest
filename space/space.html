@@ -276,16 +276,16 @@
         .msg-error { color: var(--neon-red); border-left: 3px solid var(--neon-red); }
         .msg-success { color: var(--neon-cyan); border-left: 3px solid var(--neon-cyan); }
 
-        /* Virtual On-Screen Controls for Mobile - Larger & Multi-Touch Optimized */
+        /* Virtual On-Screen Controls Pinned to Viewport Edges (Out of Game Container) */
         #controls {
             display: none;
-            position: absolute;
-            bottom: 0;
+            position: fixed;
+            top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             pointer-events: none;
-            z-index: 25;
+            z-index: 100;
         }
 
         @media (hover: none), (pointer: coarse), (max-width: 900px) {
@@ -296,14 +296,14 @@
 
         .control-group {
             position: absolute;
-            bottom: 30px;
+            bottom: max(25px, env(safe-area-inset-bottom));
             display: flex;
             gap: 15px;
             pointer-events: auto;
         }
 
         #dpad {
-            left: 30px;
+            left: max(25px, env(safe-area-inset-left));
             display: grid;
             grid-template-columns: 80px 80px 80px;
             grid-template-rows: 80px 80px;
@@ -311,7 +311,7 @@
         }
 
         #actions {
-            right: 30px;
+            right: max(25px, env(safe-area-inset-right));
             display: flex;
             gap: 20px;
             align-items: flex-end;
@@ -320,8 +320,8 @@
 
         .control-btn {
             background: rgba(10, 10, 25, 0.65);
-            border: 2px solid var(--neon-blue);
-            color: var(--neon-blue);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
             font-family: 'Orbitron', sans-serif;
             font-size: 1.5rem;
             font-weight: 900;
@@ -396,19 +396,6 @@
 
         <canvas id="gameCanvas" width="1000" height="600"></canvas>
 
-        <div id="controls">
-            <div id="dpad" class="control-group">
-                <div id="btn-up" class="control-btn">▲</div>
-                <div id="btn-left" class="control-btn">◀</div>
-                <div id="btn-right" class="control-btn">▶</div>
-                <div id="btn-down" class="control-btn">▼</div>
-            </div>
-            <div id="actions" class="control-group">
-                <div id="btn-boost" class="control-btn action-btn" style="font-size: 13px;">BOOST</div>
-                <div id="btn-fire" class="control-btn action-btn">FIRE</div>
-            </div>
-        </div>
-
         <div id="start-screen" class="overlay">
             <h1>Space Survival</h1>
             <p>Navigate using <strong>D-PAD</strong> or <strong>ARROW KEYS / WASD</strong>.<br>Tap <strong>BOOST</strong> or hold <strong>SPACEBAR</strong> to Boost.<br>Tap <strong>FIRE</strong> or press <strong>X / F</strong> to shoot.<br>Collect all 6 letters to trigger the Boss!<br>Secret God Mode Code: <strong>UP, UP, LEFT, RIGHT, LEFT, RIGHT, FIRE, UP</strong></p>
@@ -437,6 +424,20 @@
                 <img id="secret-answer-img" src="ssanswer.webp" alt="Secret Answer" style="max-width: 100%; max-height: 160px; border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.5);">
             </div>
             <div id="secret-msg" class="sys-msg" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Virtual On-Screen Controls Pinned to Screen Edges -->
+    <div id="controls">
+        <div id="dpad" class="control-group">
+            <div id="btn-up" class="control-btn">▲</div>
+            <div id="btn-left" class="control-btn">◀</div>
+            <div id="btn-right" class="control-btn">▶</div>
+            <div id="btn-down" class="control-btn">▼</div>
+        </div>
+        <div id="actions" class="control-group">
+            <div id="btn-boost" class="control-btn action-btn" style="font-size: 13px;">BOOST</div>
+            <div id="btn-fire" class="control-btn action-btn">FIRE</div>
         </div>
     </div>
 
@@ -1413,7 +1414,6 @@
             "btn-fire": "Fire"
         };
 
-        // Track active pointer IDs per control for full multi-touch support
         const activePointers = new Map();
 
         document.querySelectorAll('.control-btn').forEach(btn => {
@@ -1442,7 +1442,6 @@
             });
         });
 
-        // Global safeguard to clear inputs if touches drift offscreen entirely
         window.addEventListener('pointerup', (e) => {
             if (activePointers.has(e.pointerId)) {
                 activePointers.delete(e.pointerId);
