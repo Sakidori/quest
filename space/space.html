@@ -1360,10 +1360,29 @@
             ctx.restore();
         }
 
-        function gameLoop() {
-            if (gameState === 1 || gameState === 4 || gameState === 5) update();
+let lastTime = performance.now();
+        let accumulator = 0;
+        const timeStep = 1000 / 60; // Locked strictly to 60 FPS
+
+        function gameLoop(timestamp) {
+            let frameTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            // Prevent spiral of death / speed-up bursts if frame drops or events stutter
+            if (frameTime > 250) frameTime = 250;
+
+            accumulator += frameTime;
+
+            while (accumulator >= timeStep) {
+                if (gameState === 1 || gameState === 4 || gameState === 5) {
+                    update();
+                }
+                accumulator -= timeStep;
+            }
+
             let effSpd = gameState === 4 ? 2 : (4.5 + (boostIntensity * 4));
             render(effSpd);
+            
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
