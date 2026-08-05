@@ -935,20 +935,25 @@ function destroyBoss() {
                     obstacles.push({ x: canvas.width + 50, y: Math.random()*(canvas.height-200)+100, r: 16, s: 2 + Math.random()*2, rot: 0, w: Math.random()*PI2 });
                 }
 
+  // Check every 5 seconds (300 frames at 60fps) with a 80% chance to spawn a letter
                 if (collectedLetters.length < targetLetters.length && letterItems.length === 0) {
                     letterSpawnTimer++;
-                    if (letterSpawnTimer >= letterSpawnInterval) {
+                    if (letterSpawnTimer >= 300) { // 300 frames = 5 seconds
                         letterSpawnTimer = 0;
-                        let remainingLetters = targetLetters.filter(l => !collectedLetters.includes(l));
-                        let nextLetter = remainingLetters[Math.floor(Math.random() * remainingLetters.length)];
                         
-                        letterItems.push({
-                            x: canvas.width + 50,
-                            y: Math.random() * (canvas.height - 200) + 100,
-                            c: nextLetter,
-                            r: 22,
-                            rot: 0
-                        });
+                        // 80% chance to spawn
+                        if (Math.random() < 0.80) {
+                            let remainingLetters = targetLetters.filter(l => !collectedLetters.includes(l));
+                            let nextLetter = remainingLetters[Math.floor(Math.random() * remainingLetters.length)];
+                            
+                            letterItems.push({
+                                x: canvas.width + 50,
+                                y: Math.random() * (canvas.height - 200) + 100,
+                                c: nextLetter,
+                                r: 22,
+                                rot: 0
+                            });
+                        }
                     }
                 }
             } else if (gameState === 4 && boss) {
