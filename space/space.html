@@ -303,7 +303,7 @@
 
         <div id="start-screen" class="overlay">
             <h1>Space Survival</h1>
-            <p>Navigate using <strong>D-PAD</strong> or <strong>ARROW KEYS / WASD</strong>.<br>Tap <strong>BOOST</strong> or hold <strong>SPACEBAR</strong> to Boost.<br>Tap <strong>FIRE</strong> or press <strong>X / F</strong> to shoot.<br>Collect all 6 letters!</p>
+            <p><strong>矢印キー</strong>または<strong>WASDキー</strong>で移動します。<br><strong>「BOOST」</strong>をタップするか、<strong>スペースキー</strong>を長押ししてブーストします。<br><strong>「FIRE」</strong>をタップするか、<strong>Xキー</strong>または<strong>Fキー</strong>を押して発射します。<br>6文字すべてを集めましょう！</p>
             <button id="start-btn">START</button>
         </div>
 
@@ -318,11 +318,11 @@
 
         <div id="secret-screen" class="overlay hidden">
             <h2 style="color: var(--neon-cyan);">CONGRATULATIONS</h2>
-            <p>Type the secret code formed by your collected letters:</p>
-            <input type="text" id="secret-input" placeholder="ENTER LETTERS" maxlength="6" autocomplete="off" spellcheck="false">
+            <p>集めた文字で構成された秘密のコードを入力してください：</p>
+            <input type="text" id="secret-input" maxlength="6" autocomplete="off" spellcheck="false">
             <div style="display: flex; gap: 15px;">
-                <button id="submit-secret-btn">ENTER</button>
-                <button id="back-to-over-btn" style="border-color: #666; color: #aaa;">EXIT</button>
+                <button id="submit-secret-btn">入力</button>
+                <button id="exit-btn" style="border-color: #666; color: #aaa;">EXIT</button>
             </div>
             <div id="secret-answer-container" style="margin-top: 10px; display: none;">
                 <img id="secret-answer-img" src="ssanswer.webp" alt="Secret Answer" style="max-width: 100%; max-height: 160px; border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.5);">
@@ -444,6 +444,22 @@
         const cheatSequence = ['ArrowUp', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyX', 'ArrowUp'];
         let cheatProgress = 0;
 
+const exitBtn = document.getElementById('exit-btn');
+if (exitBtn) {
+    exitBtn.addEventListener('click', () => {
+        // Try going back in history if available, otherwise close or blank out
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.close();
+        }
+        
+        setTimeout(() => {
+            window.location.href = "about:blank";
+        }, 100);
+    });
+}
+
         function checkCheat(inputCode) {
             let normalizedCode = inputCode;
             if (inputCode === 'ArrowUpTouch') normalizedCode = 'ArrowUp';
@@ -456,9 +472,6 @@
                 if (cheatProgress === cheatSequence.length) {
                     cheatProgress = 0;
                     godMode = !godMode;
-                    if (godMode) {
-                        playSound(sfxVictory);
-                    }
                 }
             } else {
                 cheatProgress = (normalizedCode === cheatSequence[0]) ? 1 : 0;
@@ -502,15 +515,14 @@
             startGame();
         };
         document.getElementById('restart-btn').onclick = startGame;
-        document.getElementById('back-to-over-btn').onclick = () => { secretScreen.classList.add('hidden'); gameOverScreen.classList.remove('hidden'); gameState = 2; };
-
+        document.getElementById('exit-btn').onclick = () => { secretScreen.classList.add('hidden'); gameOverScreen.classList.remove('hidden'); gameState = 2; };
         document.getElementById('submit-secret-btn').onclick = () => {
             let v = document.getElementById('secret-input').value.toUpperCase().trim();
             let msg = document.getElementById('secret-msg'); msg.style.display = 'block';
             let imgContainer = document.getElementById('secret-answer-container');
             if(v === secretWord) { 
                 msg.className = 'sys-msg msg-success'; 
-                msg.textContent = "ACCESS GRANTED. CODE CORRECT!"; 
+                msg.textContent = "GOOD JOB!メモを取るのを忘れないでね！"; 
                 imgContainer.style.display = 'block'; 
                 playSound(sfxFlag);
             }
@@ -569,7 +581,7 @@
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
-        function updateUI() {
+function updateUI() {
             const scoreDisplay = document.getElementById('score-display');
             const lettersDisplay = document.getElementById('letters-display');
             const uiTop = document.getElementById('ui-top');
@@ -587,7 +599,10 @@
             `;
 
             let bossDisplay = document.getElementById('boss-display');
-            if ((gameState === 4 || gameState === 5 || gameState === 6) && boss) {
+            
+            // Changed: Only show in state 4 (active fight) or state 5 (defeat sequence). 
+            // State 6 is the glitch intro, so the boss HUD will stay hidden until state 6 finishes.
+            if ((gameState === 4 || gameState === 5) && boss) {
                 if (!bossDisplay) {
                     bossDisplay = document.createElement('div');
                     bossDisplay.id = 'boss-display';
@@ -596,13 +611,13 @@
                 }
                 bossDisplay.innerHTML = `
                     <div class="boss-hud-inner">
-                        <span>BOSS</span>
+                        <span>MEGA SPACE BOSS</span>
                         <div class="boss-hp-container">
                             <div id="boss-hp-fill" style="width: ${(Math.max(0, boss.hp) / boss.maxHp) * 100}%"></div>
                         </div>
                     </div>
                 `;
-            } else if (bossDisplay && gameState !== 5) {
+            } else if (bossDisplay && gameState !== 4 && gameState !== 5) {
                 bossDisplay.remove();
             }
 
@@ -651,32 +666,32 @@
 
             updateUI();
         }
+function destroyBoss() {
+    if (!boss || boss.exploding) return;
 
-        function destroyBoss() {
-            if (!boss || boss.exploding) return;
-            boss.exploding = true;
-            bossProjectiles = [];
-            bossMinions = [];
-            playSound(sfxExplosion);
-            playSound(sfxVictory);
-            cameraShake = 35;
-
-            for (let k = 0; k < 100; k++) {
-                particles.push({
-                    x: boss.x + (Math.random() - 0.5) * boss.w,
-                    y: boss.y + (Math.random() - 0.5) * boss.h,
-                    vx: (Math.random() - 0.5) * 22,
-                    vy: (Math.random() - 0.5) * 22,
-                    life: 2.5,
-                    decay: 0.012,
-                    size: Math.random() * 8 + 3,
-                    color: Math.random() > 0.4 ? '#ff003c' : '#ffea00',
-                    type: 1
-                });
-            }
-
-            gameState = 5;
+    // Smoothly fade out the boss background music over ~1.5 seconds
+    let fadeAudio = bgMusic;
+    let fadeInterval = setInterval(() => {
+        if (fadeAudio.volume > 0.05) {
+            fadeAudio.volume = Math.max(0, fadeAudio.volume - 0.05);
+        } else {
+            fadeAudio.pause();
+            fadeAudio.currentTime = 0;
+            fadeAudio.volume = 0.5; // Reset volume for later tracks
+            clearInterval(fadeInterval);
         }
+    }, 80);
+
+    boss.exploding = true;
+    boss.explosionTimer = 180; // Duration of the explosion phase before falling
+    bossProjectiles = [];
+    bossMinions = [];
+    playSound(sfxExplosion);
+    playSound(sfxVictory);
+    cameraShake = 25;
+
+    gameState = 5;
+}
 
         function update() {
             if (gameState !== 1 && gameState !== 4 && gameState !== 5 && gameState !== 6) return;
@@ -717,37 +732,92 @@
 
                     if (boss.introTimer <= 0) {
                         gameState = 4;
+                        updateUI();
                     }
                 }
                 return;
             }
 
-            if (gameState === 5) {
+          if (gameState === 5) {
                 victoryTimer++;
                 
+                // Keep laser beams moving forward during victory animation
+                for (let i = lasers.length - 1; i >= 0; i--) {
+                    let l = lasers[i];
+                    l.x += l.vx;
+                    if (l.x > canvas.width + 50) {
+                        lasers.splice(i, 1);
+                    }
+                }
+
                 if (boss) {
-                    boss.x -= 2;
-                    boss.y += Math.sin(victoryTimer * 0.1) * 2;
+                    if (victoryTimer <= 120) {
+                        cameraShake = 8;
+                        
+                        if (victoryTimer % 8 === 0) {
+                            playSound(sfxExplosion);
+                            let exX = boss.x + (Math.random() - 0.5) * boss.w;
+                            let exY = boss.y + (Math.random() - 0.5) * boss.h;
+                            for (let k = 0; k < 12; k++) {
+                                particles.push({
+                                    x: exX,
+                                    y: exY,
+                                    vx: (Math.random() - 0.5) * 8,
+                                    vy: (Math.random() - 0.5) * 8,
+                                    life: 1.0,
+                                    decay: 0.03,
+                                    size: Math.random() * 6 + 2,
+                                    color: Math.random() > 0.4 ? '#ff003c' : '#ffea00',
+                                    type: 0
+                                });
+                            }
+                        }
+                    } else {
+                        boss.y += 4.5;
+                        boss.x += 0.5;
+                        boss.rotation = (boss.rotation || 0) + 0.03;
+                        
+                        if (Math.random() < 0.3) {
+                            particles.push({
+                                x: boss.x + (Math.random() - 0.5) * boss.w,
+                                y: boss.y + (Math.random() - 0.5) * boss.h,
+                                vx: (Math.random() - 0.5) * 4,
+                                vy: Math.random() * 4,
+                                life: 0.8,
+                                decay: 0.04,
+                                size: 4,
+                                color: '#ff003c',
+                                type: 0
+                            });
+                        }
+
+                        ship.x += 12;
+                        ship.vy *= 0.9;
+                        ship.y += ship.vy;
+                        ship.tilt += (0 - ship.tilt) * 0.1;
+                        ship.shieldPulse += 0.1;
+
+                        if (Math.random() < 0.6) {
+                            particles.push({
+                                x: ship.x - 20, y: ship.y + (Math.random() * 6 - 3),
+                                vx: -4 - Math.random() * 2, vy: (Math.random() - 0.5) * 0.5,
+                                life: 0.6, decay: 0.06, size: 3,
+                                color: '#00f3ff', type: 0
+                            });
+                        }
+                    }
                 }
 
-                ship.x += 16;
-                ship.vy *= 0.9;
-                ship.y += ship.vy;
-                ship.tilt += (0 - ship.tilt) * 0.1;
-                ship.shieldPulse += 0.1;
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= p.decay;
+                });
+                particles = particles.filter(p => p.life > 0);
 
-                if (Math.random() < 0.8) {
-                    particles.push({
-                        x: ship.x - 20, y: ship.y + (Math.random()*6-3),
-                        vx: -18 - Math.random()*6, vy: (Math.random()-0.5),
-                        life: 1.0, decay: 0.04, size: 5,
-                        color: '#00f3ff', type: 0
-                    });
-                }
+                if (cameraShake > 0) cameraShake *= 0.85;
 
-                if (cameraShake > 0) cameraShake *= 0.8;
-
-                if (victoryTimer === 420) {
+                if (victoryTimer === 360) {
                     sfxHum.pause();
                     sfxHum.currentTime = 0;
                     
@@ -1196,7 +1266,7 @@
             }
         }
 
-        function render(effSpd) {
+       function render(effSpd) {
             ctx.fillStyle = 'rgba(5, 5, 15, 0.4)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1276,13 +1346,13 @@
             }
 
             if ((gameState === 4 || gameState === 6 || (gameState === 5 && boss)) && boss) {
-                if (!boss.exploding) {
+                if (!boss.exploding || boss.explosionTimer > 0) {
                     drawFauxGlow(boss.x, boss.y, 80, 'rgba(255,0,60,0.3)', 'rgba(255,0,60,0.1)');
                 }
                 ctx.save();
                 ctx.translate(boss.x, boss.y);
-                if (boss.exploding) {
-                    ctx.rotate(victoryTimer * 0.05);
+                if (boss.exploding && boss.rotation) {
+                    ctx.rotate(boss.rotation);
                 }
                 ctx.fillStyle = boss.exploding ? '#220011' : '#1a0510';
                 ctx.strokeStyle = '#ff003c';
@@ -1514,7 +1584,7 @@
             playCurrentTrack();
         });
 
-        function togglePlayPause() {
+function togglePlayPause() {
             if (bgMusic.paused) {
                 if (!bgMusic.src) {
                     playCurrentTrack();
@@ -1537,4 +1607,3 @@
     </script>
 </body>
 </html>
-```[cite: 4]
