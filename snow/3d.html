@@ -12,15 +12,19 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
         }
+
+        /* Player Health - Top Left */
         #ui-top-left {
             position: absolute;
             top: 20px;
             left: 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
             z-index: 10;
         }
+
+        /* Letters Panel - Top Right (Shifted Up) */
         #ui-top-right {
             position: absolute;
             top: 20px;
@@ -30,16 +34,7 @@
             gap: 8px;
             z-index: 10;
         }
-        .ui-box {
-            background: #334155;
-            padding: 12px 20px;
-            border: 3px solid #475569;
-            border-radius: 14px;
-            font-weight: bold;
-            font-size: 15px;
-            color: #f8fafc;
-            box-shadow: 0 4px 0 #0f172a;
-        }
+
         .ui-box-compact {
             background: #334155;
             padding: 8px 14px;
@@ -50,6 +45,7 @@
             color: #f8fafc;
             box-shadow: 0 3px 0 #0f172a;
         }
+
         /* Health bar styling */
         #health-container {
             display: flex;
@@ -268,26 +264,27 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
-        /* Fullscreen Toggle Button */
+        /* Fullscreen Button - Middle */
         #fullscreen-btn {
             position: absolute;
             top: 20px;
-            right: 20px;
-            background: #334155;
-            border: 2px solid #475569;
-            color: #f8fafc;
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 13px;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #f59e0b;
+            border: 3px solid #fbbf24;
+            color: #0f172a;
+            padding: 14px 28px;
+            border-radius: 14px;
+            font-weight: 900;
+            font-size: 16px;
             cursor: pointer;
             z-index: 300;
-            box-shadow: 0 3px 0 #0f172a;
-            display: none; /* Shown dynamically on mobile */
+            box-shadow: 0 6px 0 #b45309, 0 10px 25px rgba(0,0,0,0.5);
+            display: none; /* Shown dynamically on touch devices */
         }
         #fullscreen-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 1px 0 #0f172a;
+            transform: translate(-50%, calc(-50% + 3px));
+            box-shadow: 0 3px 0 #b45309;
         }
 
         /* Landscape Orientation Warning Screen - Full Fixed Bounds */
@@ -409,8 +406,8 @@
         <p>This adventure requires landscape mode for the best experience. Please rotate your phone or tablet horizontally.</p>
     </div>
 
-    <!-- Fullscreen Toggle Button -->
-    <button id="fullscreen-btn" onclick="toggleFullScreen()">⛶ FULLSCREEN</button>
+    <!-- Fullscreen Toggle Button in the Middle -->
+    <button id="fullscreen-btn" onclick="toggleFullScreen()">⛶ FULL SCREEN</button>
 
     <div id="win-msg">CONGRATULATIONS!<br><span style="font-size: 24px;">You collected all the letters!</span></div>
     
@@ -437,11 +434,8 @@
         <div id="quiz-options-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
+    <!-- Player Health - Top Left -->
     <div id="ui-top-left">
-        <div class="ui-box">Controls: W,A,S,D to Walk | SHIFT to Run | SPACE to Jump | 'X' to Attack | <b>'V' to Cheer</b><br>MOUSE to Look | Press 'C' to Copy Coords | Press 'H' to Toggle Hitboxes</div>
-    </div>
-
-    <div id="ui-top-right">
         <div class="ui-box-compact">
             Player Health:
             <div id="health-container">
@@ -449,6 +443,10 @@
                 <span id="health-text" style="font-size: 12px;">100/100</span>
             </div>
         </div>
+    </div>
+
+    <!-- Letters Panel - Top Right -->
+    <div id="ui-top-right">
         <div class="ui-box-compact">
             Letters:
             <div id="inventory">
@@ -480,7 +478,7 @@
 
     <script>
         const project_name = {
-            version: "1.0.60",
+            version: "1.0.61",
             author: "Developer"
         };
 
@@ -1208,6 +1206,20 @@
         window.addEventListener('pointerdown', triggerAutoFullScreen, { once: true });
         window.addEventListener('keydown', triggerAutoFullScreen, { once: true });
 
+        // Listen for fullscreen change to hide/show the fullscreen button dynamically
+        document.addEventListener('fullscreenchange', handleFullscreenStateChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenStateChange);
+
+        function handleFullscreenStateChange() {
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+            const fullscreenBtnEl = document.getElementById('fullscreen-btn');
+            if (isFullscreen) {
+                fullscreenBtnEl.style.display = 'none';
+            } else if (isTouchDevice) {
+                fullscreenBtnEl.style.display = 'block';
+            }
+        }
+
         window.addEventListener('keydown', (e) => {
             if (playerIsDead || isQuizOpen) return;
             if (e.key === 'w' || e.key === 'W') keys.w = true;
@@ -1294,9 +1306,13 @@
         const touchControlsEl = document.getElementById('touch-controls');
         const fullscreenBtnEl = document.getElementById('fullscreen-btn');
         const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024);
+        
         if (isTouchDevice) {
             touchControlsEl.style.display = 'flex';
-            fullscreenBtnEl.style.display = 'block';
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+            if (!isFullscreen) {
+                fullscreenBtnEl.style.display = 'block';
+            }
         }
 
         const joystickBase = document.getElementById('joystick-base');
