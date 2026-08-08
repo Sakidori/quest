@@ -268,16 +268,40 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
-        /* Landscape Orientation Warning Screen */
+        /* Fullscreen Toggle Button */
+        #fullscreen-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #334155;
+            border: 2px solid #475569;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            z-index: 300;
+            box-shadow: 0 3px 0 #0f172a;
+            display: none; /* Shown dynamically on mobile */
+        }
+        #fullscreen-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #0f172a;
+        }
+
+        /* Landscape Orientation Warning Screen - Full Fixed Bounds */
         #rotate-warning {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
             background: #0f172a;
             color: #f8fafc;
-            z-index: 9999;
+            z-index: 99999;
             display: none;
             flex-direction: column;
             align-items: center;
@@ -385,6 +409,9 @@
         <p>This adventure requires landscape mode for the best experience. Please rotate your phone or tablet horizontally.</p>
     </div>
 
+    <!-- Fullscreen Toggle Button -->
+    <button id="fullscreen-btn" onclick="toggleFullScreen()">⛶ FULLSCREEN</button>
+
     <div id="win-msg">CONGRATULATIONS!<br><span style="font-size: 24px;">You collected all the letters!</span></div>
     
     <div id="gameover-msg">
@@ -453,7 +480,7 @@
 
     <script>
         const project_name = {
-            version: "1.0.59",
+            version: "1.0.60",
             author: "Developer"
         };
 
@@ -1147,6 +1174,40 @@
         const jumpForce = 12.0;
         const maxBoundaryDistance = 300;
 
+        // Fullscreen Toggle functionality
+        function toggleFullScreen() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                const docElem = document.documentElement;
+                if (docElem.requestFullscreen) {
+                    docElem.requestFullscreen().catch(() => {});
+                } else if (docElem.webkitRequestFullscreen) {
+                    docElem.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+        }
+
+        // Auto-fullscreen trigger on first user interaction for mobile devices
+        function triggerAutoFullScreen() {
+            if (isTouchDevice && !document.fullscreenElement && !document.webkitFullscreenElement) {
+                const docElem = document.documentElement;
+                if (docElem.requestFullscreen) {
+                    docElem.requestFullscreen().catch(() => {});
+                } else if (docElem.webkitRequestFullscreen) {
+                    docElem.webkitRequestFullscreen();
+                }
+            }
+            window.removeEventListener('pointerdown', triggerAutoFullScreen);
+            window.removeEventListener('keydown', triggerAutoFullScreen);
+        }
+        window.addEventListener('pointerdown', triggerAutoFullScreen, { once: true });
+        window.addEventListener('keydown', triggerAutoFullScreen, { once: true });
+
         window.addEventListener('keydown', (e) => {
             if (playerIsDead || isQuizOpen) return;
             if (e.key === 'w' || e.key === 'W') keys.w = true;
@@ -1211,7 +1272,7 @@
         });
 
         window.addEventListener('pointerdown', (e) => {
-            if (e.target.closest('#touch-controls') || e.target.closest('#quiz-modal')) return;
+            if (e.target.closest('#touch-controls') || e.target.closest('#quiz-modal') || e.target.closest('#fullscreen-btn')) return;
             isMouseDown = true;
             prevMouseX = e.clientX;
             prevMouseY = e.clientY;
@@ -1231,8 +1292,12 @@
         window.addEventListener('pointerup', () => { isMouseDown = false; });
 
         const touchControlsEl = document.getElementById('touch-controls');
+        const fullscreenBtnEl = document.getElementById('fullscreen-btn');
         const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024);
-        if (isTouchDevice) touchControlsEl.style.display = 'flex';
+        if (isTouchDevice) {
+            touchControlsEl.style.display = 'flex';
+            fullscreenBtnEl.style.display = 'block';
+        }
 
         const joystickBase = document.getElementById('joystick-base');
         const joystickKnob = document.getElementById('joystick-knob');
