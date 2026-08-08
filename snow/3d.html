@@ -264,8 +264,52 @@
             font-weight: bold;
             font-size: 14px;
             display: none;
-            z-index: 100;
+            z-index: 1000;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Landscape Orientation Warning Screen */
+        #rotate-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0f172a;
+            color: #f8fafc;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #rotate-warning svg {
+            width: 70px;
+            height: 70px;
+            fill: #38bdf8;
+            animation: rotatePhone 2s infinite ease-in-out;
+        }
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+            100% { transform: rotate(0deg); }
+        }
+        #rotate-warning h2 {
+            font-size: 24px;
+            font-weight: 900;
+            margin: 0;
+            color: #f8fafc;
+        }
+        #rotate-warning p {
+            font-size: 15px;
+            color: #94a3b8;
+            margin: 0;
+            max-width: 300px;
+            line-height: 1.4;
         }
 
         /* Mobile Touch Controls UI */
@@ -333,6 +377,13 @@
     </style>
 </head>
 <body>
+
+    <!-- Portrait Mode Warning Overlay -->
+    <div id="rotate-warning">
+        <svg viewBox="0 0 24 24"><path d="M16.48 2h-8.96C6.39 2 5 3.39 5 5.04v13.92C5 20.61 6.39 22 7.52 22h8.96c1.13 0 2.52-1.39 2.52-3.04V5.04C19 3.39 17.61 2 16.48 2zm-8.48 2h8c.28 0 .5.22.5.5v1H8v-1c0-.28.22-.5.5-.5zm8 16H8c-.28 0-.5-.22-.5-.5v-13h9v13c0 .28-.22.5-.5.5z"/></svg>
+        <h2>Please Rotate Your Device</h2>
+        <p>This adventure requires landscape mode for the best experience. Please rotate your phone or tablet horizontally.</p>
+    </div>
 
     <div id="win-msg">CONGRATULATIONS!<br><span style="font-size: 24px;">You collected all the letters!</span></div>
     
@@ -402,7 +453,7 @@
 
     <script>
         const project_name = {
-            version: "1.0.57",
+            version: "1.0.59",
             author: "Developer"
         };
 
@@ -1092,8 +1143,8 @@
         let verticalVelocity = 0;
         let isJumping = false;
         let currentGroundLevel = 0.0;
-        const gravity = 0.015;
-        const jumpForce = 0.25;
+        const gravity = 0.9;
+        const jumpForce = 12.0;
         const maxBoundaryDistance = 300;
 
         window.addEventListener('keydown', (e) => {
@@ -1298,8 +1349,9 @@
             }
         }
 
-        const walkSpeed = 0.11;
-        const sprintSpeed = 0.22;
+        // Time-scaled baseline speeds (units per second)
+        const walkSpeed = 6.6;
+        const sprintSpeed = 13.2;
         const clock = new THREE.Clock();
 
         function getIntersectedCollider(targetPos) {
@@ -1336,7 +1388,20 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            const dt = clock.getDelta();
+            // Handle Dynamic Orientation Warning Screen Visibility
+            const warningEl = document.getElementById('rotate-warning');
+            const isPortrait = window.innerHeight > window.innerWidth;
+            if (isPortrait && isTouchDevice) {
+                warningEl.style.display = 'flex';
+                renderer.render(scene, camera);
+                return; // Pause game execution loop while in portrait mode
+            } else {
+                warningEl.style.display = 'none';
+            }
+
+            let dt = clock.getDelta();
+            if (dt > 0.1) dt = 0.1; // Cap dt to avoid large leaps if tab loses focus
+
             if (mixer) mixer.update(dt);
 
             skeletons.forEach(skel => {
@@ -1417,16 +1482,16 @@
                             fadeCpuToAction(skel, 'Running_A', 0.2);
                             skel.group.lookAt(playerGroup.position.x, playerGroup.position.y, playerGroup.position.z);
                             
-// SKELETON MOVEMENT & COLLISION CHECK
-const skelStep = canSeePlayer ? 0.08 : 0.02;
-const forwardVec = new THREE.Vector3(0, 0, 1).applyQuaternion(skel.group.quaternion);
-const nextSkelPos = skel.group.position.clone();
-nextSkelPos.addScaledVector(forwardVec, skelStep);
+                            // SKELETON MOVEMENT & COLLISION CHECK (Time-scaled)
+                            const skelStep = (canSeePlayer ? 4.8 : 1.2) * dt;
+                            const forwardVec = new THREE.Vector3(0, 0, 1).applyQuaternion(skel.group.quaternion);
+                            const nextSkelPos = skel.group.position.clone();
+                            nextSkelPos.addScaledVector(forwardVec, skelStep);
 
-if (!getIntersectedCollider(nextSkelPos)) {
-    skel.group.translateZ(skelStep);
-}
-skel.group.position.y = 0;
+                            if (!getIntersectedCollider(nextSkelPos)) {
+                                skel.group.translateZ(skelStep);
+                            }
+                            skel.group.position.y = 0;
                         } else {
                             skel.isAttacking = false;
                             skel.attackTimer = 0;
@@ -1445,17 +1510,15 @@ skel.group.position.y = 0;
                             if (skel.group.position.distanceTo(skel.wanderTarget) > 1.0) {
                                 fadeCpuToAction(skel, 'Walking_A', 0.2);
                                 
-                                // SKELETON WANDER COLLISION CHECK
-// SKELETON WANDER COLLISION CHECK
-const walkStep = 0.02;
-const nextWanderPos = skel.group.position.clone();
-// Compute translation manually since translateZ depends on local rotation vector
-const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(skel.group.quaternion);
-nextWanderPos.addScaledVector(forward, walkStep);
+                                // SKELETON WANDER COLLISION CHECK (Time-scaled)
+                                const walkStep = 1.2 * dt;
+                                const nextWanderPos = skel.group.position.clone();
+                                const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(skel.group.quaternion);
+                                nextWanderPos.addScaledVector(forward, walkStep);
 
-if (!getIntersectedCollider(nextWanderPos)) {
-    skel.group.translateZ(walkStep);
-}
+                                if (!getIntersectedCollider(nextWanderPos)) {
+                                    skel.group.translateZ(walkStep);
+                                }
                                 skel.group.position.y = 0;
                             } else {
                                 fadeCpuToAction(skel, 'Idle_A', 0.2);
@@ -1494,7 +1557,7 @@ if (!getIntersectedCollider(nextWanderPos)) {
             snowParticles.position.z = playerGroup.position.z;
 
             for (let i = 1; i < snowPositionsArr.length; i += 3) {
-                snowPositionsArr[i] -= 0.15;
+                snowPositionsArr[i] -= 9.0 * dt;
                 if (snowPositionsArr[i] < 0) snowPositionsArr[i] = 50;
             }
             snowGeo.attributes.position.needsUpdate = true;
@@ -1523,7 +1586,7 @@ if (!getIntersectedCollider(nextWanderPos)) {
                 }
 
                 const isMoving = moveDir.lengthSq() > 0;
-                const speed = (keys.shift || joystickVector.length() > 0.8) ? sprintSpeed : walkSpeed;
+                const speed = ((keys.shift || joystickVector.length() > 0.8) ? sprintSpeed : walkSpeed) * dt;
 
                 if (isMoving && !isHitting && !isCheering) {
                     moveDir.normalize();
@@ -1540,7 +1603,7 @@ if (!getIntersectedCollider(nextWanderPos)) {
                     let diff = targetRotation - playerGroup.rotation.y;
                     while (diff < -Math.PI) diff += Math.PI * 2;
                     while (diff > Math.PI) diff -= Math.PI * 2;
-                    playerGroup.rotation.y += diff * 0.15;
+                    playerGroup.rotation.y += diff * Math.min(1.0, 10 * dt);
 
                     if (!isJumping) {
                         const targetAnim = (keys.shift || joystickVector.length() > 0.8) ? 'Running_A' : 'Walking_A';
@@ -1571,15 +1634,15 @@ if (!getIntersectedCollider(nextWanderPos)) {
                 currentGroundLevel = getTargetSurfaceHeight(playerGroup.position);
 
                 if (isJumping) {
-                    playerGroup.position.y += verticalVelocity;
-                    verticalVelocity -= gravity;
+                    playerGroup.position.y += verticalVelocity * dt;
+                    verticalVelocity -= gravity * 35 * dt;
                     if (playerGroup.position.y <= currentGroundLevel) {
                         playerGroup.position.y = currentGroundLevel;
                         isJumping = false;
                         verticalVelocity = 0;
                     }
                 } else {
-                    playerGroup.position.y = Math.max(currentGroundLevel, playerGroup.position.y - gravity * 2);
+                    playerGroup.position.y = Math.max(currentGroundLevel, playerGroup.position.y - (gravity * 35 * dt * 2));
                 }
 
                 activeQuizStar = null;
@@ -1600,9 +1663,10 @@ if (!getIntersectedCollider(nextWanderPos)) {
             const targetCamY = playerGroup.position.y + Math.sin(cameraPitch) * cameraDistance + 1.0;
             const targetCamZ = playerGroup.position.z + Math.cos(cameraAngle) * Math.cos(cameraPitch) * cameraDistance;
 
-            camera.position.x += (targetCamX - camera.position.x) * 0.12;
-            camera.position.y += (targetCamY - camera.position.y) * 0.12;
-            camera.position.z += (targetCamZ - camera.position.z) * 0.12;
+            const lerpFactor = Math.min(1.0, 10 * dt);
+            camera.position.x += (targetCamX - camera.position.x) * lerpFactor;
+            camera.position.y += (targetCamY - camera.position.y) * lerpFactor;
+            camera.position.z += (targetCamZ - camera.position.z) * lerpFactor;
 
             camera.lookAt(playerGroup.position.x, playerGroup.position.y + 1, playerGroup.position.z);
 
@@ -1612,11 +1676,11 @@ if (!getIntersectedCollider(nextWanderPos)) {
         updateHealthUI();
         animate();
 
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight); // Changed from renderer.renderer.setSize
-});
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
         
     </script>
 </body>
