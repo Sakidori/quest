@@ -13,26 +13,55 @@
             user-select: none;
         }
 
-        /* Player Health - Top Left */
-        #ui-top-left {
+        /* Top Bar Container to manage Left (Health), Center (Fullscreen), Right (Letters) */
+        #ui-top-bar {
             position: absolute;
             top: 20px;
             left: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 10;
-        }
-
-        /* Letters Panel - Top Right (Shifted Up) */
-        #ui-top-right {
-            position: absolute;
-            top: 20px;
             right: 20px;
             display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 10;
+            pointer-events: none; /* Let clicks pass through empty spaces */
+        }
+
+        /* Enable pointer events specifically for UI interactive elements */
+        #ui-top-bar > * {
+            pointer-events: auto;
+        }
+
+        /* Player Health - Top Left Container */
+        #ui-top-left {
+            display: flex;
             flex-direction: column;
             gap: 8px;
-            z-index: 10;
+        }
+
+        /* Letters Panel - Top Right Container */
+        #ui-top-right {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Fullscreen Button - Top Center */
+        #fullscreen-btn {
+            background: #f59e0b;
+            border: 3px solid #fbbf24;
+            color: #0f172a;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #b45309, 0 6px 15px rgba(0,0,0,0.4);
+            display: none; /* Shown dynamically on touch devices or standard view */
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        #fullscreen-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #b45309;
         }
 
         .ui-box-compact {
@@ -264,29 +293,6 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
-        /* Fullscreen Button - Middle */
-        #fullscreen-btn {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #f59e0b;
-            border: 3px solid #fbbf24;
-            color: #0f172a;
-            padding: 14px 28px;
-            border-radius: 14px;
-            font-weight: 900;
-            font-size: 16px;
-            cursor: pointer;
-            z-index: 300;
-            box-shadow: 0 6px 0 #b45309, 0 10px 25px rgba(0,0,0,0.5);
-            display: none; /* Shown dynamically on touch devices */
-        }
-        #fullscreen-btn:active {
-            transform: translate(-50%, calc(-50% + 3px));
-            box-shadow: 0 3px 0 #b45309;
-        }
-
         /* Landscape Orientation Warning Screen - Full Fixed Bounds */
         #rotate-warning {
             position: fixed;
@@ -406,9 +412,6 @@
         <p>This adventure requires landscape mode for the best experience. Please rotate your phone or tablet horizontally.</p>
     </div>
 
-    <!-- Fullscreen Toggle Button in the Middle -->
-    <button id="fullscreen-btn" onclick="toggleFullScreen()">⛶ FULL SCREEN</button>
-
     <div id="win-msg">CONGRATULATIONS!<br><span style="font-size: 24px;">You collected all the letters!</span></div>
     
     <div id="gameover-msg">
@@ -434,28 +437,34 @@
         <div id="quiz-options-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
-    <!-- Player Health - Top Left -->
-    <div id="ui-top-left">
-        <div class="ui-box-compact">
-            Player Health:
-            <div id="health-container">
-                <div id="health-bar-bg"><div id="health-bar-fill"></div></div>
-                <span id="health-text" style="font-size: 12px;">100/100</span>
+    <!-- Unified Top Bar: Health (Left), Fullscreen (Center), Letters (Right) -->
+    <div id="ui-top-bar">
+        <!-- Player Health - Top Left -->
+        <div id="ui-top-left">
+            <div class="ui-box-compact">
+                Player Health:
+                <div id="health-container">
+                    <div id="health-bar-bg"><div id="health-bar-fill"></div></div>
+                    <span id="health-text" style="font-size: 12px;">100/100</span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Letters Panel - Top Right -->
-    <div id="ui-top-right">
-        <div class="ui-box-compact">
-            Letters:
-            <div id="inventory">
-                <div class="letter-slot" id="slot-0"></div>
-                <div class="letter-slot" id="slot-1"></div>
-                <div class="letter-slot" id="slot-2"></div>
-                <div class="letter-slot" id="slot-3"></div>
-                <div class="letter-slot" id="slot-4"></div>
-                <div class="letter-slot" id="slot-5"></div>
+        <!-- Fullscreen Toggle Button - Top Center -->
+        <button id="fullscreen-btn" onclick="toggleFullScreen()">⛶ FULL SCREEN</button>
+
+        <!-- Letters Panel - Top Right -->
+        <div id="ui-top-right">
+            <div class="ui-box-compact">
+                Letters:
+                <div id="inventory">
+                    <div class="letter-slot" id="slot-0"></div>
+                    <div class="letter-slot" id="slot-1"></div>
+                    <div class="letter-slot" id="slot-2"></div>
+                    <div class="letter-slot" id="slot-3"></div>
+                    <div class="letter-slot" id="slot-4"></div>
+                    <div class="letter-slot" id="slot-5"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -478,7 +487,7 @@
 
     <script>
         const project_name = {
-            version: "1.0.61",
+            version: "1.0.62",
             author: "Developer"
         };
 
@@ -1563,7 +1572,6 @@
                             fadeCpuToAction(skel, 'Running_A', 0.2);
                             skel.group.lookAt(playerGroup.position.x, playerGroup.position.y, playerGroup.position.z);
                             
-                            // SKELETON MOVEMENT & COLLISION CHECK (Time-scaled)
                             const skelStep = (canSeePlayer ? 4.8 : 1.2) * dt;
                             const forwardVec = new THREE.Vector3(0, 0, 1).applyQuaternion(skel.group.quaternion);
                             const nextSkelPos = skel.group.position.clone();
@@ -1591,7 +1599,6 @@
                             if (skel.group.position.distanceTo(skel.wanderTarget) > 1.0) {
                                 fadeCpuToAction(skel, 'Walking_A', 0.2);
                                 
-                                // SKELETON WANDER COLLISION CHECK (Time-scaled)
                                 const walkStep = 1.2 * dt;
                                 const nextWanderPos = skel.group.position.clone();
                                 const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(skel.group.quaternion);
