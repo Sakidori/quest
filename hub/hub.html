@@ -53,11 +53,17 @@
             font-size: 15px;
             border: 4px solid #ffe600;
             box-shadow: 0 5px 0px #88002b;
-            pointer-events: none;
+            pointer-events: auto;
+            cursor: pointer;
             text-align: center;
             font-weight: bold;
             z-index: 10;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s ease, transform 0.1s;
+        }
+
+        #controls-hint:active {
+            transform: translateX(-50%) skew(-3deg) translateY(3px);
+            box-shadow: 0 2px 0px #88002b;
         }
 
         /* --- CAROUSEL NAVIGATION BUTTONS --- */
@@ -212,14 +218,13 @@
 
     <div id="ui-overlay">
         <h1>SUMMER QUEST HUB</h1>
-        <p>Choose a minigame!</p>
     </div>
 
     <!-- On-screen Transparent Carousel Arrows -->
     <div id="nav-left" class="carousel-nav-btn" onclick="rotateCarousel(-1)">&#10094;</div>
     <div id="nav-right" class="carousel-nav-btn" onclick="rotateCarousel(1)">&#10095;</div>
 
-    <div id="controls-hint">
+    <div id="controls-hint" onclick="triggerFlyIn()">
         MINIGAME: <span id="current-world-name" style="color: #ffe600;">Forest RPG</span>
     </div>
 
@@ -312,7 +317,7 @@
             let picMat;
 
             if (data.type === "image") {
-                const placeholderTex = new THREE.CanvasTexture(createFallbackCanvas(data.name, "LOADING..."));
+                const placeholderTex = new THREE.CanvasTexture(createFallbackCanvas("LOADING..."));
                 picMat = new THREE.MeshBasicMaterial({ map: placeholderTex, transparent: true, opacity: 1 });
 
                 textureLoader.load(
@@ -324,13 +329,13 @@
                     undefined,
                     (err) => {
                         console.warn(`Could not load ${data.src}. Using fallback.`);
-                        const fallbackTex = new THREE.CanvasTexture(createFallbackCanvas(data.name, "MISSING FILE"));
+                        const fallbackTex = new THREE.CanvasTexture(createFallbackCanvas("MISSING FILE"));
                         picMat.map = fallbackTex;
                         picMat.needsUpdate = true;
                     }
                 );
             } else {
-                const texture = new THREE.CanvasTexture(createQuestionMarkCanvas(data.name));
+                const texture = new THREE.CanvasTexture(createQuestionMarkCanvas());
                 picMat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 1 });
             }
 
@@ -342,7 +347,7 @@
             frameNodes.push({ group: frameGroup, baseAngle: (index / totalWorlds) * Math.PI * 2, floatOffset: index * 1.0, materials: [frameMat, picMat] });
         });
 
-        function createFallbackCanvas(title, subtext) {
+        function createFallbackCanvas(subtext) {
             const canvas = document.createElement('canvas');
             canvas.width = 1024;
             canvas.height = 640;
@@ -356,16 +361,11 @@
             ctx.font = 'bold 36px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(subtext, 512, 270);
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 508, 1024, 132);
-            ctx.fillStyle = '#ffe600';
-            ctx.font = 'bold 36px Arial';
-            ctx.fillText(title, 512, 574);
+            ctx.fillText(subtext, 512, 320);
             return canvas;
         }
 
-        function createQuestionMarkCanvas(title) {
+        function createQuestionMarkCanvas() {
             const canvas = document.createElement('canvas');
             canvas.width = 1024;
             canvas.height = 640;
@@ -380,11 +380,6 @@
             ctx.lineWidth = 20;
             ctx.strokeStyle = '#ffffff';
             ctx.strokeRect(20, 20, 984, 600);
-            ctx.fillStyle = '#111111';
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 36px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'alphabetic';
             return canvas;
         }
 
@@ -437,6 +432,7 @@
             document.getElementById('nav-right').style.opacity = opacityVal;
             document.getElementById('nav-left').style.pointerEvents = visible ? 'auto' : 'none';
             document.getElementById('nav-right').style.pointerEvents = visible ? 'auto' : 'none';
+            document.getElementById('controls-hint').style.pointerEvents = visible ? 'auto' : 'none';
         }
 
         function triggerFlyIn() {
@@ -479,8 +475,7 @@
 
         window.addEventListener('pointerdown', (e) => {
             if (isPlayingGame || isFlyingIn || isFlyingOut) return;
-            // Ignore interaction if clicking on the nav buttons
-            if (e.target.closest('.carousel-nav-btn')) return;
+            if (e.target.closest('.carousel-nav-btn') || e.target.closest('#controls-hint')) return;
 
             isDragging = true;
             hasMoved = false;
@@ -587,10 +582,10 @@
             if (currentWorld.type === "image") {
                 previewImg.src = currentWorld.src;
                 previewImg.onerror = () => {
-                    previewImg.src = createFallbackDataURL(currentWorld.name, "MISSING FILE");
+                    previewImg.src = createFallbackDataURL("MISSING FILE");
                 };
             } else {
-                previewImg.src = createQuestionMarkDataURL(currentWorld.name);
+                previewImg.src = createQuestionMarkDataURL();
             }
         }
 
@@ -599,11 +594,11 @@
             isPlayingGame = true;
         }
 
-        function createFallbackDataURL(title, subtext) {
-            return createFallbackCanvas(title, subtext).toDataURL();
+        function createFallbackDataURL(subtext) {
+            return createFallbackCanvas(subtext).toDataURL();
         }
 
-        function createQuestionMarkDataURL(title) {
+        function createQuestionMarkDataURL() {
             const canvas = document.createElement('canvas');
             canvas.width = 1024;
             canvas.height = 640;
@@ -614,17 +609,10 @@
             ctx.font = 'bold 200px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('?', 512, 240);
+            ctx.fillText('?', 512, 320);
             ctx.lineWidth = 20;
             ctx.strokeStyle = '#ffffff';
             ctx.strokeRect(20, 20, 984, 600);
-            ctx.fillStyle = '#111111';
-            ctx.fillRect(0, 508, 1024, 132);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 36px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'alphabetic';
-            ctx.fillText(title, 512, 574);
             return canvas.toDataURL();
         }
 
