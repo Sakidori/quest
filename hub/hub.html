@@ -244,7 +244,7 @@
 
         @media (max-width: 768px) and (orientation: portrait) {
             .carousel-nav-btn {
-                top: 64%;
+                top: 55%;
                 transform: translateY(0);
             }
         }
@@ -709,12 +709,16 @@
 
             let wrappedIndex = ((currentTargetIndex % totalWorlds) + totalWorlds) % totalWorlds;
 
+            // Check if we are in portrait mode on mobile
+            const isPortrait = window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
+            const yOffset = isPortrait ? 2.2 : 0; // Shift the 3D ring up in portrait mode
+
             frameNodes.forEach((node, idx) => {
                 const totalAngle = node.baseAngle + currentCarouselAngle;
                 
                 const x = Math.sin(totalAngle) * radius;
                 const z = Math.cos(totalAngle) * radius;
-                const y = Math.sin(elapsedTime * 2 + node.floatOffset) * 0.6;
+                const y = (Math.sin(elapsedTime * 2 + node.floatOffset) * 0.6) + yOffset;
 
                 node.group.position.set(x, y, z);
                 
