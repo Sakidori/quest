@@ -208,6 +208,13 @@
             #game-screen a.game-btn, #game-screen button { padding: 12px 25px; font-size: 18px; }
             .carousel-nav-btn { width: 55px; height: 90px; font-size: 30px; }
         }
+
+        @media (max-width: 768px) and (orientation: portrait) {
+            .carousel-nav-btn {
+                top: 72%;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
