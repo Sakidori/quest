@@ -41,6 +41,38 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
+        /* --- FULLSCREEN BUTTON --- */
+        #fullscreen-btn {
+            position: absolute;
+            top: 25px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 230, 0, 0.15);
+            border: 3px solid rgba(255, 230, 0, 0.4);
+            color: #ffe600;
+            font-size: 22px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 25;
+            transition: background 0.2s, transform 0.1s, opacity 0.3s ease;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+        }
+
+        #fullscreen-btn:hover {
+            background: rgba(255, 230, 0, 0.35);
+            border-color: rgba(255, 230, 0, 0.8);
+        }
+
+        #fullscreen-btn:active {
+            transform: scale(0.92);
+        }
+
         #controls-hint {
             position: absolute;
             bottom: 25px;
@@ -207,11 +239,12 @@
             #game-screen h2 { font-size: 28px; }
             #game-screen a.game-btn, #game-screen button { padding: 12px 25px; font-size: 18px; }
             .carousel-nav-btn { width: 55px; height: 90px; font-size: 30px; }
+            #fullscreen-btn { width: 42px; height: 42px; font-size: 18px; right: 15px; top: 15px; }
         }
 
         @media (max-width: 768px) and (orientation: portrait) {
             .carousel-nav-btn {
-                top: 72%;
+                top: 64%;
                 transform: translateY(0);
             }
         }
@@ -226,6 +259,9 @@
     <div id="ui-overlay">
         <h1>SUMMER QUEST HUB</h1>
     </div>
+
+    <!-- Fullscreen Toggle Button -->
+    <div id="fullscreen-btn" onclick="toggleFullScreen()">&#x26F6;</div>
 
     <!-- On-screen Transparent Carousel Arrows -->
     <div id="nav-left" class="carousel-nav-btn" onclick="rotateCarousel(-1)">&#10094;</div>
@@ -262,6 +298,19 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
+
+        // --- FULLSCREEN LOGIC ---
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
 
         // --- LIGHTING ---
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
@@ -434,9 +483,11 @@
         function toggleUIVisibility(visible) {
             const opacityVal = visible ? '1' : '0';
             document.getElementById('ui-overlay').style.opacity = opacityVal;
+            document.getElementById('fullscreen-btn').style.opacity = opacityVal;
             document.getElementById('controls-hint').style.opacity = opacityVal;
             document.getElementById('nav-left').style.opacity = opacityVal;
             document.getElementById('nav-right').style.opacity = opacityVal;
+            document.getElementById('fullscreen-btn').style.pointerEvents = visible ? 'auto' : 'none';
             document.getElementById('nav-left').style.pointerEvents = visible ? 'auto' : 'none';
             document.getElementById('nav-right').style.pointerEvents = visible ? 'auto' : 'none';
             document.getElementById('controls-hint').style.pointerEvents = visible ? 'auto' : 'none';
@@ -482,7 +533,7 @@
 
         window.addEventListener('pointerdown', (e) => {
             if (isPlayingGame || isFlyingIn || isFlyingOut) return;
-            if (e.target.closest('.carousel-nav-btn') || e.target.closest('#controls-hint')) return;
+            if (e.target.closest('.carousel-nav-btn') || e.target.closest('#controls-hint') || e.target.closest('#fullscreen-btn')) return;
 
             isDragging = true;
             hasMoved = false;
