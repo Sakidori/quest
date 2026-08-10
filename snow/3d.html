@@ -403,14 +403,14 @@
         
         /* Dedicated Bottom-Middle Interactive Action Button for Touch Devices */
        /* Dedicated Touch Interactive Action Button for Touch Devices */
-        #btn-action {
+#btn-action {
             background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%);
             border: 3px solid #fde047;
             color: #ffffff;
             width: 65px;
             height: 65px;
             border-radius: 50%;
-            font-size: 20px;
+            font-size: 11px;
             font-weight: 900;
             display: none; /* Controlled dynamically */
             align-items: center;
@@ -526,17 +526,16 @@
     </div>
 
     <!-- Mobile Touch UI Overlay -->
-<div id="touch-controls">
+<!-- Mobile Touch UI Overlay -->
+    <div id="touch-controls">
         <div id="joystick-base">
             <div id="joystick-knob"></div>
         </div>
         <div class="touch-group">
             <div class="touch-btn" id="btn-hit" style="background: #b91c1c; border-color: #f87171; box-shadow: 0 6px 0 #7f1d1d;">HIT</div>
-            
-            <!-- Stacked Column for Interact and Jump -->
             <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
-                <div class="touch-btn" id="btn-action" style="display: none; margin: 0;">OPEN</div>
-                <div class="touch-btn" id="btn-jump" style="margin: 0;">JUMP</div>
+                <div class="touch-btn" id="btn-action" style="display: none;">OPEN</div>
+                <div class="touch-btn" id="btn-jump">JUMP</div>
             </div>
         </div>
     </div>
