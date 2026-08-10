@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Snowy Urban Exploration Quiz Adventure - project_name</title>
     <style>
         body {
@@ -1768,11 +1768,15 @@ if (!skel.isDead && isNearPlayer && !isQuizOpen) {
         updateHealthUI();
         animate();
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+window.addEventListener('resize', () => {
+    // Update camera aspect ratio and projection matrix
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    
+    // Resize renderer and respect device pixel ratio for sharp rendering
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+});
         
     </script>
 </body>
