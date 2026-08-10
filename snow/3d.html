@@ -410,9 +410,9 @@
             width: 65px;
             height: 65px;
             border-radius: 50%;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 900;
-            display: none; /* Controlled dynamically by your JS */
+            display: none; /* Controlled dynamically */
             align-items: center;
             justify-content: center;
             box-shadow: 0 6px 0 #713f12;
@@ -420,6 +420,7 @@
             pointer-events: auto;
             text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
             animation: pulsePrompt 1.5s infinite alternate;
+            margin-bottom: 8px; /* Space between it and the buttons below */
         }
         #btn-action:active {
             transform: translateY(3px);
@@ -526,14 +527,14 @@
     </div>
 
 <!-- Mobile Touch UI Overlay -->
-   <div id="touch-controls">
+    <div id="touch-controls">
         <div id="joystick-base">
             <div id="joystick-knob"></div>
         </div>
-        <div class="touch-group">
-            <!-- Unified vertical stack for all three buttons on the right -->
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                <div class="touch-btn" id="btn-action" style="display: none;">OPEN</div>
+        <div class="touch-group" style="flex-direction: column; align-items: flex-end;">
+            <!-- Bottom Middle Touch Interactive Button moved here -->
+            <div class="touch-btn" id="btn-action" style="display: none; background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%); border-color: #fde047;">⭐</div>
+            <div style="display: flex; gap: 12px;">
                 <div class="touch-btn" id="btn-hit" style="background: #b91c1c; border-color: #f87171; box-shadow: 0 6px 0 #7f1d1d;">HIT</div>
                 <div class="touch-btn" id="btn-jump">JUMP</div>
             </div>
