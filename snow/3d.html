@@ -400,6 +400,36 @@
             transform: translateY(3px);
             box-shadow: 0 3px 0 #0369a1;
         }
+        
+        /* Dedicated Bottom-Middle Interactive Action Button for Touch Devices */
+        #btn-action {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%);
+            border: 3px solid #fde047;
+            color: #ffffff;
+            width: 130px;
+            height: 55px;
+            border-radius: 28px;
+            font-size: 15px;
+            font-weight: 900;
+            display: none; /* Controlled dynamically */
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 0 #713f12, 0 10px 20px rgba(0,0,0,0.5);
+            z-index: 95;
+            cursor: pointer;
+            pointer-events: auto;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+            animation: pulsePrompt 1.5s infinite alternate;
+        }
+        #btn-action:active {
+            transform: translateX(-50%) translateY(3px);
+            box-shadow: 0 3px 0 #713f12;
+        }
+
         #joystick-base {
             position: relative;
             width: 120px;
@@ -507,9 +537,11 @@
         <div class="touch-group">
             <div class="touch-btn" id="btn-hit" style="background: #b91c1c; border-color: #f87171; box-shadow: 0 6px 0 #7f1d1d;">HIT</div>
             <div class="touch-btn" id="btn-jump">JUMP</div>
-            <div class="touch-btn" id="btn-action" style="display:none; background: #ca8a04; border-color: #fde047;">INTERACT</div>
         </div>
     </div>
+
+    <!-- Bottom Middle Touch Interactive Button -->
+    <div id="btn-action">⭐ INTERACT ⭐</div>
 
     <!-- Three.js and GLTFLoader Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -517,7 +549,7 @@
 
     <script>
         const project_name = {
-            version: "1.0.63",
+            version: "1.0.64",
             author: "Developer"
         };
 
@@ -1329,7 +1361,7 @@
         });
 
         window.addEventListener('pointerdown', (e) => {
-            if (e.target.closest('#touch-controls') || e.target.closest('#quiz-modal') || e.target.closest('#fullscreen-btn') || e.target.closest('#reset-cam-btn')) return;
+            if (e.target.closest('#touch-controls') || e.target.closest('#quiz-modal') || e.target.closest('#fullscreen-btn') || e.target.closest('#reset-cam-btn') || e.target.closest('#btn-action')) return;
             isMouseDown = true;
             prevMouseX = e.clientX;
             prevMouseY = e.clientY;
@@ -1351,11 +1383,15 @@
         const touchControlsEl = document.getElementById('touch-controls');
         const fullscreenBtnEl = document.getElementById('fullscreen-btn');
         const resetCamBtnEl = document.getElementById('reset-cam-btn');
+        const btnAction = document.getElementById('btn-action');
+        const interactPromptEl = document.getElementById('interact-prompt');
+        
         const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024);
         
         if (isTouchDevice) {
             touchControlsEl.style.display = 'flex';
             resetCamBtnEl.style.display = 'flex';
+            interactPromptEl.style.display = 'none'; // Hide keyboard prompt on mobile devices
             const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
             if (!isFullscreen) {
                 fullscreenBtnEl.style.display = 'flex';
@@ -1417,7 +1453,6 @@
             if (!isHitting && !isCheering) playHitAction();
         });
 
-        const btnAction = document.getElementById('btn-action');
         btnAction.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             if (playerIsDead) return;
@@ -1427,7 +1462,9 @@
         function openQuiz(starObj) {
             isQuizOpen = true;
             activeQuizStar = starObj;
-            document.getElementById('interact-prompt').style.display = 'none';
+            if (!isTouchDevice) {
+                interactPromptEl.style.display = 'none';
+            }
             btnAction.style.display = 'none';
 
             skeletons.forEach(skel => {
@@ -1785,8 +1822,11 @@
                 });
 
                 const showPrompt = activeQuizStar !== null;
-                document.getElementById('interact-prompt').style.display = showPrompt ? 'block' : 'none';
-                if (isTouchDevice) btnAction.style.display = showPrompt ? 'flex' : 'none';
+                if (!isTouchDevice) {
+                    interactPromptEl.style.display = showPrompt ? 'block' : 'none';
+                } else {
+                    btnAction.style.display = showPrompt ? 'flex' : 'none';
+                }
             }
 
             const targetCamX = playerGroup.position.x + Math.sin(cameraAngle) * Math.cos(cameraPitch) * cameraDistance;
