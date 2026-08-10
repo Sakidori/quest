@@ -294,14 +294,12 @@
         }
 
         /* Landscape Orientation Warning Screen - Full Fixed Bounds */
-        #rotate-warning {
-            position: fixed;
+#rotate-warning {
+            position: absolute;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background: #0f172a;
             color: #f8fafc;
             z-index: 99999;
@@ -313,6 +311,7 @@
             text-align: center;
             padding: 20px;
             box-sizing: border-box;
+            overflow: hidden;
         }
         #rotate-warning svg {
             width: 70px;
