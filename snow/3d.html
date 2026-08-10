@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Snowy Urban Exploration Quiz Adventure - project_name</title>
+    <!-- Include FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             margin: 0;
@@ -45,42 +47,43 @@
             gap: 8px;
         }
 
-        /* Fullscreen Button - Top Center */
-        #fullscreen-btn {
-            background: #f59e0b;
-            border: 3px solid #fbbf24;
-            color: #0f172a;
-            padding: 10px 16px;
+        /* Updated Icon Buttons - Top Center */
+        .icon-btn {
+            background: rgba(51, 65, 85, 0.85);
+            border: 2px solid #475569;
+            color: #ffffff;
+            width: 44px;
+            height: 44px;
             border-radius: 12px;
-            font-weight: 900;
-            font-size: 14px;
             cursor: pointer;
-            box-shadow: 0 4px 0 #b45309, 0 6px 15px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             display: none; /* Shown dynamically on touch devices or standard view */
-            transition: transform 0.1s, background-color 0.2s;
+            transition: transform 0.1s, background-color 0.2s, border-color 0.2s;
         }
-        #fullscreen-btn:active {
+        .icon-btn:hover {
+            background-color: #0284c7;
+            border-color: #38bdf8;
+            transform: translateY(-2px);
+        }
+        .icon-btn:active {
             transform: translateY(2px);
-            box-shadow: 0 2px 0 #b45309;
         }
 
-        /* Reset Camera Button - Top Center */
-        #reset-cam-btn {
-            background: #38bdf8;
-            border: 3px solid #7dd3fc;
-            color: #0f172a;
-            padding: 10px 16px;
-            border-radius: 12px;
-            font-weight: 900;
-            font-size: 14px;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #0284c7, 0 6px 15px rgba(0,0,0,0.4);
-            display: none; /* Shown dynamically on touch devices */
-            transition: transform 0.1s, background-color 0.2s;
-        }
-        #reset-cam-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #0284c7;
+        /* Accessibility helper to keep text hidden visually while remaining readable by screen readers */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
 
         .ui-box-compact {
@@ -468,10 +471,16 @@
             </div>
         </div>
 
-        <!-- Fullscreen & Camera Reset - Top Center -->
+        <!-- Fullscreen & Camera Reset - Top Center (Textless with Icons) -->
         <div style="display: flex; gap: 10px;">
-            <button id="fullscreen-btn" onclick="toggleFullScreen()">⛶ FULL SCREEN</button>
-            <button id="reset-cam-btn" onclick="resetCameraOrientation()">🔄 RESET CAM</button>
+            <button id="fullscreen-btn" class="icon-btn" onclick="toggleFullScreen()" title="Toggle Full Screen">
+                <i class="fas fa-expand" aria-hidden="true"></i>
+                <span class="sr-only">Full Screen</span>
+            </button>
+            <button id="reset-cam-btn" class="icon-btn" onclick="resetCameraOrientation()" title="Reset Camera">
+                <i class="fas fa-camera" aria-hidden="true"></i>
+                <span class="sr-only">Reset Camera</span>
+            </button>
         </div>
 
         <!-- Letters Panel - Top Right -->
@@ -1252,7 +1261,7 @@
             if (isFullscreen) {
                 fullscreenBtnEl.style.display = 'none';
             } else if (isTouchDevice) {
-                fullscreenBtnEl.style.display = 'block';
+                fullscreenBtnEl.style.display = 'flex';
             }
         }
 
@@ -1346,10 +1355,10 @@
         
         if (isTouchDevice) {
             touchControlsEl.style.display = 'flex';
-            resetCamBtnEl.style.display = 'block';
+            resetCamBtnEl.style.display = 'flex';
             const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
             if (!isFullscreen) {
-                fullscreenBtnEl.style.display = 'block';
+                fullscreenBtnEl.style.display = 'flex';
             }
         }
 
