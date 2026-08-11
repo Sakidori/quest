@@ -420,7 +420,6 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             startMinimizeTimer();
-            preloadPanoeeFrame();
         });
 
         function toggleUpdateNotes(event) {
@@ -460,7 +459,7 @@
         const trackTitleDisplay = document.getElementById('track-title');
 
         function playCurrentTrack() {
-            bgMusic.volume = 1.0; // Reset volume on new track play
+            bgMusic.volume = 1.0; 
             bgMusic.src = playlist[currentTrackIndex].src;
             trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
             bgMusic.play().then(() => {
@@ -524,11 +523,10 @@
             bgMusic.volume = 1.0;
         }
 
-        function preloadPanoeeFrame() {
+        function loadPanoeeFrame() {
             var wrapper = document.createElement("div");
             wrapper.className = "panoee-container";
             wrapper.id = "panoee-wrapper";
-            wrapper.style.display = "none";
 
             var iframe = document.createElement("iframe");
             iframe.src = "https://tour.panoee.net/iframe/6a59cd8d10863f0008ada757";
@@ -566,35 +564,34 @@
         async function startExperience() {
             const videoContainer = document.getElementById('intro-video-container');
             const introVideo = document.getElementById('intro-video');
-            const panoeeWrapper = document.getElementById('panoee-wrapper');
             
-            // Show pre-loaded panoee hidden behind the video overlay
-            if (panoeeWrapper) {
-                panoeeWrapper.style.display = "block";
-            }
+            // 1. Immediately show and play the video overlay on top of everything
+            videoContainer.style.display = 'flex';
+            videoContainer.style.opacity = '1';
 
-            // Fade out BGM smoothly over 1.5 seconds when START is pressed
+            // 2. Smoothly fade out background music over 1.5 seconds
             await fadeOutMusic(1500);
             playPauseBtn.textContent = "▶";
-
-            // Show and play video overlay
-            videoContainer.style.display = 'flex';
 
             introVideo.play().catch(e => {
                 console.log("Video auto-play blocked, skipping to panoee");
                 videoContainer.style.display = 'none';
                 currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+                loadPanoeeFrame();
                 playCurrentTrack();
             });
 
-            // Fade out video smoothly when it finishes playing, advance track, and play next track at full volume
+            // 3. When the video ends: hide video, load/reveal Panoee, advance playlist track, and play
             introVideo.onended = () => {
                 videoContainer.style.opacity = '0';
                 setTimeout(() => {
                     videoContainer.style.display = 'none';
                 }, 500);
                 
-                // Move to the next track and play
+                // Create and show Panoee frame now
+                loadPanoeeFrame();
+
+                // Move to the next track and play at full volume
                 currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
                 playCurrentTrack();
             };
