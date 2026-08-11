@@ -460,6 +460,7 @@
         const trackTitleDisplay = document.getElementById('track-title');
 
         function playCurrentTrack() {
+            bgMusic.volume = 1.0; // Reset volume on new track play
             bgMusic.src = playlist[currentTrackIndex].src;
             trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
             bgMusic.play().then(() => {
@@ -510,10 +511,8 @@
             document.querySelector(".start-btn").classList.add("start-visible");
             document.querySelector(".hub-btn").classList.add("hub-visible");
             
-            // Lower background music volume (e.g., 30% volume)
             bgMusic.volume = 0.3;
 
-            // Play book flip sound effect at max volume
             const bookSound = document.getElementById("book-sound");
             bookSound.volume = 1.0;
             bookSound.currentTime = 0;
@@ -522,8 +521,6 @@
 
         function closeRules() { 
             document.getElementById("rules-modal").style.display = "none";
-            
-            // Restore background music volume back to full (100%)
             bgMusic.volume = 1.0;
         }
 
@@ -542,7 +539,31 @@
             document.body.appendChild(wrapper);
         }
 
-        function startExperience() {
+        function fadeOutMusic(duration = 1500) {
+            return new Promise((resolve) => {
+                if (bgMusic.paused) {
+                    resolve();
+                    return;
+                }
+                let startVolume = bgMusic.volume;
+                let intervalTime = 50; 
+                let steps = duration / intervalTime;
+                let volumeStep = startVolume / steps;
+
+                let fadeTimer = setInterval(() => {
+                    if (bgMusic.volume > volumeStep) {
+                        bgMusic.volume -= volumeStep;
+                    } else {
+                        bgMusic.volume = 0;
+                        bgMusic.pause();
+                        clearInterval(fadeTimer);
+                        resolve();
+                    }
+                }, intervalTime);
+            });
+        }
+
+        async function startExperience() {
             const videoContainer = document.getElementById('intro-video-container');
             const introVideo = document.getElementById('intro-video');
             const panoeeWrapper = document.getElementById('panoee-wrapper');
@@ -552,8 +573,9 @@
                 panoeeWrapper.style.display = "block";
             }
 
-            // Lower background music to 10% volume while the video plays
-            bgMusic.volume = 0.1;
+            // Fade out BGM smoothly over 1.5 seconds when START is pressed
+            await fadeOutMusic(1500);
+            playPauseBtn.textContent = "▶";
 
             // Show and play video overlay
             videoContainer.style.display = 'flex';
@@ -561,21 +583,18 @@
             introVideo.play().catch(e => {
                 console.log("Video auto-play blocked, skipping to panoee");
                 videoContainer.style.display = 'none';
-                // Restore volume and advance track index if blocked
-                bgMusic.volume = 1.0;
                 currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
                 playCurrentTrack();
             });
 
-            // Fade out video smoothly when it finishes playing, advance track, and restore volume to 100%
+            // Fade out video smoothly when it finishes playing, advance track, and play next track at full volume
             introVideo.onended = () => {
                 videoContainer.style.opacity = '0';
                 setTimeout(() => {
                     videoContainer.style.display = 'none';
                 }, 500);
                 
-                // Restore full volume and move to the next track in the playlist
-                bgMusic.volume = 1.0;
+                // Move to the next track and play
                 currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
                 playCurrentTrack();
             };
