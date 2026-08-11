@@ -227,7 +227,12 @@
             cursor: pointer;
             z-index: 20001;
             display: none;
-            transition: background 0.2s ease, transform 0.2s ease;
+            opacity: 0;
+            transition: opacity 0.4s ease, background 0.2s ease, transform 0.2s ease;
+        }
+        #skip-video-btn.visible {
+            display: block;
+            opacity: 1;
         }
         #skip-video-btn:hover {
             background: rgba(255, 255, 255, 0.2);
@@ -589,10 +594,31 @@
         }
 
         let videoHasFinishedOrSkipped = false;
+        let isVideoPlaying = false;
+        let hideSkipTimer = null;
+
+        function showSkipButton() {
+            if (!isVideoPlaying || videoHasFinishedOrSkipped) return;
+            const skipBtn = document.getElementById('skip-video-btn');
+            skipBtn.classList.add('visible');
+
+            // Automatically hide it again after 3 seconds of inactivity
+            clearTimeout(hideSkipTimer);
+            hideSkipTimer = setTimeout(() => {
+                if (isVideoPlaying && !videoHasFinishedOrSkipped) {
+                    skipBtn.classList.remove('visible');
+                }
+            }, 3000);
+        }
+
+        // Setup interaction listeners for showing the skip button during the video
+        window.addEventListener('mousemove', showSkipButton);
+        window.addEventListener('touchstart', showSkipButton);
 
         function finishVideoSequence() {
             if (videoHasFinishedOrSkipped) return;
             videoHasFinishedOrSkipped = true;
+            isVideoPlaying = false;
 
             const videoContainer = document.getElementById('intro-video-container');
             const introVideo = document.getElementById('intro-video');
@@ -600,7 +626,7 @@
             const panoeeWrapper = document.getElementById('panoee-wrapper');
 
             introVideo.pause();
-            skipBtn.style.display = 'none';
+            skipBtn.classList.remove('visible');
 
             if (panoeeWrapper) {
                 panoeeWrapper.style.display = "block";
@@ -622,15 +648,14 @@
         async function startExperience() {
             const videoContainer = document.getElementById('intro-video-container');
             const introVideo = document.getElementById('intro-video');
-            const skipBtn = document.getElementById('skip-video-btn');
             const panoeeWrapper = document.getElementById('panoee-wrapper');
             
             videoHasFinishedOrSkipped = false;
+            isVideoPlaying = true;
 
             // 1. Instantly show the video overlay on top of everything
             videoContainer.style.display = 'flex';
             videoContainer.style.opacity = '1';
-            skipBtn.style.display = 'block';
 
             // 2. Play the video immediately
             introVideo.play().catch(e => {
