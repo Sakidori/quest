@@ -128,7 +128,6 @@
         #enter-container { display: block; }
 
         @media screen and (orientation: portrait) {
-            /* Title (adjusted for better mobile fit) */
             .text-box { 
                 width: 150% !important; 
                 top: 15% !important; 
@@ -136,7 +135,6 @@
             }
             .text-box img { width: 100% !important; }
 
-            /* Sword (adjusted for better mobile fit) */
             .sword-box { 
                 width: 90% !important; 
                 top: 25% !important; 
@@ -144,7 +142,6 @@
             }
             .sword-box img { width: 100% !important; }
 
-            /* Orientation Message */
             #rotate-msg { display: block !important; }
             #enter-container { display: none !important; }
             
@@ -194,6 +191,26 @@
         }
         @keyframes shine-animation { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
+        /* Intro Video Overlay Container */
+        #intro-video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 20000;
+            transition: opacity 0.5s ease;
+        }
+        #intro-video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         /* Panoee Cropping Container */
         .panoee-container {
             position: fixed;
@@ -214,9 +231,9 @@
             border: none;
         }
 
-@media screen and (max-width: 768px), screen and (orientation: landscape) {
+        @media screen and (max-width: 768px), screen and (orientation: landscape) {
             .panoee-container iframe {
-                height: 115%; /* Stretches the bottom further on mobile devices */
+                height: 115%;
             }
         }
 
@@ -334,6 +351,14 @@
         </div>
     </div>
 
+    <!-- Intro Video Overlay Container -->
+    <div id="intro-video-container">
+        <video id="intro-video" playsinline>
+            <source src="intro-video.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
     <div id="sparkle-container"></div>
     <div class="item-container text-box"><img src="text.webp" alt="Title"></div>
     <div class="item-container sword-box">
@@ -395,6 +420,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             startMinimizeTimer();
+            preloadPanoeeFrame();
         });
 
         function toggleUpdateNotes(event) {
@@ -501,9 +527,11 @@
             bgMusic.volume = 1.0;
         }
 
-        function startExperience() {
+        function preloadPanoeeFrame() {
             var wrapper = document.createElement("div");
             wrapper.className = "panoee-container";
+            wrapper.id = "panoee-wrapper";
+            wrapper.style.display = "none";
 
             var iframe = document.createElement("iframe");
             iframe.src = "https://tour.panoee.net/iframe/6a59cd8d10863f0008ada757";
@@ -512,6 +540,46 @@
             
             wrapper.appendChild(iframe);
             document.body.appendChild(wrapper);
+        }
+
+        function startExperience() {
+            const videoContainer = document.getElementById('intro-video-container');
+            const introVideo = document.getElementById('intro-video');
+            const panoeeWrapper = document.getElementById('panoee-wrapper');
+            
+            // Show pre-loaded panoee hidden behind the video overlay
+            if (panoeeWrapper) {
+                panoeeWrapper.style.display = "block";
+            }
+
+            // Pause background music while video plays
+            if (!bgMusic.paused) {
+                bgMusic.pause();
+                playPauseBtn.textContent = "▶";
+            }
+
+            // Show and play video overlay
+            videoContainer.style.display = 'flex';
+
+            introVideo.play().catch(e => {
+                console.log("Video auto-play blocked, skipping to panoee");
+                videoContainer.style.display = 'none';
+                // Advance track index and play next track if blocked
+                currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+                playCurrentTrack();
+            });
+
+            // Fade out video smoothly when it finishes playing, advance track, and resume music
+            introVideo.onended = () => {
+                videoContainer.style.opacity = '0';
+                setTimeout(() => {
+                    videoContainer.style.display = 'none';
+                }, 500);
+                
+                // Move to the next track in the playlist
+                currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+                playCurrentTrack();
+            };
         }
 
         function requestFullscreen() {
