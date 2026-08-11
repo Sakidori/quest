@@ -200,10 +200,11 @@
             height: 100vh;
             background: #000;
             display: none;
+            opacity: 0;
             justify-content: center;
             align-items: center;
             z-index: 20000;
-            transition: opacity 0.5s ease;
+            transition: opacity 1s ease; /* Smoother fade in/out */
         }
         #intro-video-container video {
             width: 100%;
@@ -664,7 +665,7 @@
             videoContainer.style.opacity = '0';
             setTimeout(() => {
                 videoContainer.style.display = 'none';
-            }, 500);
+            }, 1000); // Matched with CSS transition time
 
             // Move to the next track and play at full volume
             currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
@@ -684,21 +685,25 @@
             isVideoPlaying = true;
             isWaitingForShow = false;
 
-            // 1. Instantly show the video overlay on top of everything
+            // 1. Instantly show the video container (opacity 0) and start playing the video smoothly underneath
             videoContainer.style.display = 'flex';
-            videoContainer.style.opacity = '1';
-
+            
             // 2. Play the video immediately
             introVideo.play().catch(e => {
                 console.log("Video auto-play blocked, skipping to panoee");
                 finishVideoSequence();
             });
 
-            // 3. Fade out background music slower (3 seconds) concurrently with the video
+            // 3. Fade in the video overlay container smoothly over 1 second
+            setTimeout(() => {
+                videoContainer.style.opacity = '1';
+            }, 50);
+
+            // 4. Fade out background music slower (3 seconds) concurrently with the video fade-in
             await fadeOutMusic(3000);
             playPauseBtn.textContent = "▶";
 
-            // 4. When the video naturally ends
+            // 5. When the video naturally ends
             introVideo.onended = () => {
                 finishVideoSequence();
             };
