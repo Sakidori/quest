@@ -595,30 +595,41 @@
 
         let videoHasFinishedOrSkipped = false;
         let isVideoPlaying = false;
+        let showSkipTimer = null;
         let hideSkipTimer = null;
 
-        function showSkipButton() {
+        function handleVideoInput() {
             if (!isVideoPlaying || videoHasFinishedOrSkipped) return;
-            const skipBtn = document.getElementById('skip-video-btn');
-            skipBtn.classList.add('visible');
 
-            // Automatically hide it again after 3 seconds of inactivity
+            const skipBtn = document.getElementById('skip-video-btn');
+
+            // Clear any pending timers so continuous input resets the cycle
+            clearTimeout(showSkipTimer);
             clearTimeout(hideSkipTimer);
-            hideSkipTimer = setTimeout(() => {
-                if (isVideoPlaying && !videoHasFinishedOrSkipped) {
+
+            // Wait 3 seconds after input to show the button
+            showSkipTimer = setTimeout(() => {
+                if (!isVideoPlaying || videoHasFinishedOrSkipped) return;
+                skipBtn.classList.add('visible');
+
+                // Keep it visible for 2 seconds, then hide it
+                hideSkipTimer = setTimeout(() => {
                     skipBtn.classList.remove('visible');
-                }
+                }, 2000);
             }, 3000);
         }
 
-        // Setup interaction listeners for showing the skip button during the video
-        window.addEventListener('mousemove', showSkipButton);
-        window.addEventListener('touchstart', showSkipButton);
+        // Setup interaction listeners for capturing input during the video
+        window.addEventListener('mousemove', handleVideoInput);
+        window.addEventListener('touchstart', handleVideoInput);
 
         function finishVideoSequence() {
             if (videoHasFinishedOrSkipped) return;
             videoHasFinishedOrSkipped = true;
             isVideoPlaying = false;
+
+            clearTimeout(showSkipTimer);
+            clearTimeout(hideSkipTimer);
 
             const videoContainer = document.getElementById('intro-video-container');
             const introVideo = document.getElementById('intro-video');
