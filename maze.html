@@ -409,6 +409,58 @@
             object-fit: cover;
         }
 
+        /* --- MUSIC PLAYER STYLES --- */
+        #music-widget {
+            pointer-events: auto !important;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10000;
+            color: white;
+            font-family: sans-serif;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: opacity 0.3s ease;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .music-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            line-height: 1;
+        }
+
+        .music-btn:hover { 
+            transform: scale(1.15); 
+            opacity: 0.8; 
+        }
+
+        #track-title {
+            font-size: 14px;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
         /* Landscape Orientation Warning Screen */
         #landscape-warning {
             position: fixed;
@@ -454,6 +506,18 @@
     <div id="landscape-warning">
         <h2>端末を縦向きにしてください</h2>
     </div>
+
+    <!-- Floating Music Player Widget -->
+    <div id="music-widget">
+        <span id="track-title">Track 4</span>
+        <div class="controls-group">
+            <button class="music-btn" onclick="prevTrack()" title="Previous">⏮</button>
+            <button class="music-btn" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">▶</button>
+            <button class="music-btn" onclick="nextTrack()" title="Next">⏭</button>
+        </div>
+    </div>
+
+    <audio id="bg-music"></audio>
 
     <div class="container">
         <header>
@@ -526,6 +590,100 @@
     </div>
 
     <script>
+        // --- MUSIC PLAYER LOGIC ---
+        const playlist = [
+            { name: "1.Adventure", src: "../music/kaisen.mp3" },
+            { name: "2.Summer", src: "../music/natsuyasuminotanken.mp3" }, 
+            { name: "3.Rain", src: "../music/solarisnoame.mp3" }, 
+            { name: "4.Lunar", src: "../music/gesshokunomirage.mp3" }, 
+            { name: "5.Kingdom", src: "../music/icarusnotsuiraku.mp3" },
+            { name: "6.Tomorrow", src: "../music/ashitaetudukusora.mp3" }, 
+            { name: "7.Snow", src: "../music/hatsuyuki.mp3" },
+            { name: "8.Onward", src: "../music/zangyousenshi.mp3" }, 
+            { name: "9.Evening", src: "../music/houkagonoumibe.mp3" }, 
+            { name: "10.Boss", src: "../music/gameover.mp3" }, 
+            { name: "11.Always", src: "../music/suisounishizumutsuki.mp3" },
+            { name: "12.Cosmos", src: "../music/houkagonoyuzora.mp3" }, 
+            { name: "13.Journey", src: "../music/umioiku.mp3" },
+            { name: "14.End", src: "../music/kouyaoiku.mp3" }, 
+            { name: "15.March", src: "../music/funenotabi.mp3" }, 
+            { name: "16.Endless", src: "../music/hateshinaimichi.mp3" }, 
+            { name: "17.Mystery", src: "../music/tsukitowatashi_violin.mp3" }
+        ];
+
+        let currentTrackIndex = 3; // Index 3 corresponds to Track 4 ("4.Lunar")
+        const bgMusic = document.getElementById('bg-music');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const trackTitleDisplay = document.getElementById('track-title');
+
+        let wasPlayingBeforeHidden = false;
+
+        trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
+        bgMusic.src = playlist[currentTrackIndex].src;
+
+        function playCurrentTrack() {
+            bgMusic.volume = 1.0; 
+            bgMusic.src = playlist[currentTrackIndex].src;
+            trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
+            bgMusic.play().then(() => {
+                playPauseBtn.textContent = "❚❚"; 
+            }).catch(e => console.log("Audio play blocked or waiting for interaction"));
+        }
+
+        document.addEventListener('pointerdown', function initialPlay() {
+            if (bgMusic.paused && !bgMusic.currentTime) {
+                playCurrentTrack();
+            }
+        }, { once: true });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (!bgMusic.paused) {
+                    wasPlayingBeforeHidden = true;
+                    bgMusic.pause();
+                    playPauseBtn.textContent = "▶";
+                } else {
+                    wasPlayingBeforeHidden = false;
+                }
+            } else {
+                if (wasPlayingBeforeHidden) {
+                    bgMusic.play().then(() => {
+                        playPauseBtn.textContent = "❚❚";
+                    }).catch(e => console.log("Resume audio blocked"));
+                }
+            }
+        });
+
+        bgMusic.addEventListener('ended', () => {
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            playCurrentTrack();
+        });
+
+        function togglePlayPause() {
+            if (bgMusic.paused) {
+                if (!bgMusic.src) {
+                    playCurrentTrack();
+                } else {
+                    bgMusic.play();
+                }
+                playPauseBtn.textContent = "❚❚";
+            } else {
+                bgMusic.pause();
+                playPauseBtn.textContent = "▶"; 
+            }
+        }
+
+        function nextTrack() {
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            playCurrentTrack();
+        }
+
+        function prevTrack() {
+            currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+            playCurrentTrack();
+        }
+
+        // --- MAZE GAME LOGIC ---
         const canvas = document.getElementById('mazeCanvas');
         const ctx = canvas.getContext('2d');
         const startScreen = document.getElementById('start-screen');
