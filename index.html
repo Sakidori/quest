@@ -597,36 +597,55 @@
         let isVideoPlaying = false;
         let showSkipTimer = null;
         let hideSkipTimer = null;
+        let isWaitingForShow = false;
 
-        function handleVideoInput() {
+        function handleVideoInput(e) {
             if (!isVideoPlaying || videoHasFinishedOrSkipped) return;
+
+            // Don't trigger if the user clicked directly on the skip button itself
+            if (e && e.target && e.target.id === 'skip-video-btn') return;
 
             const skipBtn = document.getElementById('skip-video-btn');
 
-            // Clear any pending timers so continuous input resets the cycle
-            clearTimeout(showSkipTimer);
-            clearTimeout(hideSkipTimer);
-
-            // Wait 3 seconds after input to show the button
-            showSkipTimer = setTimeout(() => {
-                if (!isVideoPlaying || videoHasFinishedOrSkipped) return;
-                skipBtn.classList.add('visible');
-
-                // Keep it visible for 2 seconds, then hide it
+            // If the button is already visible, any new input resets the 2-second hide countdown
+            if (skipBtn.classList.contains('visible')) {
+                clearTimeout(hideSkipTimer);
                 hideSkipTimer = setTimeout(() => {
                     skipBtn.classList.remove('visible');
                 }, 2000);
-            }, 3000);
+                return;
+            }
+
+            // If we are already waiting for the 2-second show delay, ignore additional inputs to keep the initial timer steady
+            if (isWaitingForShow) return;
+
+            isWaitingForShow = true;
+
+            // 1. Wait 2 seconds after input, then show the button
+            showSkipTimer = setTimeout(() => {
+                isWaitingForShow = false;
+                if (!isVideoPlaying || videoHasFinishedOrSkipped) return;
+                
+                skipBtn.classList.add('visible');
+
+                // 2. Keep it visible for 2 seconds, then hide it if not interacted with
+                hideSkipTimer = setTimeout(() => {
+                    skipBtn.classList.remove('visible');
+                }, 2000);
+            }, 2000);
         }
 
-        // Setup interaction listeners for capturing input during the video
-        window.addEventListener('mousemove', handleVideoInput);
-        window.addEventListener('touchstart', handleVideoInput);
+        // Listen on the video container element for inputs
+        const videoContainerEl = document.getElementById('intro-video-container');
+        videoContainerEl.addEventListener('mousemove', handleVideoInput);
+        videoContainerEl.addEventListener('touchstart', handleVideoInput);
+        videoContainerEl.addEventListener('click', handleVideoInput);
 
         function finishVideoSequence() {
             if (videoHasFinishedOrSkipped) return;
             videoHasFinishedOrSkipped = true;
             isVideoPlaying = false;
+            isWaitingForShow = false;
 
             clearTimeout(showSkipTimer);
             clearTimeout(hideSkipTimer);
@@ -663,6 +682,7 @@
             
             videoHasFinishedOrSkipped = false;
             isVideoPlaying = true;
+            isWaitingForShow = false;
 
             // 1. Instantly show the video overlay on top of everything
             videoContainer.style.display = 'flex';
