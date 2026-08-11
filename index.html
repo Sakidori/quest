@@ -29,7 +29,7 @@
         }
 
         /* Ensure interactive controls maintain pointer responsiveness */
-        .button-group, #music-widget, .modal {
+        .button-group, #music-widget, .modal, #skip-video-btn {
             pointer-events: auto !important;
         }
 
@@ -211,6 +211,29 @@
             object-fit: cover;
         }
 
+        /* Skip Video Button */
+        #skip-video-btn {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 20px;
+            font-family: sans-serif;
+            font-size: 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            z-index: 20001;
+            display: none;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        #skip-video-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
         /* Panoee Cropping Container */
         .panoee-container {
             position: fixed;
@@ -359,6 +382,7 @@
             <source src="intro-video.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
+        <button id="skip-video-btn" onclick="skipVideo()">Skip Video ❯❯</button>
     </div>
 
     <div id="sparkle-container"></div>
@@ -564,41 +588,63 @@
             });
         }
 
+        let videoHasFinishedOrSkipped = false;
+
+        function finishVideoSequence() {
+            if (videoHasFinishedOrSkipped) return;
+            videoHasFinishedOrSkipped = true;
+
+            const videoContainer = document.getElementById('intro-video-container');
+            const introVideo = document.getElementById('intro-video');
+            const skipBtn = document.getElementById('skip-video-btn');
+            const panoeeWrapper = document.getElementById('panoee-wrapper');
+
+            introVideo.pause();
+            skipBtn.style.display = 'none';
+
+            if (panoeeWrapper) {
+                panoeeWrapper.style.display = "block";
+            }
+            videoContainer.style.opacity = '0';
+            setTimeout(() => {
+                videoContainer.style.display = 'none';
+            }, 500);
+
+            // Move to the next track and play at full volume
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            playCurrentTrack();
+        }
+
+        function skipVideo() {
+            finishVideoSequence();
+        }
+
         async function startExperience() {
             const videoContainer = document.getElementById('intro-video-container');
             const introVideo = document.getElementById('intro-video');
+            const skipBtn = document.getElementById('skip-video-btn');
             const panoeeWrapper = document.getElementById('panoee-wrapper');
             
-            // 1. Instantly show the video overlay on top of everything (prevents main site flashing)
+            videoHasFinishedOrSkipped = false;
+
+            // 1. Instantly show the video overlay on top of everything
             videoContainer.style.display = 'flex';
             videoContainer.style.opacity = '1';
+            skipBtn.style.display = 'block';
 
             // 2. Play the video immediately
             introVideo.play().catch(e => {
                 console.log("Video auto-play blocked, skipping to panoee");
-                videoContainer.style.display = 'none';
-                if (panoeeWrapper) panoeeWrapper.style.display = "block";
-                currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-                playCurrentTrack();
+                finishVideoSequence();
             });
 
-            // 3. Fade out background music slower (now 3 seconds instead of 1.5) concurrently with the video
+            // 3. Fade out background music slower (3 seconds) concurrently with the video
             await fadeOutMusic(3000);
             playPauseBtn.textContent = "▶";
 
-            // 4. When the video ends: smoothly fade out the video container, show preloaded Panoee cleanly underneath, and start next track
+            // 4. When the video naturally ends
             introVideo.onended = () => {
-                if (panoeeWrapper) {
-                    panoeeWrapper.style.display = "block"; // Ensure it's visible right before video fades out
-                }
-                videoContainer.style.opacity = '0';
-                setTimeout(() => {
-                    videoContainer.style.display = 'none';
-                }, 500);
-                
-                // Move to the next track and play at full volume
-                currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-                playCurrentTrack();
+                finishVideoSequence();
             };
         }
 
