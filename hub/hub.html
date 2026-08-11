@@ -371,16 +371,13 @@
             { name: "17.Mystery", src: "../music/tsukitowatashi_violin.mp3" }
         ];
 
-        // Start from track 9 (index 8 since arrays are 0-indexed)
         let currentTrackIndex = 8;
         const bgMusic = document.getElementById('bg-music');
         const playPauseBtn = document.getElementById('play-pause-btn');
         const trackTitleDisplay = document.getElementById('track-title');
 
-        // Track whether music was actively playing before a tab switch
         let wasPlayingBeforeHidden = false;
 
-        // Preload track info visually without forcing autoplay block on load
         trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
         bgMusic.src = playlist[currentTrackIndex].src;
 
@@ -393,17 +390,14 @@
             }).catch(e => console.log("Audio play blocked or waiting for interaction"));
         }
 
-        // --- FIRST-CLICK AUTO-PLAY LISTENER ---
         document.addEventListener('pointerdown', function initialPlay() {
             if (bgMusic.paused && !bgMusic.currentTime) {
                 playCurrentTrack();
             }
-        }, { once: true }); // Triggers only on the very first click/touch
+        }, { once: true });
 
-        // --- TAB SWITCH LISTENER (VISIBILITY API) ---
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
-                // User switched away from the tab or minimized the window
                 if (!bgMusic.paused) {
                     wasPlayingBeforeHidden = true;
                     bgMusic.pause();
@@ -412,7 +406,6 @@
                     wasPlayingBeforeHidden = false;
                 }
             } else {
-                // User came back to the tab
                 if (wasPlayingBeforeHidden) {
                     bgMusic.play().then(() => {
                         playPauseBtn.textContent = "❚❚";
@@ -450,7 +443,6 @@
             playCurrentTrack();
         }
 
-
         // --- SCENE SETUP ---
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x020208);
@@ -464,7 +456,6 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
-        // --- FULLSCREEN LOGIC ---
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
@@ -477,7 +468,6 @@
             }
         }
 
-        // --- LIGHTING ---
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
 
@@ -485,7 +475,6 @@
         dirLight.position.set(15, 30, 20);
         scene.add(dirLight);
 
-        // --- BACKGROUND STARFIELD ---
         const starsGeo = new THREE.BufferGeometry();
         const starsCount = 800;
         const starPos = new Float32Array(starsCount * 3);
@@ -506,7 +495,6 @@
         const starsPoints = new THREE.Points(starsGeo, starsMat);
         scene.add(starsPoints);
 
-        // --- WORLD DEFINITIONS ---
         const worldsData = [
             { name: "Forest RPG", type: "image", src: "1.webp", url: "https://sakidori.github.io/quest/game/school_adventure_sprites.html" },
             { name: "Desert Maze", type: "image", src: "2.webp", url: "https://sakidori.github.io/quest/maze.html" },
@@ -549,7 +537,6 @@
                     },
                     undefined,
                     (err) => {
-                        console.warn(`Could not load ${data.src}. Using fallback.`);
                         const fallbackTex = new THREE.CanvasTexture(createFallbackCanvas("MISSING FILE"));
                         picMat.map = fallbackTex;
                         picMat.needsUpdate = true;
@@ -604,15 +591,17 @@
             return canvas;
         }
 
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const loader = document.getElementById('loading-screen');
+        // --- SAFE LOADING SCREEN REMOVAL ---
+        function dismissLoadingScreen() {
+            const loader = document.getElementById('loading-screen');
+            if (loader) {
                 loader.style.opacity = '0';
                 setTimeout(() => loader.remove(), 500);
-            }, 300);
-        });
+            }
+        }
+        window.addEventListener('load', () => { setTimeout(dismissLoadingScreen, 300); });
+        setTimeout(dismissLoadingScreen, 1500); // Failsafe fallback timer
 
-        // --- NAVIGATION STATE ---
         let currentTargetIndex = 0;
         let currentCarouselAngle = 0;
         let targetCarouselAngle = 0;
@@ -690,7 +679,6 @@
             toggleUIVisibility(false);
         }
 
-        // --- TOUCH & MOUSE INTERACTION ---
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         let touchStartX = 0;
@@ -863,862 +851,6 @@
             }, 500);
         }
 
-        // --- ANIMATION LOOP ---
-        let clock = new THREE.Clock();
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            const delta = clock.getDelta();
-            const elapsedTime = clock.getElapsedTime();
-
-            currentCarouselAngle += (targetCarouselAngle - currentCarouselAngle) * 12 * delta;
-
-            let wrappedIndex = ((currentTargetIndex % totalWorlds) + totalWorlds) % totalWorlds;
-
-            frameNodes.forEach((node, idx) => {
-                const totalAngle = node.baseAngle + currentCarouselAngle;
-                
-                const x = Math.sin(totalAngle) * radius;
-                const z = Math.cos(totalAngle) * radius;
-                const y = Math.sin(elapsedTime * 2 + node.floatOffset) * 0.6;
-
-                node.group.position.set(x, y, z);
-                
-                const extraYaw = -Math.sin(totalAngle) * 0.45;
-                node.group.rotation.set(0, totalAngle + extraYaw, 0);
-
-                const isCentered = idx === wrappedIndex;
-                const scaleTarget = isCentered ? 1.35 : 0.85;
-                node.group.scale.lerp(new THREE.Vector3(scaleTarget, scaleTarget, scaleTarget), 0.1);
-            });
-
-            if (isFlyingIn) {
-                flightProgress += delta * 1.2;
-                if (flightProgress > 1) flightProgress = 1;
-
-                const ease = 1 - Math.pow(1 - flightProgress, 3);
-                camera.position.lerpVectors(cameraStartPos, cameraTargetPos, ease);
-                camera.quaternion.slerpQuaternions(cameraStartQuat, cameraTargetQuat, ease);
-
-                const fadeOutAlpha = Math.max(0, 1 - flightProgress * 1.5);
-                frameNodes.forEach(node => {
-                    node.materials.forEach(mat => {
-                        mat.opacity = fadeOutAlpha;
-                    });
-                });
-                starsPoints.material.opacity = fadeOutAlpha;
-                starsPoints.material.transparent = true;
-
-                const gameScreen = document.getElementById('game-screen');
-                if (flightProgress >= 0.05 && gameScreen.style.display !== 'flex') {
-                    gameScreen.style.display = 'flex';
-                    setTimeout(() => { gameScreen.style.opacity = '1'; }, 10);
-                }
-
-                if (flightProgress >= 1.0) {
-                    launchGame();
-                }
-            } else if (isFlyingOut) {
-                flightProgress += delta * 1.2;
-                if (flightProgress > 1) flightProgress = 1;
-
-                const ease = 1 - Math.pow(1 - flightProgress, 3);
-                camera.position.lerpVectors(cameraStartPos, cameraTargetPos, ease);
-                camera.quaternion.slerpQuaternions(cameraStartQuat, cameraTargetQuat, ease);
-
-                const fadeInAlpha = Math.min(1, flightProgress * 1.5);
-                frameNodes.forEach(node => {
-                    node.materials.forEach(mat => {
-                        mat.opacity = fadeInAlpha;
-                    });
-                });
-                starsPoints.material.opacity = fadeInAlpha;
-
-                if (flightProgress >= 0.3 && document.getElementById('game-screen').style.opacity === '1') {
-                    document.getElementById('game-screen').style.opacity = '0';
-                }
-
-                if (flightProgress >= 1.0) {
-                    isFlyingOut = false;
-                    document.getElementById('game-screen').style.display = 'none';
-                    camera.position.set(0, 0, 24);
-                    camera.quaternion.identity();
-                    camera.lookAt(0, 0, 0);
-
-                    toggleUIVisibility(true);
-                }
-            }
-
-            renderer.render(scene, camera);
-        }
-
-        animate();
-    </script>
-</body>
-</html>            transform: translateX(-50%) skew(-3deg);
-            background: #ff0055;
-            padding: 12px 30px;
-            border-radius: 30px;
-            color: #fff;
-            font-size: 15px;
-            border: 4px solid #ffe600;
-            box-shadow: 0 5px 0px #88002b;
-            pointer-events: auto;
-            cursor: pointer;
-            text-align: center;
-            font-weight: bold;
-            z-index: 10;
-            transition: opacity 0.3s ease, transform 0.1s;
-        }
-
-        #controls-hint:active {
-            transform: translateX(-50%) skew(-3deg) translateY(3px);
-            box-shadow: 0 2px 0px #88002b;
-        }
-
-        /* --- CAROUSEL NAVIGATION BUTTONS --- */
-        .carousel-nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 70px;
-            height: 120px;
-            background: rgba(255, 230, 0, 0.15);
-            border: 3px solid rgba(255, 230, 0, 0.4);
-            color: #ffe600;
-            font-size: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 15;
-            transition: background 0.2s, transform 0.1s, opacity 0.3s ease;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            text-shadow: 0 2px 5px rgba(0,0,0,0.8);
-        }
-
-        .carousel-nav-btn:hover {
-            background: rgba(255, 230, 0, 0.35);
-            border-color: rgba(255, 230, 0, 0.8);
-        }
-
-        .carousel-nav-btn:active {
-            transform: translateY(-50%) scale(0.92);
-        }
-
-        #nav-left {
-            left: 20px;
-            border-radius: 0 20px 20px 0;
-        }
-
-        #nav-right {
-            right: 20px;
-            border-radius: 20px 0 0 20px;
-        }
-
-        #loading-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #030308;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: white;
-            z-index: 100;
-            transition: opacity 0.5s ease;
-        }
-
-        #loading-screen h2 {
-            color: #ffe600;
-            font-size: 40px;
-            margin-bottom: 10px;
-            text-shadow: 3px 3px 0px #ff0055;
-        }
-
-        #game-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 0, 85, 1);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: white;
-            z-index: 20;
-            opacity: 0;
-            transition: opacity 1.2s ease;
-        }
-
-        #game-screen h2 {
-            font-size: 40px;
-            color: #ffe600;
-            text-shadow: 4px 4px 0px #000;
-            margin: 0 0 15px 0;
-            transform: rotate(-3deg);
-        }
-
-        #game-preview-container {
-            width: 500px;
-            height: 312px;
-            border: 6px solid #ffe600;
-            border-radius: 12px;
-            box-shadow: 0 8px 0px #000;
-            margin-bottom: 25px;
-            overflow: hidden;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #game-preview-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        #game-screen .button-container {
-            display: flex;
-            gap: 20px;
-        }
-
-        #game-screen a.game-btn, #game-screen button {
-            display: inline-block;
-            padding: 15px 40px;
-            background: #ffe600;
-            border: 4px solid #000;
-            border-radius: 50px;
-            font-weight: 900;
-            cursor: pointer;
-            color: #000;
-            font-size: 22px;
-            text-decoration: none;
-            box-shadow: 0 6px 0px #b89f00;
-            transition: 0.1s;
-        }
-
-        #game-screen a.game-btn:active, #game-screen button:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0px #b89f00;
-        }
-
-        /* --- MUSIC PLAYER STYLES --- */
-        #music-widget {
-            pointer-events: auto !important;
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 8px 16px;
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 10000;
-            color: white;
-            font-family: sans-serif;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: opacity 0.3s ease;
-        }
-
-        .controls-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .music-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s ease, opacity 0.2s ease;
-            line-height: 1;
-        }
-
-        .music-btn:hover { 
-            transform: scale(1.15); 
-            opacity: 0.8; 
-        }
-
-        #track-title {
-            font-size: 14px;
-            white-space: nowrap;
-            line-height: 1;
-        }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 24px; }
-            p { font-size: 13px; }
-            #game-preview-container { width: 90vw; height: 56vw; }
-            #game-screen h2 { font-size: 28px; }
-            #game-screen a.game-btn, #game-screen button { padding: 12px 25px; font-size: 18px; }
-            .carousel-nav-btn { width: 55px; height: 90px; font-size: 30px; }
-            #fullscreen-btn { width: 42px; height: 42px; font-size: 18px; right: 15px; top: 15px; }
-        }
-
-        @media (max-width: 768px) and (orientation: portrait) {
-            .carousel-nav-btn {
-                top: 76%;
-                transform: translateY(0);
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <div id="loading-screen">
-        <h2>LOADING...</h2>
-    </div>
-
-    <div id="ui-overlay">
-        <h1>SUMMER QUEST HUB</h1>
-    </div>
-
-    <!-- Fullscreen Toggle Button -->
-    <div id="fullscreen-btn" onclick="toggleFullScreen()">&#x26F6;</div>
-
-    <!-- On-screen Transparent Carousel Arrows -->
-    <div id="nav-left" class="carousel-nav-btn" onclick="rotateCarousel(-1)">&#10094;</div>
-    <div id="nav-right" class="carousel-nav-btn" onclick="rotateCarousel(1)">&#10095;</div>
-
-    <div id="controls-hint" onclick="triggerFlyIn()">
-        MINIGAME: <span id="current-world-name" style="color: #ffe600;">Forest RPG</span>
-    </div>
-
-    <!-- Floating Music Player Widget -->
-    <div id="music-widget">
-        <span id="track-title">Track 9</span>
-        <div class="controls-group">
-            <button class="music-btn" onclick="prevTrack()" title="Previous">⏮</button>
-            <button class="music-btn" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">▶</button>
-            <button class="music-btn" onclick="nextTrack()" title="Next">⏭</button>
-        </div>
-    </div>
-
-    <audio id="bg-music"></audio>
-
-    <div id="game-screen">
-        <h2 id="active-game-title"></h2>
-        <div id="game-preview-container">
-            <img id="game-preview-img" src="" alt="Game Preview">
-        </div>
-        <div class="button-container">
-            <a id="game-link" href="https://example.com/placeholder-game-url" class="game-btn" target="_blank">PLAY</a>
-            <button onclick="exitGame()">BACK TO HUB</button>
-        </div>
-    </div>
-
-    <!-- Include Three.js via CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-    <script>
-        // --- MUSIC PLAYER LOGIC ---
-        const playlist = [
-            { name: "1.Adventure", src: "../music/kaisen.mp3" },
-            { name: "2.Summer", src: "../music/natsuyasuminotanken.mp3" }, 
-            { name: "3.Rain", src: "../music/solarisnoame.mp3" }, 
-            { name: "4.Lunar", src: "../music/gesshokunomirage.mp3" }, 
-            { name: "5.Kingdom", src: "../music/icarusnotsuiraku.mp3" },
-            { name: "6.Tomorrow", src: "../music/ashitaetudukusora.mp3" }, 
-            { name: "7.Snow", src: "../music/hatsuyuki.mp3" },
-            { name: "8.Onward", src: "../music/zangyousenshi.mp3" }, 
-            { name: "9.Evening", src: "../music/houkagonoumibe.mp3" }, 
-            { name: "10.Boss", src: "../music/gameover.mp3" }, 
-            { name: "11.Always", src: "../music/suisounishizumutsuki.mp3" },
-            { name: "12.Cosmos", src: "../music/houkagonoyuzora.mp3" }, 
-            { name: "13.Journey", src: "../music/umioiku.mp3" },
-            { name: "14.End", src: "../music/kouyaoiku.mp3" }, 
-            { name: "15.March", src: "../music/funenotabi.mp3" }, 
-            { name: "16.Endless", src: "../music/hateshinaimichi.mp3" }, 
-            { name: "17.Mystery", src: "../music/tsukitowatashi_violin.mp3" }
-        ];
-
-        // Start from track 9 (index 8 since arrays are 0-indexed)
-        let currentTrackIndex = 8;
-        const bgMusic = document.getElementById('bg-music');
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const trackTitleDisplay = document.getElementById('track-title');
-
-        // Preload track info visually without forcing autoplay block on load
-        trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
-        bgMusic.src = playlist[currentTrackIndex].src;
-
-        function playCurrentTrack() {
-            bgMusic.volume = 1.0; 
-            bgMusic.src = playlist[currentTrackIndex].src;
-            trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
-            bgMusic.play().then(() => {
-                playPauseBtn.textContent = "❚❚"; 
-            }).catch(e => console.log("Audio play blocked or waiting for interaction"));
-        }
-
-        // --- FIRST-CLICK AUTO-PLAY LISTENER ---
-        document.addEventListener('pointerdown', function initialPlay() {
-            if (bgMusic.paused && !bgMusic.currentTime) {
-                playCurrentTrack();
-            }
-        }, { once: true }); // Triggers only on the very first click/touch
-
-        bgMusic.addEventListener('ended', () => {
-            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-            playCurrentTrack();
-        });
-
-        function togglePlayPause() {
-            if (bgMusic.paused) {
-                if (!bgMusic.src) {
-                    playCurrentTrack();
-                } else {
-                    bgMusic.play();
-                }
-                playPauseBtn.textContent = "❚❚";
-            } else {
-                bgMusic.pause();
-                playPauseBtn.textContent = "▶"; 
-            }
-        }
-
-        function nextTrack() {
-            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-            playCurrentTrack();
-        }
-
-        function prevTrack() {
-            currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
-            playCurrentTrack();
-        }
-
-
-        // --- SCENE SETUP ---
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x020208);
-        scene.fog = new THREE.FogExp2(0x020208, 0.012);
-
-        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 0, 24);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        document.body.appendChild(renderer.domElement);
-
-        // --- FULLSCREEN LOGIC ---
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.warn(`Error attempting to enable fullscreen: ${err.message}`);
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        }
-
-        // --- LIGHTING ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-        scene.add(ambientLight);
-
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-        dirLight.position.set(15, 30, 20);
-        scene.add(dirLight);
-
-        // --- BACKGROUND STARFIELD ---
-        const starsGeo = new THREE.BufferGeometry();
-        const starsCount = 800;
-        const starPos = new Float32Array(starsCount * 3);
-        for(let i = 0; i < starsCount * 3; i += 3) {
-            let x = (Math.random() - 0.5) * 400;
-            let y = (Math.random() - 0.5) * 400;
-            let z = (Math.random() - 0.5) * 400;
-            
-            if(Math.abs(x) < 30) x += (x < 0 ? -30 : 30);
-            if(Math.abs(y) < 30) y += (y < 0 ? -30 : 30);
-
-            starPos[i] = x;
-            starPos[i+1] = y;
-            starPos[i+2] = z;
-        }
-        starsGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-        const starsMat = new THREE.PointsMaterial({color: 0xffffff, size: 0.7});
-        const starsPoints = new THREE.Points(starsGeo, starsMat);
-        scene.add(starsPoints);
-
-        // --- WORLD DEFINITIONS ---
-        const worldsData = [
-            { name: "Forest RPG", type: "image", src: "1.webp", url: "https://sakidori.github.io/quest/game/school_adventure_sprites.html" },
-            { name: "Desert Maze", type: "image", src: "2.webp", url: "https://sakidori.github.io/quest/maze.html" },
-            { name: "Underwater Puzzle", type: "image", src: "3.webp", url: "https://sakidori.github.io/quest/Tile%20Game/tile%20game-seashells.html" },
-            { name: "Space Survival", type: "image", src: "4.webp", url: "https://sakidori.github.io/quest/space/space.html" },
-            { name: "Coming soon...", type: "question", url: "https://example.com/mystery-5" },
-            { name: "Coming soon...", type: "question", url: "https://example.com/mystery-6" }
-        ];
-
-        const radius = 13;
-        const totalWorlds = worldsData.length;
-        const frameNodes = [];
-        const textureLoader = new THREE.TextureLoader();
-
-        const frameWidth = 6.6;
-        const frameHeight = 4.3;
-        const planeWidth = 6.0;
-        const planeHeight = 3.75;
-
-        worldsData.forEach((data, index) => {
-            const frameGroup = new THREE.Group();
-
-            const frameGeo = new THREE.BoxGeometry(frameWidth, frameHeight, 0.4);
-            const frameMat = new THREE.MeshStandardMaterial({ color: 0xffe600, roughness: 0.2, transparent: true, opacity: 1 });
-            const frameMesh = new THREE.Mesh(frameGeo, frameMat);
-            frameGroup.add(frameMesh);
-
-            const picGeo = new THREE.PlaneGeometry(planeWidth, planeHeight);
-            let picMat;
-
-            if (data.type === "image") {
-                const placeholderTex = new THREE.CanvasTexture(createFallbackCanvas("LOADING..."));
-                picMat = new THREE.MeshBasicMaterial({ map: placeholderTex, transparent: true, opacity: 1 });
-
-                textureLoader.load(
-                    data.src,
-                    (loadedTexture) => {
-                        picMat.map = loadedTexture;
-                        picMat.needsUpdate = true;
-                    },
-                    undefined,
-                    (err) => {
-                        console.warn(`Could not load ${data.src}. Using fallback.`);
-                        const fallbackTex = new THREE.CanvasTexture(createFallbackCanvas("MISSING FILE"));
-                        picMat.map = fallbackTex;
-                        picMat.needsUpdate = true;
-                    }
-                );
-            } else {
-                const texture = new THREE.CanvasTexture(createQuestionMarkCanvas());
-                picMat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 1 });
-            }
-
-            const picMesh = new THREE.Mesh(picGeo, picMat);
-            picMesh.position.z = 0.22;
-            frameGroup.add(picMesh);
-
-            scene.add(frameGroup);
-            frameNodes.push({ group: frameGroup, baseAngle: (index / totalWorlds) * Math.PI * 2, floatOffset: index * 1.0, materials: [frameMat, picMat] });
-        });
-
-        function createFallbackCanvas(subtext) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 640;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#220022';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.lineWidth = 20;
-            ctx.strokeStyle = '#ff0055';
-            ctx.strokeRect(20, 20, 984, 600);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 36px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(subtext, 512, 320);
-            return canvas;
-        }
-
-        function createQuestionMarkCanvas() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 640;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 200px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('?', 512, 320);
-            ctx.lineWidth = 20;
-            ctx.strokeStyle = '#ffffff';
-            ctx.strokeRect(20, 20, 984, 600);
-            return canvas;
-        }
-
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const loader = document.getElementById('loading-screen');
-                loader.style.opacity = '0';
-                setTimeout(() => loader.remove(), 500);
-            }, 300);
-        });
-
-        // --- NAVIGATION STATE ---
-        let currentTargetIndex = 0;
-        let currentCarouselAngle = 0;
-        let targetCarouselAngle = 0;
-        let isPlayingGame = false;
-        let isFlyingIn = false;
-        let isFlyingOut = false;
-        let flightProgress = 0;
-
-        let cameraStartPos = new THREE.Vector3();
-        let cameraTargetPos = new THREE.Vector3();
-        let cameraStartQuat = new THREE.Quaternion();
-        let cameraTargetQuat = new THREE.Quaternion();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        function rotateCarousel(direction) {
-            if (isFlyingIn || isFlyingOut || isPlayingGame) return;
-            const angleStep = (Math.PI * 2) / totalWorlds;
-            if (direction < 0) {
-                currentTargetIndex--;
-                targetCarouselAngle += angleStep;
-            } else {
-                currentTargetIndex++;
-                targetCarouselAngle -= angleStep;
-            }
-            updateHUD();
-        }
-
-        function toggleUIVisibility(visible) {
-            const opacityVal = visible ? '1' : '0';
-            document.getElementById('ui-overlay').style.opacity = opacityVal;
-            document.getElementById('fullscreen-btn').style.opacity = opacityVal;
-            document.getElementById('controls-hint').style.opacity = opacityVal;
-            document.getElementById('nav-left').style.opacity = opacityVal;
-            document.getElementById('nav-right').style.opacity = opacityVal;
-            document.getElementById('music-widget').style.opacity = opacityVal;
-            document.getElementById('fullscreen-btn').style.pointerEvents = visible ? 'auto' : 'none';
-            document.getElementById('nav-left').style.pointerEvents = visible ? 'auto' : 'none';
-            document.getElementById('nav-right').style.pointerEvents = visible ? 'auto' : 'none';
-            document.getElementById('controls-hint').style.pointerEvents = visible ? 'auto' : 'none';
-            document.getElementById('music-widget').style.pointerEvents = visible ? 'auto' : 'none';
-        }
-
-        function triggerFlyIn() {
-            if (isFlyingIn || isFlyingOut || isPlayingGame) return;
-            let wrappedIndex = ((currentTargetIndex % totalWorlds) + totalWorlds) % totalWorlds;
-            
-            if (worldsData[wrappedIndex].type === "question") {
-                return;
-            }
-
-            isFlyingIn = true;
-            flightProgress = 0;
-            cameraStartPos.copy(camera.position);
-            cameraStartQuat.copy(camera.quaternion);
-
-            const activeNode = frameNodes[wrappedIndex];
-            const worldPos = new THREE.Vector3();
-            activeNode.group.getWorldPosition(worldPos);
-
-            cameraTargetPos.set(worldPos.x, worldPos.y, worldPos.z + 0.2);
-            
-            const dummyCam = camera.clone();
-            dummyCam.position.copy(cameraTargetPos);
-            dummyCam.lookAt(worldPos);
-            dummyCam.rotation.x = 0;
-            dummyCam.rotation.z = 0;
-            cameraTargetQuat.copy(dummyCam.quaternion);
-
-            prepareGameData();
-            toggleUIVisibility(false);
-        }
-
-        // --- TOUCH & MOUSE INTERACTION ---
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-        let touchStartX = 0;
-        let touchCurrentX = 0;
-        let isDragging = false;
-        let hasMoved = false;
-
-        window.addEventListener('pointerdown', (e) => {
-            if (isPlayingGame || isFlyingIn || isFlyingOut) return;
-            if (e.target.closest('.carousel-nav-btn') || e.target.closest('#controls-hint') || e.target.closest('#fullscreen-btn') || e.target.closest('#music-widget')) return;
-
-            isDragging = true;
-            hasMoved = false;
-            touchStartX = e.clientX;
-            touchCurrentX = e.clientX;
-        });
-
-        window.addEventListener('pointermove', (e) => {
-            if (!isDragging || isPlayingGame || isFlyingIn || isFlyingOut) return;
-            touchCurrentX = e.clientX;
-            const deltaX = touchCurrentX - touchStartX;
-            if (Math.abs(deltaX) > 8) {
-                hasMoved = true;
-            }
-        });
-
-        window.addEventListener('pointerup', (e) => {
-            if (!isDragging || isPlayingGame || isFlyingIn || isFlyingOut) {
-                isDragging = false;
-                return;
-            }
-            isDragging = false;
-            const deltaX = touchCurrentX - touchStartX;
-
-            const angleStep = (Math.PI * 2) / totalWorlds;
-
-            if (hasMoved && Math.abs(deltaX) > 30) {
-                if (deltaX > 0) {
-                    currentTargetIndex--;
-                    targetCarouselAngle += angleStep;
-                } else {
-                    currentTargetIndex++;
-                    targetCarouselAngle -= angleStep;
-                }
-                updateHUD();
-            } else if (!hasMoved) {
-                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-                raycaster.setFromCamera(mouse, camera);
-
-                const intersects = raycaster.intersectObjects(scene.children, true);
-                if (intersects.length > 0) {
-                    let hitNodeIndex = -1;
-                    frameNodes.forEach((node, idx) => {
-                        let matched = false;
-                        node.group.traverse(child => {
-                            if (child === intersects[0].object) matched = true;
-                        });
-                        if (matched) hitNodeIndex = idx;
-                    });
-
-                    let wrappedIndex = ((currentTargetIndex % totalWorlds) + totalWorlds) % totalWorlds;
-
-                    if (hitNodeIndex !== -1) {
-                        if (hitNodeIndex === wrappedIndex) {
-                            triggerFlyIn();
-                        } else {
-                            let diff = hitNodeIndex - wrappedIndex;
-                            if (diff > totalWorlds / 2) diff -= totalWorlds;
-                            if (diff < -totalWorlds / 2) diff += totalWorlds;
-
-                            currentTargetIndex += diff;
-                            targetCarouselAngle -= diff * angleStep;
-                            updateHUD();
-                        }
-                    }
-                }
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (isPlayingGame) {
-                if (e.code === 'ArrowDown') {
-                    exitGame();
-                }
-                return;
-            }
-
-            if (isFlyingIn || isFlyingOut) return;
-
-            const angleStep = (Math.PI * 2) / totalWorlds;
-            if (e.code === 'ArrowLeft') {
-                rotateCarousel(-1);
-            } else if (e.code === 'ArrowRight') {
-                rotateCarousel(1);
-            } else if (e.code === 'ArrowUp' || e.code === 'Space') {
-                triggerFlyIn();
-            }
-        });
-
-        function updateHUD() {
-            let wrappedIndex = ((currentTargetIndex % totalWorlds) + totalWorlds) % totalWorlds;
-            document.getElementById('current-world-name').innerText = worldsData[wrappedIndex].name;
-        }
-
-        function prepareGameData() {
-            let wrappedIndex = ((currentTargetIndex % totalWorlds) + totalWorlds) % totalWorlds;
-            const currentWorld = worldsData[wrappedIndex];
-            
-            document.getElementById('active-game-title').innerText = currentWorld.name;
-            document.getElementById('game-link').href = currentWorld.url || "https://example.com/placeholder-game-url";
-
-            const previewImg = document.getElementById('game-preview-img');
-            if (currentWorld.type === "image") {
-                previewImg.src = currentWorld.src;
-                previewImg.onerror = () => {
-                    previewImg.src = createFallbackDataURL("MISSING FILE");
-                };
-            } else {
-                previewImg.src = createQuestionMarkDataURL();
-            }
-        }
-
-        function launchGame() {
-            isFlyingIn = false;
-            isPlayingGame = true;
-        }
-
-        function createFallbackDataURL(subtext) {
-            return createFallbackCanvas(subtext).toDataURL();
-        }
-
-        function createQuestionMarkDataURL() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 640;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 200px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('?', 512, 320);
-            ctx.lineWidth = 20;
-            ctx.strokeStyle = '#ffffff';
-            ctx.strokeRect(20, 20, 984, 600);
-            return canvas.toDataURL();
-        }
-
-        function exitGame() {
-            const gameScreen = document.getElementById('game-screen');
-            gameScreen.style.opacity = '0';
-            setTimeout(() => {
-                gameScreen.style.display = 'none';
-                isPlayingGame = false;
-                isFlyingOut = true;
-                flightProgress = 0;
-                
-                cameraStartPos.copy(camera.position);
-                cameraStartQuat.copy(camera.quaternion);
-                cameraTargetPos.set(0, 0, 24);
-
-                const dummyCam = camera.clone();
-                dummyCam.position.copy(cameraTargetPos);
-                dummyCam.lookAt(0, 0, 0);
-                dummyCam.rotation.x = 0;
-                dummyCam.rotation.z = 0;
-                cameraTargetQuat.copy(dummyCam.quaternion);
-            }, 500);
-        }
-
-        // --- ANIMATION LOOP ---
         let clock = new THREE.Clock();
 
         function animate() {
