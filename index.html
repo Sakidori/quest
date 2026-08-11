@@ -552,11 +552,8 @@
                 panoeeWrapper.style.display = "block";
             }
 
-            // Pause background music while video plays
-            if (!bgMusic.paused) {
-                bgMusic.pause();
-                playPauseBtn.textContent = "▶";
-            }
+            // Lower background music to 10% volume while the video plays
+            bgMusic.volume = 0.1;
 
             // Show and play video overlay
             videoContainer.style.display = 'flex';
@@ -564,19 +561,21 @@
             introVideo.play().catch(e => {
                 console.log("Video auto-play blocked, skipping to panoee");
                 videoContainer.style.display = 'none';
-                // Advance track index and play next track if blocked
+                // Restore volume and advance track index if blocked
+                bgMusic.volume = 1.0;
                 currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
                 playCurrentTrack();
             });
 
-            // Fade out video smoothly when it finishes playing, advance track, and resume music
+            // Fade out video smoothly when it finishes playing, advance track, and restore volume to 100%
             introVideo.onended = () => {
                 videoContainer.style.opacity = '0';
                 setTimeout(() => {
                     videoContainer.style.display = 'none';
                 }, 500);
                 
-                // Move to the next track in the playlist
+                // Restore full volume and move to the next track in the playlist
+                bgMusic.volume = 1.0;
                 currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
                 playCurrentTrack();
             };
