@@ -401,9 +401,8 @@
             box-shadow: 0 3px 0 #0369a1;
         }
         
-        /* Dedicated Bottom-Middle Interactive Action Button for Touch Devices */
-       /* Dedicated Touch Interactive Action Button for Touch Devices */
-#btn-action {
+        /* Dedicated Touch Interactive Action Button for Touch Devices */
+        #btn-action {
             background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%);
             border: 3px solid #fde047;
             color: #ffffff;
@@ -449,6 +448,15 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             pointer-events: none;
         }
+        @keyframes flashRed {
+            0% { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+            50% { background: #b91c1c; border-color: #f87171; }
+            100% { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        }
+
+        .flash-red {
+            animation: flashRed 0.5s ease;
+        }
     </style>
 </head>
 <body>
@@ -463,7 +471,7 @@
     <div id="win-msg">CONGRATULATIONS!<br><span style="font-size: 24px;">You collected all the letters!</span></div>
     
     <div id="gameover-msg">
-        WASTED!<br>
+        GAME OVER!<br>
         <span style="font-size: 15px; font-weight: normal;">You were defeated by a skeleton!</span>
         <button class="retry-btn" onclick="retryGame()">TRY AGAIN</button>
     </div>
@@ -477,7 +485,7 @@
         <div id="skel-bar-4" class="skeleton-health-bar-container"><div id="skel-fill-4" class="skeleton-health-bar-fill"></div></div>
     </div>
 
-    <div id="interact-prompt">⭐ Press 'E' to Collect Star! ⭐</div>
+    <div id="interact-prompt">⭐ Press 'E' to open the box! ⭐</div>
     <div id="copy-notification">📋 Coordinates Copied to Clipboard!</div>
 
     <div id="quiz-modal">
@@ -490,7 +498,7 @@
         <!-- Player Health - Top Left -->
         <div id="ui-top-left">
             <div class="ui-box-compact">
-                Player Health:
+                Health:
                 <div id="health-container">
                     <div id="health-bar-bg"><div id="health-bar-fill"></div></div>
                     <span id="health-text" style="font-size: 12px;">100/100</span>
@@ -526,13 +534,13 @@
         </div>
     </div>
 
-<!-- Mobile Touch UI Overlay -->
+    <!-- Mobile Touch UI Overlay -->
     <div id="touch-controls">
         <div id="joystick-base">
             <div id="joystick-knob"></div>
         </div>
         <div class="touch-group" style="flex-direction: column; align-items: flex-end;">
-            <!-- Bottom Middle Touch Interactive Button moved here -->
+            <!-- Bottom Middle Touch Interactive Action Button moved here -->
             <div class="touch-btn" id="btn-action" style="display: none; background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%); border-color: #fde047;">OPEN</div>
             <div style="display: flex; gap: 12px;">
                 <div class="touch-btn" id="btn-hit" style="background: #b91c1c; border-color: #f87171; box-shadow: 0 6px 0 #7f1d1d;">HIT</div>
@@ -541,16 +549,13 @@
         </div>
     </div>
 
-    <!-- Bottom Middle Touch Interactive Button -->
-    <div id="btn-action">⭐ INTERACT ⭐</div>
-
     <!-- Three.js and GLTFLoader Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
     <script>
         const project_name = {
-            version: "1.0.64",
+            version: "1.0.66",
             author: "Developer"
         };
 
@@ -566,6 +571,78 @@
         renderer.sortObjects = true;
         document.body.appendChild(renderer.domElement);
 
+        // --- AUDIO SYSTEM INTEGRATION (Web Audio API via Three.js) ---
+        const audioListener = new THREE.AudioListener();
+        camera.add(audioListener);
+
+        const audioLoader = new THREE.AudioLoader();
+        const sfxBuffers = {};
+        const sfxChannels = {};
+
+        // Define sound asset paths (you can replace these links with local files or CDNs)
+        const sfxFiles = {
+            attack: 'attack.mp3',
+            walking: 'run.mp3',
+            skeleton: 'skeleton.mp3',
+            axe_chop: 'axe.mp3',
+            jump: 'jump.mp3',
+            opening_box: 'boxopen.mp3',
+            correct: 'correct.mp3',
+            wrong: 'wrong.mp3',
+            cheer: 'cheer.mp3'
+        };
+
+        // Load all sound buffers asynchronously with error handling fallbacks
+        for (const [key, url] of Object.entries(sfxFiles)) {
+            audioLoader.load(url, (buffer) => {
+                sfxBuffers[key] = buffer;
+            }, undefined, (err) => {
+                console.warn(`Could not load sfx asset: ${key}`, err);
+            });
+        }
+
+        function playSfx(key, volume = 0.1, loop = false, playbackRate = 1.0) {
+            if (!sfxBuffers[key]) return null;
+            const sound = new THREE.Audio(audioListener);
+            sound.setBuffer(sfxBuffers[key]);
+            sound.setVolume(volume);
+            sound.setLoop(loop);
+            sound.setPlaybackRate(playbackRate);
+            sound.play();
+            return sound;
+        }
+
+        // Dedicated looping/continuous audio channel for footstep pacing
+        let walkingAudioElement = null;
+        let lastStepTime = 0;
+
+        function updateWalkingAudio(isMoving, isRunning) {
+            if (isMoving) {
+                if (!walkingAudioElement) {
+                    walkingAudioElement = new Audio('run.mp3');
+                    walkingAudioElement.loop = false;
+                }
+
+                // Keep playback rate at a safe normal speed (1.0) so it doesn't break
+                walkingAudioElement.playbackRate = isRunning ? 1.2 : 1.0;
+
+                const currentTime = Date.now();
+                const stepDelay = isRunning ? 410 : 540; 
+
+                if (currentTime - lastStepTime >= stepDelay) {
+                    lastStepTime = currentTime;
+                    walkingAudioElement.currentTime = 0;
+                    walkingAudioElement.play().catch(e => {});
+                }
+
+            } else {
+                if (walkingAudioElement && !walkingAudioElement.paused) {
+                    walkingAudioElement.pause();
+                    walkingAudioElement.currentTime = 0;
+                }
+            }
+        }
+        
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
 
@@ -716,6 +793,10 @@
         let playerHealth = 100;
         let playerIsDead = false;
         let playerHitStunTimer = 0;
+        let timeSinceLastDamage = 0; 
+        let regenChunkTimer = 0;     
+        const regenDelay = 5.0;      
+        const regenInterval = 2.0;   
 
         const playerPlaceholderMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8 });
         const playerPlaceholderGeo = new THREE.BoxGeometry(0.8, 1.8, 0.8);
@@ -723,7 +804,6 @@
         playerPlaceholder.position.y = 0.9;
         playerGroup.add(playerPlaceholder);
 
-        // --- MULTIPLE SKELETONS SETUP ---
         const skeletonSpawnCoords = [
             { x: 3.2, y: -0.1, z: 83.5 },
             { x: 36.9, y: -0.1, z: 125.3 },
@@ -738,6 +818,9 @@
             const cpuGroup = new THREE.Group();
             cpuGroup.position.set(coord.x, coord.y, coord.z);
             scene.add(cpuGroup);
+
+            const skeletonPosAudio = new THREE.PositionalAudio(audioListener);
+            cpuGroup.add(skeletonPosAudio);
 
             const skeletonBox = new THREE.Box3(new THREE.Vector3(-0.6, 0, -0.6), new THREE.Vector3(0.6, 2.0, 0.6));
             const skeletonHitboxHelper = new THREE.Box3Helper(skeletonBox, 0xff0000); 
@@ -769,7 +852,12 @@
                 wanderTarget: new THREE.Vector3(coord.x, coord.y, coord.z),
                 placeholderMesh: cpuPlaceholderMesh,
                 modelRef: null,
-                initialPos: new THREE.Vector3(coord.x, coord.y, coord.z)
+                initialPos: new THREE.Vector3(coord.x, coord.y, coord.z),
+                posAudio: skeletonPosAudio,
+                soundCooldown: 0,
+                stepTimer: 0,
+                currentStepDelay: 540,
+                audioEl: null
             };
 
             skeletons.push(skeletonData);
@@ -847,6 +935,8 @@
             skel.isDead = true;
             skel.isAttacking = false;
 
+            playSfx('skeleton', 0.7);
+
             const barEl = document.getElementById(`skel-bar-${skel.id}`);
             if (barEl) barEl.style.display = 'none';
 
@@ -876,7 +966,10 @@
             if (playerIsDead) return;
 
             playerHealth -= 20;
+            timeSinceLastDamage = 0; 
+            regenChunkTimer = 0;
             updateHealthUI();
+            playSfx('axe_chop', 0.8);
 
             if (playerHealth <= 0) {
                 playerHealth = 0;
@@ -1108,6 +1201,7 @@
 
         function playCheerAction() {
             let cheerAnimName = 'Cheering';
+            playSfx('cheer', 0.8);
             
             if (!actions[cheerAnimName]) {
                 const possibleNames = ['Cheer', 'Victory', 'Idle_B'];
@@ -1145,6 +1239,7 @@
 
         function playHitAction() {
             let hitAnimName = 'Melee_1H_Attack_Slice_Diagonal';
+            playSfx('attack', 0.7);
             
             if (!actions[hitAnimName]) {
                 const possibleNames = ['Attack', 'Punch', 'Hit_B', 'Interact'];
@@ -1192,6 +1287,7 @@
                     setTimeout(() => {
                         if (!skel.isDead && playerGroup.position.distanceTo(skel.group.position) < 3.0) {
                             skel.health -= 35;
+                            playSfx('axe_chop', 0.8);
 
                             if (skel.health > 0) {
                                 let cpuHitAction = skel.actions['Hit_B'];
@@ -1244,13 +1340,11 @@
         const jumpForce = 12.0;
         const maxBoundaryDistance = 300;
 
-        // Reset camera angle directly behind the player's current orientation
         function resetCameraOrientation() {
             cameraAngle = playerGroup.rotation.y + Math.PI;
             cameraPitch = 0.5;
         }
 
-        // Fullscreen Toggle functionality
         function toggleFullScreen() {
             if (!document.fullscreenElement && !document.webkitFullscreenElement) {
                 const docElem = document.documentElement;
@@ -1268,7 +1362,6 @@
             }
         }
 
-        // Auto-fullscreen trigger on first user interaction for mobile devices
         function triggerAutoFullScreen() {
             if (isTouchDevice && !document.fullscreenElement && !document.webkitFullscreenElement) {
                 const docElem = document.documentElement;
@@ -1284,7 +1377,6 @@
         window.addEventListener('pointerdown', triggerAutoFullScreen, { once: true });
         window.addEventListener('keydown', triggerAutoFullScreen, { once: true });
 
-        // Listen for fullscreen change to hide/show the fullscreen button dynamically
         document.addEventListener('fullscreenchange', handleFullscreenStateChange);
         document.addEventListener('webkitfullscreenchange', handleFullscreenStateChange);
 
@@ -1305,18 +1397,6 @@
             if (e.key === 'a' || e.key === 'A') keys.a = true;
             if (e.key === 'd' || e.key === 'D') keys.d = true;
             if (e.key === 'Shift') keys.shift = true;
-            
-            if (e.key === 'h' || e.key === 'H') {
-                showHitboxes = !showHitboxes;
-                hitboxHelpers.forEach(helper => helper.visible = showHitboxes);
-            }
-
-            if (e.key === 'k' || e.key === 'K') {
-                skeletons.forEach(skel => {
-                    skel.health = 0;
-                    triggerCpuDeath(skel);
-                });
-            }
 
             if (e.key === 'x' || e.key === 'X') {
                 if (!isHitting && !isCheering && playerHitStunTimer <= 0 && !isJumping) {
@@ -1330,20 +1410,12 @@
                 }
             }
 
-            if (e.key === 'c' || e.key === 'C') {
-                const coordString = `{ x: ${playerGroup.position.x.toFixed(1)}, y: ${playerGroup.position.y.toFixed(1)}, z: ${playerGroup.position.z.toFixed(1)} },`;
-                navigator.clipboard.writeText(coordString).then(() => {
-                    const notify = document.getElementById('copy-notification');
-                    notify.style.display = 'block';
-                    setTimeout(() => { notify.style.display = 'none'; }, 2000);
-                });
-            }
-
             if (e.code === 'Space') {
                 e.preventDefault();
                 if (!isJumping && playerHitStunTimer <= 0) {
                     verticalVelocity = jumpForce;
                     isJumping = true;
+                    playSfx('jump', 0.6);
                     if (actions['Jump_Start']) fadeToAction('Jump_Start', 0.1);
                 }
             }
@@ -1392,7 +1464,7 @@
         if (isTouchDevice) {
             touchControlsEl.style.display = 'flex';
             resetCamBtnEl.style.display = 'flex';
-            interactPromptEl.style.display = 'none'; // Hide keyboard prompt on mobile devices
+            interactPromptEl.style.display = 'none';
             const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
             if (!isFullscreen) {
                 fullscreenBtnEl.style.display = 'flex';
@@ -1443,6 +1515,7 @@
             if (!isJumping) {
                 verticalVelocity = jumpForce;
                 isJumping = true;
+                playSfx('jump', 0.6);
                 if (actions['Jump_Start']) fadeToAction('Jump_Start', 0.1);
             }
         });
@@ -1463,6 +1536,7 @@
         function openQuiz(starObj) {
             isQuizOpen = true;
             activeQuizStar = starObj;
+            playSfx('opening_box', 0.7);
             if (!isTouchDevice) {
                 interactPromptEl.style.display = 'none';
             }
@@ -1494,10 +1568,12 @@
         }
 
         function handleAnswer(selectedIndex, starObj) {
-            document.getElementById('quiz-modal').style.display = 'none';
-            isQuizOpen = false;
+            const modal = document.getElementById('quiz-modal');
 
             if (selectedIndex === starObj.quiz.answer) {
+                modal.style.display = 'none';
+                isQuizOpen = false;
+                playSfx('correct', 0.8);
                 starObj.collected = true;
                 starObj.mesh.visible = false;
                 collectedLetters.push(starObj.letter);
@@ -1507,15 +1583,177 @@
                     slotEl.innerText = starObj.letter;
                     slotEl.classList.add('collected');
                 }
+                
+                if (!isCheering && !isHitting && playerHitStunTimer <= 0) {
+                    playCheerAction();
+                }
+                
                 if (collectedLetters.length === 6) {
+                    let congratsModal = document.createElement('div');
+                    congratsModal.id = 'congrats-modal';
+                    congratsModal.style.position = 'fixed';
+                    congratsModal.style.top = '0';
+                    congratsModal.style.left = '0';
+                    congratsModal.style.width = '100vw';
+                    congratsModal.style.height = '100vh';
+                    congratsModal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                    congratsModal.style.display = 'flex';
+                    congratsModal.style.justifyContent = 'center';
+                    congratsModal.style.alignItems = 'center';
+                    congratsModal.style.zIndex = '10000';
+
+                    let modalContent = document.createElement('div');
+                    modalContent.style.backgroundColor = '#10b981';
+                    modalContent.style.padding = '30px';
+                    modalContent.style.borderRadius = '16px';
+                    modalContent.style.textAlign = 'center';
+                    modalContent.style.color = '#ffffff';
+                    modalContent.style.boxShadow = '0 10px 25px rgba(0,0,0,0.3)';
+                    modalContent.style.maxWidth = '400px';
+                    modalContent.style.width = '90%';
+
+                    let heading = document.createElement('h2');
+                    heading.innerText = "Congratulations!";
+                    heading.style.margin = '0 0 10px 0';
+
+                    let p = document.createElement('p');
+                    p.innerText = "You collected all the letters! Enter the secret word:";
+                    p.style.margin = '0 0 20px 0';
+
+                    let input = document.createElement('input');
+                    input.type = 'text';
+                    input.placeholder = 'Secret word...';
+                    input.style.padding = '10px';
+                    input.style.width = '80%';
+                    input.style.borderRadius = '8px';
+                    input.style.border = '1px solid #ccc';
+                    input.style.marginBottom = '15px';
+                    input.style.fontSize = '16px';
+                    input.style.textAlign = 'center';
+
+                    let errorMsg = document.createElement('div');
+                    errorMsg.style.color = '#fee2e2';
+                    errorMsg.style.marginBottom = '15px';
+                    errorMsg.style.fontSize = '14px';
+
+                    let submitBtn = document.createElement('button');
+                    submitBtn.innerText = 'Submit';
+                    submitBtn.style.padding = '10px 20px';
+                    submitBtn.style.backgroundColor = '#ffffff';
+                    submitBtn.style.color = '#10b981';
+                    submitBtn.style.border = 'none';
+                    submitBtn.style.borderRadius = '8px';
+                    submitBtn.style.fontWeight = 'bold';
+                    submitBtn.style.cursor = 'pointer';
+                    submitBtn.style.fontSize = '16px';
+
+                    submitBtn.onclick = function() {
+                        let secretWord = input.value;
+                        if (secretWord.trim().toLowerCase() === "winter") {
+                            document.body.removeChild(congratsModal);
+
+                            let finalModal = document.createElement('div');
+                            finalModal.id = 'final-modal';
+                            finalModal.style.position = 'fixed';
+                            finalModal.style.top = '0';
+                            finalModal.style.left = '0';
+                            finalModal.style.width = '100vw';
+                            finalModal.style.height = '100vh';
+                            finalModal.style.backgroundColor = 'rgba(0,0,0,0.85)';
+                            finalModal.style.display = 'flex';
+                            finalModal.style.flexDirection = 'column';
+                            finalModal.style.justifyContent = 'center';
+                            finalModal.style.alignItems = 'center';
+                            finalModal.style.zIndex = '10000';
+                            finalModal.style.gap = '20px';
+                            finalModal.style.padding = '20px';
+                            finalModal.style.boxSizing = 'border-box';
+
+                            let img = document.createElement('img');
+                            img.src = 'snowanswer.webp';
+                            img.style.maxWidth = '50vw';
+                            img.style.maxHeight = '50vh';
+                            img.style.objectFit = 'contain';
+                            img.style.border = '4px solid #fbbf24';
+                            img.style.borderRadius = '16px';
+
+                            let playAgainBtn = document.createElement('button');
+                            playAgainBtn.innerText = 'Play Again';
+                            playAgainBtn.style.padding = '14px 32px';
+                            playAgainBtn.style.backgroundColor = '#22c55e';
+                            playAgainBtn.style.color = '#ffffff';
+                            playAgainBtn.style.border = '3px solid #86efac';
+                            playAgainBtn.style.borderRadius = '12px';
+                            playAgainBtn.style.fontWeight = '900';
+                            playAgainBtn.style.fontSize = '18px';
+                            playAgainBtn.style.cursor = 'pointer';
+                            playAgainBtn.style.boxShadow = '0 6px 0 #166534';
+                            playAgainBtn.style.transition = 'transform 0.1s ease';
+
+                            playAgainBtn.onmouseover = () => { playAgainBtn.style.transform = 'translateY(-2px)'; };
+                            playAgainBtn.onmouseout = () => { playAgainBtn.style.transform = 'translateY(0)'; };
+
+                            playAgainBtn.onclick = function() {
+                                document.body.removeChild(finalModal);
+                                window.location.reload();
+                            };
+
+                            finalModal.appendChild(img);
+                            finalModal.appendChild(playAgainBtn);
+                            document.body.appendChild(finalModal);
+
+                        } else {
+                            playSfx('wrong', 0.8);
+                            errorMsg.innerText = "Incorrect secret word! Please try again.";
+                            input.value = '';
+                            input.focus();
+                        }
+                    };
+
+                    modalContent.appendChild(heading);
+                    modalContent.appendChild(p);
+                    modalContent.appendChild(input);
+                    modalContent.appendChild(errorMsg);
+                    modalContent.appendChild(submitBtn);
+                    congratsModal.appendChild(modalContent);
+                    document.body.appendChild(congratsModal);
+
                     document.getElementById('win-msg').style.display = 'block';
                 }
-            } else {
-                alert("Incorrect answer!");
+} else {
+                // Incorrect answer logic for standard quiz options
+                playSfx('wrong', 0.8);
+                
+                modal.classList.remove('flash-red');
+                void modal.offsetWidth; // Trigger reflow
+                modal.classList.add('flash-red');
+
+                // Select all answer options and flash them red as well
+                const options = modal.querySelectorAll('.quiz-option');
+                options.forEach(opt => {
+                    opt.style.pointerEvents = 'none';
+                    opt.style.backgroundColor = '#b91c1c';
+                    opt.style.borderColor = '#f87171';
+                    opt.style.color = '#ffffff';
+                });
+
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    modal.classList.remove('flash-red');
+                    
+                    // Reset option styles back to normal for next time
+                    options.forEach(opt => {
+                        opt.style.pointerEvents = 'auto';
+                        opt.style.backgroundColor = '';
+                        opt.style.borderColor = '';
+                        opt.style.color = '';
+                    });
+                    
+                    isQuizOpen = false;
+                }, 1000); // Changed to 1000ms (1 second) as requested
             }
         }
 
-        // Time-scaled baseline speeds (units per second)
         const walkSpeed = 6.6;
         const sprintSpeed = 13.2;
         const clock = new THREE.Clock();
@@ -1554,19 +1792,18 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // Handle Dynamic Orientation Warning Screen Visibility
             const warningEl = document.getElementById('rotate-warning');
             const isPortrait = window.innerHeight > window.innerWidth;
             if (isPortrait && isTouchDevice) {
                 warningEl.style.display = 'flex';
                 renderer.render(scene, camera);
-                return; // Pause game execution loop while in portrait mode
+                return;
             } else {
                 warningEl.style.display = 'none';
             }
 
             let dt = clock.getDelta();
-            if (dt > 0.1) dt = 0.1; // Cap dt to avoid large leaps if tab loses focus
+            if (dt > 0.1) dt = 0.1;
 
             if (mixer) mixer.update(dt);
 
@@ -1595,11 +1832,12 @@
                 let hasDetectedPlayer = false;
 
                 if (!skel.isDead) {
-                    if (playerIsDead || isQuizOpen) {
+                    if (playerIsDead || isQuizOpen || collectedLetters.length === 6) {
                         skel.isAttacking = false;
                         skel.attackTimer = 0;
                         fadeCpuToAction(skel, 'Idle_A', 0.2);
                         skel.group.position.y = 0;
+                        updateSkeletonAudio(skel, false, false, false, dt);
                     } else if (skel.hitStunTimer <= 0) {
                         const distToPlayer = skel.group.position.distanceTo(playerGroup.position);
                         const attackRange = 2.2;
@@ -1641,6 +1879,8 @@
                                 skel.isAttacking = false; 
                             }
 
+                            updateSkeletonAudio(skel, false, false, false, dt);
+
                         } else if (canSeePlayer) {
                             skel.isAttacking = false;
                             skel.attackTimer = 0;
@@ -1648,7 +1888,7 @@
                             fadeCpuToAction(skel, 'Running_A', 0.2);
                             skel.group.lookAt(playerGroup.position.x, playerGroup.position.y, playerGroup.position.z);
                             
-                            const skelStep = (canSeePlayer ? 4.8 : 1.2) * dt;
+                            const skelStep = 4.8 * dt;
                             const forwardVec = new THREE.Vector3(0, 0, 1).applyQuaternion(skel.group.quaternion);
                             const nextSkelPos = skel.group.position.clone();
                             nextSkelPos.addScaledVector(forwardVec, skelStep);
@@ -1657,6 +1897,10 @@
                                 skel.group.translateZ(skelStep);
                             }
                             skel.group.position.y = 0;
+
+                            const isNearPlayer = distToPlayer <= 18.0;
+                            updateSkeletonAudio(skel, true, isNearPlayer, true, dt);
+
                         } else {
                             skel.isAttacking = false;
                             skel.attackTimer = 0;
@@ -1672,7 +1916,9 @@
                             }
                             skel.group.lookAt(skel.wanderTarget);
                             skel.group.position.y = 0;
-                            if (skel.group.position.distanceTo(skel.wanderTarget) > 1.0) {
+                            
+                            const isWalking = skel.group.position.distanceTo(skel.wanderTarget) > 1.0;
+                            if (isWalking) {
                                 fadeCpuToAction(skel, 'Walking_A', 0.2);
                                 
                                 const walkStep = 1.2 * dt;
@@ -1684,8 +1930,12 @@
                                     skel.group.translateZ(walkStep);
                                 }
                                 skel.group.position.y = 0;
+
+                                const isNearPlayer = distToPlayer <= 18.0;
+                                updateSkeletonAudio(skel, true, isNearPlayer, false, dt);
                             } else {
                                 fadeCpuToAction(skel, 'Idle_A', 0.2);
+                                updateSkeletonAudio(skel, false, false, false, dt);
                             }
                         }
                     }
@@ -1721,6 +1971,20 @@
                 if (playerHitStunTimer < 0) playerHitStunTimer = 0;
             }
 
+            if (!playerIsDead && playerHealth < 100 && playerHealth > 0) {
+                timeSinceLastDamage += dt;
+                if (timeSinceLastDamage >= regenDelay) {
+                    regenChunkTimer += dt;
+                    if (regenChunkTimer >= regenInterval) {
+                        regenChunkTimer = 0; 
+                        playerHealth = Math.min(100, playerHealth + 5);
+                        updateHealthUI();
+                    }
+                }
+            } else {
+                regenChunkTimer = 0;
+            }
+
             snowParticles.position.x = playerGroup.position.x;
             snowParticles.position.z = playerGroup.position.z;
 
@@ -1754,7 +2018,10 @@
                 }
 
                 const isMoving = moveDir.lengthSq() > 0;
-                const speed = ((keys.shift || joystickVector.length() > 0.8) ? sprintSpeed : walkSpeed) * dt;
+                const isRunning = keys.shift || joystickVector.length() > 0.8;
+                const speed = (isRunning ? sprintSpeed : walkSpeed) * dt;
+
+                updateWalkingAudio(isMoving && !isJumping, isRunning);
 
                 if (isMoving && !isHitting && !isCheering) {
                     moveDir.normalize();
@@ -1774,12 +2041,15 @@
                     playerGroup.rotation.y += diff * Math.min(1.0, 10 * dt);
 
                     if (!isJumping) {
-                        const targetAnim = (keys.shift || joystickVector.length() > 0.8) ? 'Running_A' : 'Walking_A';
+                        const targetAnim = isRunning ? 'Running_A' : 'Walking_A';
                         if (actions[targetAnim]) fadeToAction(targetAnim, 0.2);
                     }
-                } else if (!isMoving && !isJumping && !isHitting && !isCheering) {
-                    const idleAnim = actions['Idle_B'] ? 'Idle_B' : Object.keys(actions)[0];
-                    if (actions[idleAnim]) fadeToAction(idleAnim, 0.2);
+                } else {
+                    updateWalkingAudio(false, false);
+                    if (!isMoving && !isJumping && !isHitting && !isCheering) {
+                        const idleAnim = actions['Idle_B'] ? 'Idle_B' : Object.keys(actions)[0];
+                        if (actions[idleAnim]) fadeToAction(idleAnim, 0.2);
+                    }
                 }
 
                 const distanceFromCenter = Math.sqrt(playerGroup.position.x ** 2 + playerGroup.position.z ** 2);
@@ -1828,6 +2098,8 @@
                 } else {
                     btnAction.style.display = showPrompt ? 'flex' : 'none';
                 }
+            } else {
+                updateWalkingAudio(false, false);
             }
 
             const targetCamX = playerGroup.position.x + Math.sin(cameraAngle) * Math.cos(cameraPitch) * cameraDistance;
@@ -1853,6 +2125,38 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         });
+
+        function updateSkeletonAudio(skel, isMoving, isNearPlayer, isRunningState, dt) {
+            if (isMoving && isNearPlayer && !isQuizOpen && !skel.isDead) {
+                const targetDelayMs = isRunningState ? 410 : 540;
+                const targetDelaySec = targetDelayMs / 1000; 
+
+                skel.stepTimer += dt;
+                if (skel.stepTimer >= targetDelaySec) {
+                    skel.stepTimer = 0;
+                    
+                    const rate = isRunningState ? 1.2 : 1.0; 
+                    
+                    if (!skel.stepAudio) {
+                        skel.stepAudio = new THREE.Audio(audioListener);
+                        if (sfxBuffers['walking']) {
+                            skel.stepAudio.setBuffer(sfxBuffers['walking']);
+                        }
+                    }
+                    
+                    if (skel.stepAudio.buffer) {
+                        if (skel.stepAudio.isPlaying) {
+                            skel.stepAudio.stop(); 
+                        }
+                        skel.stepAudio.setVolume(0.1);
+                        skel.stepAudio.setPlaybackRate(rate);
+                        skel.stepAudio.play();
+                    }
+                }
+            } else {
+                skel.stepTimer = 0; 
+            }
+        }
     </script>
 </body>
 </html>
