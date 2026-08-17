@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>A Snowy Adventure</title>
+    <!-- Include FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        /* Title Screen Overlay */
+        #title-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            color: white;
+            text-align: center;
+            gap: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #title-screen h1 {
+            font-size: 42px;
+            font-weight: 900;
+            margin: 0;
+            color: #f8fafc;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        #title-screen p {
+            font-size: 16px;
+            color: #94a3b8;
+            max-width: 450px;
+            margin: 0;
+            line-height: 1.5;
+        }
+        #start-game-btn {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            border: 3px solid #38bdf8;
+            color: #ffffff;
+            padding: 16px 40px;
+            border-radius: 16px;
+            font-size: 20px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #0f172a, 0 10px 20px rgba(0,0,0,0.4);
+            transition: transform 0.1s ease, background-color 0.2s;
+            margin-top: 10px;
+        }
+        #start-game-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        }
+        #start-game-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #0f172a;
+        }
+
+        /* Music Widget Styles */
+        #music-widget {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10000;
+            color: white;
+            font-family: sans-serif;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            pointer-events: auto !important;
+        }
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .music-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            line-height: 1;
+            margin: 0;
+            border-radius: 0;
+        }
+        .music-btn:hover { 
+            transform: scale(1.15); 
+            opacity: 0.8; 
+            background: none;
+        }
+        #track-title {
+            font-size: 14px;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        /* Top Bar Container to manage Left (Health), Center (Fullscreen & Reset), Right (Letters) */
+        #ui-top-bar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 180px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 10;
+            pointer-events: none;
+        }
+        #ui-top-bar > * {
+            pointer-events: auto;
+        }
+
+        #ui-top-left {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        #ui-top-right {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: rgba(51, 65, 85, 0.85);
+            border: 2px solid #475569;
+            color: #ffffff;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            display: none;
+            transition: transform 0.1s, background-color 0.2s, border-color 0.2s;
+        }
+        .icon-btn:hover {
+            background-color: #0284c7;
+            border-color: #38bdf8;
+            transform: translateY(-2px);
+        }
+        .icon-btn:active {
+            transform: translateY(2px);
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .ui-box-compact {
+            background: #334155;
+            padding: 8px 14px;
+            border: 2px solid #475569;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 13px;
+            color: #f8fafc;
+            box-shadow: 0 3px 0 #0f172a;
+        }
+
+        #health-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 4px;
+        }
+        #health-bar-bg {
+            width: 150px;
+            height: 14px;
+            background: #1e293b;
+            border: 2px solid #64748b;
+            border-radius: 7px;
+            overflow: hidden;
+        }
+        #health-bar-fill {
+            width: 100%;
+            height: 100%;
+            background: #22c55e;
+            transition: width 0.2s ease, background-color 0.3s;
+        }
+
+        .skeleton-health-bar-container {
+            position: absolute;
+            width: 60px;
+            height: 8px;
+            background: rgba(30, 41, 59, 0.85);
+            border: 2px solid #475569;
+            border-radius: 4px;
+            overflow: hidden;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .skeleton-health-bar-fill {
+            width: 100%;
+            height: 100%;
+            background: #ef4444;
+            transition: width 0.1s linear;
+        }
+
+        #inventory {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        .letter-slot {
+            width: 26px;
+            height: 26px;
+            background: #1e293b;
+            border: 2px dashed #64748b;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .letter-slot.collected {
+            background: #15803d;
+            border: 2px solid #22c55e;
+            color: #ffffff;
+            border-style: solid;
+        }
+        #quiz-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 35px;
+            border: 5px solid #fbbf24;
+            border-radius: 24px;
+            width: 420px;
+            display: none;
+            flex-direction: column;
+            gap: 18px;
+            box-shadow: 0 0 40px rgba(251, 191, 36, 0.4), 0 10px 25px rgba(0,0,0,0.8);
+            z-index: 100;
+        }
+        #quiz-modal::before {
+            content: "★ SPECIAL CHALLENGE ★";
+            display: block;
+            text-align: center;
+            color: #fbbf24;
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: -10px;
+        }
+        #quiz-question {
+            font-size: 19px;
+            font-weight: bold;
+            color: #f8fafc;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .quiz-option {
+            background: #1e293b;
+            border: 2px solid #38bdf8;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-weight: bold;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            box-shadow: 0 3px 0 #0284c7;
+        }
+        .quiz-option:hover {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #7dd3fc;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 #0369a1;
+        }
+        #interact-prompt {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%);
+            border: 3px solid #fde047;
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 16px;
+            font-weight: 900;
+            font-size: 18px;
+            display: none;
+            z-index: 50;
+            box-shadow: 0 6px 0 #713f12, 0 10px 20px rgba(0,0,0,0.5);
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+            animation: pulsePrompt 1.5s infinite alternate;
+        }
+        @keyframes pulsePrompt {
+            0% { transform: translateX(-50%) scale(1); }
+            100% { transform: translateX(-50%) scale(1.05); }
+        }
+        #win-msg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #15803d;
+            color: #ffffff;
+            padding: 40px 60px;
+            border: 5px solid #22c55e;
+            border-radius: 20px;
+            font-size: 42px;
+            font-weight: 900;
+            display: none;
+            text-shadow: 2px 2px 0 #166534;
+            z-index: 200;
+            text-align: center;
+        }
+        #gameover-msg {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #b91c1c;
+            color: #ffffff;
+            padding: 20px 40px;
+            border: 4px solid #f87171;
+            border-radius: 16px;
+            font-size: 24px;
+            font-weight: 900;
+            display: none;
+            text-shadow: 2px 2px 0 #7f1d1d;
+            z-index: 200;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            width: 320px;
+        }
+        .retry-btn {
+            background: #f87171;
+            border: 2px solid #fee2e2;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #7f1d1d;
+            transition: all 0.1s ease;
+        }
+        .retry-btn:hover {
+            background: #ef4444;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #7f1d1d;
+        }
+        .retry-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #7f1d1d;
+        }
+
+        #rotate-warning {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0f172a;
+            color: #f8fafc;
+            z-index: 99999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        #rotate-warning svg {
+            width: 70px;
+            height: 70px;
+            fill: #38bdf8;
+            animation: rotatePhone 2s infinite ease-in-out;
+        }
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+            100% { transform: rotate(0deg); }
+        }
+        #rotate-warning h2 {
+            font-size: 24px;
+            font-weight: 900;
+            margin: 0;
+            color: #f8fafc;
+        }
+        #rotate-warning p {
+            font-size: 15px;
+            color: #94a3b8;
+            margin: 0;
+            max-width: 300px;
+            line-height: 1.4;
+        }
+
+        #touch-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: none;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 30px;
+            z-index: 90;
+            pointer-events: none;
+        }
+        .touch-group {
+            display: flex;
+            gap: 12px;
+            pointer-events: auto;
+        }
+        .touch-btn {
+            background: rgba(51, 65, 85, 0.85);
+            border: 3px solid #475569;
+            color: #f8fafc;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            font-size: 13px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 0 #0f172a;
+            user-select: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .touch-btn:active, .touch-btn.pressed {
+            background: #0284c7;
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #0369a1;
+        }
+        
+        #btn-action {
+            background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%);
+            border: 3px solid #fde047;
+            color: #ffffff;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            font-size: 13px;
+            font-weight: 900;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 0 #713f12;
+            cursor: pointer;
+            pointer-events: auto;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+            animation: pulsePrompt 1.5s infinite alternate;
+            margin-bottom: 8px;
+        }
+        #btn-action:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #713f12;
+        }
+
+        #joystick-base {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            background: rgba(51, 65, 85, 0.4);
+            border: 3px solid rgba(71, 85, 105, 0.8);
+            border-radius: 50%;
+            pointer-events: auto;
+            touch-action: none;
+        }
+        #joystick-knob {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            background: rgba(248, 250, 252, 0.85);
+            border: 3px solid #cbd5e1;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+        @keyframes flashRed {
+            0% { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+            50% { background: #b91c1c; border-color: #f87171; }
+            100% { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        }
+        .flash-red {
+            animation: flashRed 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Audio Element -->
+    <audio id="bg-music" preload="auto"></audio>
+
+    <!-- Title Screen with Start Button -->
+    <div id="title-screen">
+        <h1>A Snowy Adventure</h1>
+        <p>Explore the city and collect the letters!</p>
+        <button id="start-game-btn" onclick="startGame()">START GAME</button>
+    </div>
+    
+    <!-- Music Widget UI -->
+    <div id="music-widget">
+        <span id="track-title">7.Snow</span>
+        <div class="controls-group">
+            <button class="music-btn" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">❚❚</button>
+        </div>
+    </div>
+
+    <!-- Portrait Mode Warning Overlay -->
+    <div id="rotate-warning">
+        <svg viewBox="0 0 24 24"><path d="M16.48 2h-8.96C6.39 2 5 3.39 5 5.04v13.92C5 20.61 6.39 22 7.52 22h8.96c1.13 0 2.52-1.39 2.52-3.04V5.04C19 3.39 17.61 2 16.48 2zm-8.48 2h8c.28 0 .5.22.5.5v1H8v-1c0-.28.22-.5.5-.5zm8 16H8c-.28 0-.5-.22-.5-.5v-13h9v13c0 .28-.22.5-.5.5z"/></svg>
+        <h2>端末を回転させてください</h2>
+        <p>この冒険を最高に楽しむには、横向きモードでのプレイが必要です。</p>
+    </div>
+
+    <div id="win-msg">CONGRATULATIONS!<br><span style="font-size: 24px;">You collected all the letters!</span></div>
+    
+    <div id="gameover-msg">
+        GAME OVER!<br>
+        <span style="font-size: 15px; font-weight: normal;">You were defeated by a skeleton!</span>
+        <button class="retry-btn" onclick="retryGame()">TRY AGAIN</button>
+    </div>
+
+    <!-- Floating Skeleton Health Bars container -->
+    <div id="skeleton-bars-container">
+        <div id="skel-bar-0" class="skeleton-health-bar-container"><div id="skel-fill-0" class="skeleton-health-bar-fill"></div></div>
+        <div id="skel-bar-1" class="skeleton-health-bar-container"><div id="skel-fill-1" class="skeleton-health-bar-fill"></div></div>
+        <div id="skel-bar-2" class="skeleton-health-bar-container"><div id="skel-fill-2" class="skeleton-health-bar-fill"></div></div>
+        <div id="skel-bar-3" class="skeleton-health-bar-container"><div id="skel-fill-3" class="skeleton-health-bar-fill"></div></div>
+        <div id="skel-bar-4" class="skeleton-health-bar-container"><div id="skel-fill-4" class="skeleton-health-bar-fill"></div></div>
+    </div>
+
+    <div id="interact-prompt">⭐ Press 'E' to open the box! ⭐</div>
+
+    <div id="quiz-modal">
+        <div id="quiz-question">Question text goes here?</div>
+        <div id="quiz-options-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+
+    <!-- Unified Top Bar -->
+    <div id="ui-top-bar">
+        <div id="ui-top-left">
+            <div class="ui-box-compact">
+                Health:
+                <div id="health-container">
+                    <div id="health-bar-bg"><div id="health-bar-fill"></div></div>
+                    <span id="health-text" style="font-size: 12px;">100/100</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button id="fullscreen-btn" class="icon-btn" onclick="toggleFullScreen()" title="Toggle Full Screen">
+                <i class="fas fa-expand" aria-hidden="true"></i>
+                <span class="sr-only">Full Screen</span>
+            </button>
+            <button id="reset-cam-btn" class="icon-btn" onclick="resetCameraOrientation()" title="Reset Camera">
+                <i class="fas fa-camera" aria-hidden="true"></i>
+                <span class="sr-only">Reset Camera</span>
+            </button>
+        </div>
+
+        <div id="ui-top-right">
+            <div class="ui-box-compact" id="hud-letters-box">
+                Letters:
+                <div id="inventory">
+                    <div class="letter-slot" id="slot-0"></div>
+                    <div class="letter-slot" id="slot-1"></div>
+                    <div class="letter-slot" id="slot-2"></div>
+                    <div class="letter-slot" id="slot-3"></div>
+                    <div class="letter-slot" id="slot-4"></div>
+                    <div class="letter-slot" id="slot-5"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Touch UI Overlay -->
+    <div id="touch-controls">
+        <div id="joystick-base">
+            <div id="joystick-knob"></div>
+        </div>
+        <div class="touch-group" style="flex-direction: column; align-items: flex-end;">
+            <div class="touch-btn" id="btn-action" style="display: none; background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%); border-color: #fde047;">OPEN</div>
+            <div style="display: flex; gap: 12px;">
+                <div class="touch-btn" id="btn-hit" style="background: #b91c1c; border-color: #f87171; box-shadow: 0 6px 0 #7f1d1d;">HIT</div>
+                <div class="touch-btn" id="btn-jump">JUMP</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js and GLTFLoader Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <script>
+        // --- MUSIC WIDGET & TITLE START SCRIPT LOGIC ---
+        const playlist = [
+            { name: "7.Snow", src: "../music/hatsuyuki.mp3" }
+        ];
+        let currentTrackIndex = 0;
+        const bgMusic = document.getElementById('bg-music');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const trackTitleDisplay = document.getElementById('track-title');
+        
+        bgMusic.volume = 0.5;
+        
+        function playCurrentTrack() {
+            bgMusic.src = playlist[currentTrackIndex].src;
+            trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
+            bgMusic.play().then(() => {
+                playPauseBtn.textContent = "❚❚"; 
+            }).catch(e => console.log("Audio play blocked"));
+        }
+
+        bgMusic.addEventListener('ended', () => {
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            playCurrentTrack();
+        });
+
+        function togglePlayPause() {
+            if (bgMusic.paused) {
+                if (!bgMusic.src) {
+                    playCurrentTrack();
+                } else {
+                    bgMusic.play();
+                }
+                playPauseBtn.textContent = "❚❚";
+            } else {
+                bgMusic.pause();
+                playPauseBtn.textContent = "▶"; 
+            }
+        }
+
+        function startGame() {
+            // Hide title screen
+            const titleScreen = document.getElementById('title-screen');
+            if (titleScreen) {
+                titleScreen.style.display = 'none';
+            }
+            // Start the music playlist
+            playCurrentTrack();
+            // Optional: auto request full screen on mobile when clicking start
+            if (isTouchDevice) {
+                toggleFullScreen();
+            }
+        }
+
+        const project_name = {
+            version: "1.0.67",
+            author: "Developer"
+        };
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0f172a); 
+        scene.fog = new THREE.FogExp2(0x0f172a, 0.02); 
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(1);
+        renderer.sortObjects = true;
+        document.body.appendChild(renderer.domElement);
+
+        const audioListener = new THREE.AudioListener();
+        camera.add(audioListener);
+
+        const audioLoader = new THREE.AudioLoader();
+        const sfxBuffers = {};
+
+        const sfxFiles = {
+            attack: 'attack.mp3',
+            walking: 'run.mp3',
+            skeleton: 'skeleton.mp3',
+            axe_chop: 'axe.mp3',
+            jump: 'jump.mp3',
+            opening_box: 'boxopen.mp3',
+            correct: 'correct.mp3',
+            wrong: 'wrong.mp3',
+            cheer: 'cheer.mp3',
+            flag: 'flag.mp3',
+            gameover: 'gameover.mp3'
+        };
+
+        for (const [key, url] of Object.entries(sfxFiles)) {
+            audioLoader.load(url, (buffer) => {
+                sfxBuffers[key] = buffer;
+            }, undefined, (err) => {
+                console.warn(`Could not load sfx asset: ${key}`, err);
+            });
+        }
+
+        function playSfx(key, volume = 0.1, loop = false, playbackRate = 1.0) {
+            if (!sfxBuffers[key]) return null;
+            const sound = new THREE.Audio(audioListener);
+            sound.setBuffer(sfxBuffers[key]);
+            sound.setVolume(volume);
+            sound.setLoop(loop);
+            sound.setPlaybackRate(playbackRate);
+            sound.play();
+            return sound;
+        }
+
+        let walkingAudioElement = null;
+        let lastStepTime = 0;
+
+        function updateWalkingAudio(isMoving, isRunning) {
+            if (isMoving) {
+                if (!walkingAudioElement) {
+                    walkingAudioElement = new Audio('run.mp3');
+                    walkingAudioElement.loop = false;
+                }
+
+                walkingAudioElement.playbackRate = isRunning ? 1.2 : 1.0;
+
+                const currentTime = Date.now();
+                const stepDelay = isRunning ? 410 : 540; 
+
+                if (currentTime - lastStepTime >= stepDelay) {
+                    lastStepTime = currentTime;
+                    walkingAudioElement.currentTime = 0;
+                    walkingAudioElement.play().catch(e => {});
+                }
+
+            } else {
+                if (walkingAudioElement && !walkingAudioElement.paused) {
+                    walkingAudioElement.pause();
+                    walkingAudioElement.currentTime = 0;
+                }
+            }
+        }
+        
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xe2e8f0, 0.8);
+        dirLight.position.set(20, 40, 20);
+        scene.add(dirLight);
+
+        const customLightPositions = [
+            { x: 30.7, y: 7.9, z: 39.3 }, { x: 10.1, y: 7.9, z: 39.3 }, { x: -11.6, y: 7.9, z: 39.3 },
+            { x: -31.5, y: 7.9, z: 37.6 }, { x: -29.7, y: 7.9, z: 20.0 }, { x: -14.0, y: 7.9, z: 20.0 },
+            { x: 1.6, y: 7.9, z: 20.0 }, { x: 4.3, y: 7.9, z: 10.0 }, { x: -0.4, y: 7.9, z: 2.0 },
+            { x: -17.2, y: 7.9, z: 2.1 }, { x: -35.4, y: 7.9, z: 2.1 }, { x: -46.7, y: 7.9, z: 2.1 },
+            { x: -47.8, y: 7.9, z: 14.7 }, { x: -49.0, y: 7.9, z: 31.5 }, { x: -64.9, y: 7.9, z: 39.3 },
+            { x: -83.5, y: 7.9, z: 41.0 }, { x: -83.8, y: 7.9, z: 58.2 }, { x: -83.6, y: 7.9, z: 75.8 },
+            { x: -65.2, y: 7.9, z: 70.9 }, { x: -65.2, y: 7.9, z: 56.4 }, { x: -48.2, y: 7.9, z: 57.6 },
+            { x: -48.6, y: 7.9, z: 70.5 }, { x: -51.0, y: 7.9, z: 89.7 }, { x: -67.4, y: 7.9, z: 94.5 },
+            { x: -67.2, y: 7.9, z: 111.5 }, { x: -67.4, y: 7.9, z: 126.9 }, { x: -54.9, y: 7.9, z: 128.4 },
+            { x: -40.9, y: 7.9, z: 128.3 }, { x: -25.9, y: 7.9, z: 128.2 }, { x: -6.6, y: 7.9, z: 128.5 },
+            { x: 14.1, y: 7.9, z: 128.5 }, { x: 36.7, y: 7.9, z: 128.4 }, { x: 40.7, y: 7.9, z: 119.4 },
+            { x: 40.9, y: 7.9, z: 100.8 }, { x: 41.0, y: 7.9, z: 84.3 }, { x: 41.1, y: 7.9, z: 70.0 },
+            { x: 40.8, y: 7.9, z: 53.2 }, { x: 17.9, y: 7.9, z: 56.0 }, { x: -0.3, y: 7.9, z: 56.1 },
+            { x: -17.2, y: 7.9, z: 56.0 }, { x: -31.8, y: 7.9, z: 73.3 }, { x: -31.8, y: 7.9, z: 96.0 },
+            { x: -26.9, y: 7.9, z: 110.1 }, { x: -9.7, y: 7.9, z: 110.1 }, { x: 21.2, y: 7.9, z: 110.2 },
+            { x: 21.4, y: 7.9, z: 91.7 }, { x: 0.9, y: 7.9, z: 91.9 }, { x: -15.0, y: 7.9, z: 91.7 },
+            { x: -13.4, y: 7.9, z: 80.5 }, { x: -7.6, y: 7.9, z: 74.1 }, { x: 5.2, y: 7.9, z: 74.3 }, { x: 21.2, y: 7.9, z: 74.4 }
+        ];
+
+        const rayHeight = 9.0;
+        const rayGeo = new THREE.ConeGeometry(4.0, rayHeight, 32, 1, true);
+        rayGeo.translate(0, -rayHeight / 2, 0);
+
+        const rayMat = new THREE.MeshBasicMaterial({
+            color: 0xfff3d1, 
+            transparent: true, 
+            opacity: 0.07, 
+            side: THREE.DoubleSide, 
+            blending: THREE.AdditiveBlending, 
+            depthWrite: false
+        });
+
+        customLightPositions.forEach(pos => {
+            const lightRay = new THREE.Mesh(rayGeo, rayMat);
+            lightRay.position.set(pos.x, pos.y, pos.z);
+            scene.add(lightRay);
+        });
+
+        const floorGeo = new THREE.PlaneGeometry(300, 300);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1.0, metalness: 0.0 });
+        const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+        floorMesh.rotation.x = -Math.PI / 2;
+        floorMesh.position.y = -1.0;
+        floorMesh.receiveShadow = true;
+        scene.add(floorMesh);
+
+        const snowCount = 400;
+        const snowGeo = new THREE.BufferGeometry();
+        const snowPositions = new Float32Array(snowCount * 3);
+        for (let i = 0; i < snowCount * 3; i += 3) {
+            snowPositions[i] = (Math.random() - 0.5) * 120;
+            snowPositions[i + 1] = Math.random() * 50;
+            snowPositions[i + 2] = (Math.random() - 0.5) * 120;
+        }
+        snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPositions, 3));
+        const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.8, transparent: true, opacity: 0.85 });
+        const snowParticles = new THREE.Points(snowGeo, snowMat);
+        scene.add(snowParticles);
+        const snowPositionsArr = snowGeo.attributes.position.array;
+
+        const colliders = [];
+        const platforms = []; 
+        const hitboxHelpers = [];
+        let showHitboxes = false;
+
+        const mapContainer = new THREE.Group();
+        scene.add(mapContainer);
+
+        const gltfLoader = new THREE.GLTFLoader();
+        
+        gltfLoader.load('map.glb', function (gltf) {
+            const mapModel = gltf.scene;
+            mapModel.scale.set(9, 9, 9);
+            mapModel.position.set(0, -1, 0);
+            mapModel.updateMatrixWorld(true, true);
+
+            mapModel.traverse(function (child) {
+                if (child.name && (child.name.includes('Cylinder_161') || child.name.includes('Cylinder161'))) {
+                    return;
+                }
+
+                if (child.isMesh && child.geometry) {
+                    if (child.material) {
+                        child.material.roughness = 1.0;
+                        child.material.metalness = 0.0;
+                    }
+                    child.matrixAutoUpdate = false;
+                    child.updateMatrix();
+
+                    if (!child.geometry.boundingBox) {
+                        child.geometry.computeBoundingBox();
+                    }
+
+                    const box = new THREE.Box3();
+                    box.copy(child.geometry.boundingBox);
+                    box.applyMatrix4(child.matrixWorld);
+
+                    const size = new THREE.Vector3();
+                    box.getSize(size);
+
+                    platforms.push({ box: box, minY: box.min.y, maxY: box.max.y });
+
+                    const isHighOverheadBox = (box.min.y > 6.0) && (size.x >= 3.0 && size.x <= 6.5 && size.y >= 2.5 && size.y <= 4.2 && size.z >= 2.8 && size.z <= 6.5);
+                    const isExplicitPole = (child.name && (child.name.toLowerCase().includes('pole') || child.name.toLowerCase().includes('light')));
+                    const isTallAndThinPole = (size.y > 5.0 && size.x < 3.0 && size.z < 3.0 && box.min.y > 0.0 && isExplicitPole);
+                    const isPoleOrTrafficLight = isHighOverheadBox || isTallAndThinPole || (size.y > 8.0 && size.x < 2.8 && size.z < 2.8);
+
+                    if (size.y > 0.4 && !isPoleOrTrafficLight) {
+                        colliders.push(box);
+                        const helper = new THREE.Box3Helper(box, 0x00ff00);
+                        helper.visible = showHitboxes;
+                        scene.add(helper);
+                        hitboxHelpers.push(helper);
+                    }
+                }
+            });
+            mapContainer.add(mapModel);
+        }, undefined, function (error) {
+            console.warn("map.glb not found.", error);
+        });
+
+        const playerGroup = new THREE.Group();
+        scene.add(playerGroup);
+        playerGroup.position.set(30, 0, 50);
+
+        let playerHealth = 100;
+        let playerIsDead = false;
+        let playerHitStunTimer = 0;
+        let timeSinceLastDamage = 0; 
+        let regenChunkTimer = 0;     
+        const regenDelay = 5.0;      
+        const regenInterval = 2.0;   
+
+        const playerPlaceholderMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8 });
+        const playerPlaceholderGeo = new THREE.BoxGeometry(0.8, 1.8, 0.8);
+        const playerPlaceholder = new THREE.Mesh(playerPlaceholderGeo, playerPlaceholderMat);
+        playerPlaceholder.position.y = 0.9;
+        playerGroup.add(playerPlaceholder);
+
+        const skeletonSpawnCoords = [
+            { x: 3.2, y: -0.1, z: 83.5 },
+            { x: 36.9, y: -0.1, z: 125.3 },
+            { x: -41.3, y: -0.1, z: 100.9 },
+            { x: -45.7, y: -0.1, z: 42.3 },
+            { x: -20.4, y: -0.1, z: 4.5 }
+        ];
+
+        const skeletons = [];
+
+        skeletonSpawnCoords.forEach((coord, index) => {
+            const cpuGroup = new THREE.Group();
+            cpuGroup.position.set(coord.x, coord.y, coord.z);
+            scene.add(cpuGroup);
+
+            const skeletonPosAudio = new THREE.PositionalAudio(audioListener);
+            cpuGroup.add(skeletonPosAudio);
+
+            const skeletonBox = new THREE.Box3(new THREE.Vector3(-0.6, 0, -0.6), new THREE.Vector3(0.6, 2.0, 0.6));
+            const skeletonHitboxHelper = new THREE.Box3Helper(skeletonBox, 0xff0000); 
+            skeletonHitboxHelper.visible = false; 
+            scene.add(skeletonHitboxHelper);
+            hitboxHelpers.push(skeletonHitboxHelper);
+
+            const cpuPlaceholderMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c });
+            const cpuPlaceholderGeo = new THREE.CylinderGeometry(0.4, 0.4, 1.6, 8);
+            const cpuPlaceholderMesh = new THREE.Mesh(cpuPlaceholderGeo, cpuPlaceholderMat);
+            cpuPlaceholderMesh.position.y = 0.8;
+            cpuGroup.add(cpuPlaceholderMesh);
+
+            const skeletonData = {
+                id: index,
+                group: cpuGroup,
+                box: skeletonBox,
+                helper: skeletonHitboxHelper,
+                colliderIndex: -1,
+                mixer: null,
+                actions: {},
+                activeAction: null,
+                health: 100,
+                isDead: false,
+                hitStunTimer: 0,
+                attackTimer: 0,
+                isAttacking: false,
+                wanderTimer: 0,
+                wanderTarget: new THREE.Vector3(coord.x, coord.y, coord.z),
+                placeholderMesh: cpuPlaceholderMesh,
+                modelRef: null,
+                initialPos: new THREE.Vector3(coord.x, coord.y, coord.z),
+                posAudio: skeletonPosAudio,
+                stepTimer: 0
+            };
+
+            skeletons.push(skeletonData);
+
+            gltfLoader.load('Skeleton_Warrior.glb', function (gltf) {
+                cpuGroup.remove(cpuPlaceholderMesh);
+                skeletonData.modelRef = gltf.scene;
+                cpuGroup.add(skeletonData.modelRef);
+
+                skeletonData.mixer = new THREE.AnimationMixer(skeletonData.modelRef);
+                
+                if (gltf.animations && gltf.animations.length > 0) {
+                    gltf.animations.forEach((clip) => {
+                        skeletonData.actions[clip.name] = skeletonData.mixer.clipAction(clip, skeletonData.modelRef);
+                    });
+                    
+                    const defaultIdle = skeletonData.actions['Idle'] || skeletonData.actions['Idle_A'] || skeletonData.actions[Object.keys(skeletonData.actions)[0]];
+                    if (defaultIdle) {
+                        skeletonData.activeAction = defaultIdle;
+                        skeletonData.activeAction.play();
+                    }
+                }
+
+                gltfLoader.load('Skeleton_Axe.gltf', function (axeGltf) {
+                    const axeMesh = axeGltf.scene;
+                    const axeContainer = new THREE.Group();
+                    axeMesh.rotation.set(0, Math.PI, 0); 
+                    axeContainer.add(axeMesh);
+
+                    let handBone = null;
+                    skeletonData.modelRef.traverse((child) => {
+                        if (child.isBone && (child.name.toLowerCase().includes('hand') && (child.name.toLowerCase().includes('r') || child.name.toLowerCase().includes('right')))) {
+                            handBone = child;
+                        }
+                    });
+
+                    if (handBone) {
+                        handBone.add(axeContainer);
+                        axeContainer.position.set(0, 0, 0); 
+                    } else {
+                        skeletonData.modelRef.add(axeContainer);
+                        axeContainer.position.set(0.3, 1.0, 0.4); 
+                    }
+                }, undefined, function() {});
+            }, undefined, function() {});
+        });
+
+        function fadeCpuToAction(skel, name, duration) {
+            let targetAction = skel.actions[name];
+            if (!targetAction) {
+                const keywords = [name.toLowerCase(), 'attack', 'combat', 'swing', 'punch', 'strike'];
+                for (let key of Object.keys(skel.actions)) {
+                    const lowerKey = key.toLowerCase();
+                    if (keywords.some(kw => lowerKey.includes(kw))) {
+                        targetAction = skel.actions[key];
+                        break;
+                    }
+                }
+            }
+            if (!targetAction) {
+                targetAction = skel.actions['Idle'] || skel.actions['Idle_A'] || skel.actions[Object.keys(skel.actions)[0]];
+            }
+
+            if (!targetAction || skel.activeAction === targetAction) return;
+            const prev = skel.activeAction;
+            skel.activeAction = targetAction;
+            if (prev) prev.fadeOut(duration);
+            skel.activeAction.reset().setEffectiveWeight(1).fadeIn(duration).play();
+        }
+
+        function triggerCpuDeath(skel) {
+            if (skel.isDead) return;
+            skel.isDead = true;
+            skel.isAttacking = false;
+
+            playSfx('skeleton', 0.7);
+
+            const barEl = document.getElementById(`skel-bar-${skel.id}`);
+            if (barEl) barEl.style.display = 'none';
+
+            skel.colliderIndex = colliders.push(skel.box) - 1;
+
+            if (!skel.mixer) return;
+
+            const deathAction = skel.actions['Death_A'] || skel.actions['Death_A_Pose'];
+            
+            if (deathAction) {
+                Object.values(skel.actions).forEach(action => {
+                    if (action) action.stop();
+                });
+
+                skel.activeAction = deathAction;
+                deathAction.reset();
+                deathAction.setLoop(THREE.LoopOnce, 1);
+                deathAction.clampWhenFinished = true;
+                deathAction.setEffectiveWeight(1.0);
+                deathAction.play();
+            }
+        }
+
+        function triggerPlayerHitOrDeath() {
+            if (playerIsDead) return;
+
+            if (isCheering) {
+                isCheering = false;
+            }
+
+            playerHealth -= 20;
+            timeSinceLastDamage = 0; 
+            regenChunkTimer = 0;
+            updateHealthUI();
+            playSfx('axe_chop', 0.8);
+
+            if (playerHealth <= 0) {
+                playerHealth = 0;
+                playerIsDead = true;
+                playSfx('gameover', 0.8);
+                document.getElementById('gameover-msg').style.display = 'flex';
+
+                if (!mixer) return;
+                const deathAction = actions['Death_A'] || actions['Death_A_Pose'] || actions['Death'];
+                if (deathAction) {
+                    Object.values(actions).forEach(action => {
+                        if (action) {
+                            action.stop();
+                            action.weight = 0;
+                        }
+                    });
+                    activeAction = deathAction;
+                    deathAction.reset();
+                    deathAction.setLoop(THREE.LoopOnce, 1);
+                    deathAction.clampWhenFinished = true;
+                    deathAction.setEffectiveWeight(1.0);
+                    deathAction.play();
+                }
+            } else {
+                playerHitStunTimer = 0.5;
+                let hitAction = actions['Hit_B'];
+                if (hitAction) {
+                    if (activeAction) {
+                        activeAction.stop();
+                        activeAction.weight = 0;
+                    }
+                    
+                    const clipDuration = hitAction.getClip().duration;
+                    const speedMultiplier = clipDuration / 0.7;
+
+                    hitAction.stop();
+                    hitAction.reset();
+                    hitAction.setLoop(THREE.LoopOnce, 1);
+                    hitAction.clampWhenFinished = true;
+                    hitAction.setEffectiveWeight(1.0);
+                    hitAction.setEffectiveTimeScale(speedMultiplier);
+                    
+                    activeAction = hitAction;
+                    hitAction.play();
+                }
+            }
+        }
+
+        function retryGame() {
+            playerHealth = 100;
+            playerIsDead = false;
+            playerHitStunTimer = 0;
+            isCheering = false;
+            isHitting = false;
+            isQuizOpen = false;
+
+            collectedLetters.length = 0;
+            for (let i = 0; i < 6; i++) {
+                const slotEl = document.getElementById(`slot-${i}`);
+                if (slotEl) {
+                    slotEl.innerText = '';
+                    slotEl.classList.remove('collected');
+                }
+            }
+
+            stars.forEach(s => {
+                s.collected = false;
+                s.mesh.visible = true;
+            });
+            
+            skeletons.forEach(skel => {
+                skel.health = 100;
+                skel.isDead = false;
+                skel.hitStunTimer = 0;
+                skel.isAttacking = false;
+                skel.attackTimer = 0;
+                skel.group.position.copy(skel.initialPos);
+                skel.group.position.y = 0;
+
+                if (skel.colliderIndex !== -1) {
+                    colliders.splice(skel.colliderIndex, 1);
+                    skel.colliderIndex = -1;
+                }
+
+                if (skel.actions['Idle_A'] || skel.actions['Idle']) {
+                    fadeCpuToAction(skel, 'Idle_A', 0.2);
+                }
+            });
+
+            document.getElementById('gameover-msg').style.display = 'none';
+            document.getElementById('win-msg').style.display = 'none';
+            
+            const finalModal = document.getElementById('final-modal');
+            if (finalModal) finalModal.remove();
+            const congratsModal = document.getElementById('congrats-modal');
+            if (congratsModal) congratsModal.remove();
+
+            updateHealthUI();
+            playerGroup.position.set(30, 0, 50);
+            
+            if (actions['Idle_A']) {
+                fadeToAction('Idle_A', 0.2);
+            }
+        }
+
+        function updateHealthUI() {
+            const fill = document.getElementById('health-bar-fill');
+            const text = document.getElementById('health-text');
+            const pct = Math.max(0, playerHealth);
+            fill.style.width = pct + '%';
+            text.innerText = `${pct}/100`;
+            if (pct <= 25) {
+                fill.style.background = '#ef4444';
+            } else if (pct <= 50) {
+                fill.style.background = '#f59e0b';
+            } else {
+                fill.style.background = '#22c55e';
+            }
+        }
+
+        const quizBank = [
+            { q: "What is the color of the sky?", options: ["White", "Blue", "Green", "Red"], answer: 1 },
+            { q: "Where is Tokyo Skytree?", options: ["Sumida", "Koto", "Chiyoda", "Shibuya"], answer: 0 },
+            { q: "How many days in a week?", options: ["7", "8", "9", "10"], answer: 0 },
+            { q: "When is New Year's Eve?", options: ["24th", "25th", "30th", "31st"], answer: 3 },
+            { q: "Who is the Shin Chan's father?", options: ["Bunta", "Hiroshi", "Kenta", "Gotaro"], answer: 1 },
+            { q: "Which is the tallest?", options: ["Tokyo Tower", "Tokyo Skytree", "Eiffel Tower", "Kobe Tower"], answer: 1 }
+        ];
+
+        const lettersList = ['N', 'T', 'W', 'I', 'R', 'E'];
+        const stars = [];
+        const collectedLetters = [];
+        const starGeo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+        const starMat = new THREE.MeshBasicMaterial({ color: 0xfde047 });
+
+        const starPositions = [
+            { x: -2, z: 11 }, { x: -76, z: 68 }, { x: -49, z: 110 },
+            { x: -14, z: 73 }, { x: 26, z: 126 }, { x: -6, z: 38 }
+        ];
+
+        starPositions.forEach((pos, index) => {
+            const starMesh = new THREE.Mesh(starGeo, starMat);
+            starMesh.position.set(pos.x, 1.5, pos.z);
+            mapContainer.add(starMesh);
+
+            stars.push({
+                mesh: starMesh,
+                baseY: 1.5,
+                letter: lettersList[index],
+                quiz: quizBank[index],
+                collected: false
+            });
+        });
+
+        let mixer;
+        const actions = {};
+        let activeAction, previousAction;
+        let isHitting = false;
+        let isCheering = false;
+        let daggerMesh = null;
+
+        gltfLoader.load('Rogue_Hooded.glb', function (gltf) {
+            playerGroup.remove(playerPlaceholder);
+            const object = gltf.scene;
+            object.scale.set(1, 1, 1); 
+            object.position.y = 0;
+
+            object.traverse(function (child) {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+
+            playerGroup.add(object);
+            mixer = new THREE.AnimationMixer(object);
+
+            gltfLoader.load('dagger.gltf', function (daggerGltf) {
+                daggerMesh = daggerGltf.scene;
+                daggerMesh.scale.set(1, 1, 1);
+                
+                let handBone = null;
+                object.traverse((child) => {
+                    if (child.isBone && (child.name.toLowerCase().includes('hand') && (child.name.toLowerCase().includes('r') || child.name.toLowerCase().includes('right')))) {
+                        handBone = child;
+                    }
+                });
+
+                if (handBone) {
+                    handBone.add(daggerMesh);
+                    daggerMesh.position.set(0, 0, 0);
+                    daggerMesh.rotation.set(0, 0, 0);
+                } else {
+                    object.add(daggerMesh);
+                    daggerMesh.position.set(0.3, 1.0, 0.4); 
+                }
+            }, undefined, function(err) {
+                gltfLoader.load('dagger.glb', function (daggerGltf) {
+                    daggerMesh = daggerGltf.scene;
+                    daggerMesh.scale.set(1, 1, 1);
+                    object.add(daggerMesh);
+                    daggerMesh.position.set(0.3, 1.0, 0.4);
+                });
+            });
+
+            function bindAnimations(url) {
+                gltfLoader.load(url, function (animGltf) {
+                    if (animGltf.animations) {
+                        animGltf.animations.forEach((clip) => {
+                            actions[clip.name] = mixer.clipAction(clip, object);
+
+                            skeletons.forEach(skel => {
+                                if (skel.mixer && skel.modelRef) {
+                                    skel.actions[clip.name] = skel.mixer.clipAction(clip, skel.modelRef);
+                                }
+                            });
+                        });
+
+                        if (!activeAction && actions['Idle_A']) {
+                            activeAction = actions['Idle_A'];
+                            activeAction.reset().setEffectiveWeight(1).play();
+                        }
+                    }
+                }, undefined, () => {});
+            }
+
+            bindAnimations('Rig_Medium_MovementBasic.glb');
+            bindAnimations('Rig_Medium_General.glb');
+            bindAnimations('Rig_Medium_CombatMelee.glb');
+            bindAnimations('Rig_Medium_Simulation.glb');
+        }, undefined, () => {});
+
+        function fadeToAction(name, duration) {
+            let targetAction = actions[name];
+            if (!targetAction && name === 'Hit_B') {
+                targetAction = actions['Hit_B'];
+            }
+            if (!targetAction) return;
+            if (activeAction === targetAction) return;
+
+            previousAction = activeAction;
+            activeAction = targetAction;
+            
+            if (previousAction) {
+                previousAction.fadeOut(duration);
+            }
+            
+            activeAction.reset()
+                        .setEffectiveTimeScale(1)
+                        .setEffectiveWeight(1)
+                        .fadeIn(duration)
+                        .play();
+        }
+
+        function playCheerAction() {
+            let cheerAnimName = 'Cheering';
+            playSfx('cheer', 0.8);
+            
+            if (!actions[cheerAnimName]) {
+                const possibleNames = ['Cheer', 'Victory', 'Idle_B'];
+                for (let name of possibleNames) {
+                    if (actions[name]) {
+                        cheerAnimName = name;
+                        break;
+                    }
+                }
+            }
+
+            isCheering = true;
+            if (cheerAnimName && actions[cheerAnimName]) {
+                const cheerAction = actions[cheerAnimName];
+                cheerAction.reset();
+                cheerAction.setLoop(THREE.LoopOnce, 1);
+                cheerAction.clampWhenFinished = true;
+                
+                previousAction = activeAction;
+                activeAction = cheerAction;
+                if (previousAction && previousAction !== activeAction) previousAction.fadeOut(0.1);
+                activeAction.reset().setEffectiveTimeScale(1.0).setEffectiveWeight(1).fadeIn(0.1).play();
+
+                const onCheerFinished = function (e) {
+                    if (e.action === cheerAction) {
+                        mixer.removeEventListener('finished', onCheerFinished);
+                        isCheering = false;
+                        activeAction = null; 
+                    }
+                };
+                mixer.addEventListener('finished', onCheerFinished);
+            } else {
+                setTimeout(() => { isCheering = false; }, 1000);
+            }
+        }
+
+        function playHitAction() {
+            let hitAnimName = 'Melee_1H_Attack_Slice_Diagonal';
+            playSfx('attack', 0.7);
+            
+            if (!actions[hitAnimName]) {
+                const possibleNames = ['Attack', 'Punch', 'Hit_B', 'Interact'];
+                for (let name of possibleNames) {
+                    if (actions[name]) {
+                        hitAnimName = name;
+                        break;
+                    }
+                }
+            }
+
+            isHitting = true;
+            if (hitAnimName && actions[hitAnimName]) {
+                const hitAction = actions[hitAnimName];
+                hitAction.reset();
+                hitAction.setLoop(THREE.LoopOnce, 1);
+                hitAction.clampWhenFinished = true;
+                
+                previousAction = activeAction;
+                activeAction = hitAction;
+                if (previousAction && previousAction !== activeAction) previousAction.fadeOut(0.1);
+                activeAction.reset().setEffectiveTimeScale(1.2).setEffectiveWeight(1).fadeIn(0.1).play();
+
+                const onFinished = function (e) {
+                    if (e.action === hitAction) {
+                        mixer.removeEventListener('finished', onFinished);
+                        isHitting = false;
+                        activeAction = null; 
+                    }
+                };
+                mixer.addEventListener('finished', onFinished);
+
+                setTimeout(() => {
+                    if (isHitting) {
+                        mixer.removeEventListener('finished', onFinished);
+                        isHitting = false;
+                    }
+                }, 600);
+            } else {
+                setTimeout(() => { isHitting = false; }, 400);
+            }
+
+            skeletons.forEach(skel => {
+                if (!skel.isDead && playerGroup.position.distanceTo(skel.group.position) < 3.0) {
+                    setTimeout(() => {
+                        if (!skel.isDead && playerGroup.position.distanceTo(skel.group.position) < 3.0) {
+                            skel.health -= 35;
+                            playSfx('axe_chop', 0.8);
+
+                            if (skel.health > 0) {
+                                let cpuHitAction = skel.actions['Hit_B'];
+                                if (cpuHitAction) {
+                                    if (skel.activeAction) {
+                                        skel.activeAction.stop();
+                                        skel.activeAction.weight = 0;
+                                    }
+                                    
+                                    const clipDuration = cpuHitAction.getClip().duration;
+                                    const speedMultiplier = clipDuration / 0.4;
+
+                                    cpuHitAction.stop();
+                                    cpuHitAction.reset();
+                                    cpuHitAction.setLoop(THREE.LoopOnce, 1);
+                                    cpuHitAction.clampWhenFinished = true;
+                                    cpuHitAction.setEffectiveWeight(1.0);
+                                    cpuHitAction.setEffectiveTimeScale(speedMultiplier);
+                                    
+                                    skel.activeAction = cpuHitAction;
+                                    cpuHitAction.play();
+                                }
+                                skel.hitStunTimer = 0.7;
+                            } else {
+                                skel.health = 0;
+                                triggerCpuDeath(skel);
+                            }
+                        }
+                    }, 700);
+                }
+            });
+        }
+
+        const keys = { w: false, a: false, s: false, d: false, shift: false, space: false };
+        let cameraAngle = 0;
+        let cameraPitch = 0.5;
+        const cameraDistance = 9.0;
+        let isMouseDown = false;
+        let prevMouseX = 0, prevMouseY = 0;
+        let activeQuizStar = null;
+        let isQuizOpen = false;
+
+        let verticalVelocity = 0;
+        let isJumping = false;
+        let currentGroundLevel = 0.0;
+        const gravity = 0.9;
+        const jumpForce = 12.0;
+        const maxBoundaryDistance = 300;
+
+        function resetCameraOrientation() {
+            cameraAngle = playerGroup.rotation.y + Math.PI;
+            cameraPitch = 0.5;
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                const docElem = document.documentElement;
+                if (docElem.requestFullscreen) docElem.requestFullscreen().catch(() => {});
+                else if (docElem.webkitRequestFullscreen) docElem.webkitRequestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', handleFullscreenStateChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenStateChange);
+
+        function handleFullscreenStateChange() {
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+            const fullscreenBtnEl = document.getElementById('fullscreen-btn');
+            if (isFullscreen) {
+                fullscreenBtnEl.style.display = 'none';
+            } else if (isTouchDevice) {
+                fullscreenBtnEl.style.display = 'flex';
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (playerIsDead || isQuizOpen) return;
+            if (e.key === 'w' || e.key === 'W') keys.w = true;
+            if (e.key === 's' || e.key === 'S') keys.s = true;
+            if (e.key === 'a' || e.key === 'A') keys.a = true;
+            if (e.key === 'd' || e.key === 'D') keys.d = true;
+            if (e.key === 'Shift') keys.shift = true;
+
+            if (e.key === 'x' || e.key === 'X') {
+                if (!isHitting && !isCheering && playerHitStunTimer <= 0 && !isJumping) {
+                    playHitAction();
+                }
+            }
+
+            if (e.key === 'v' || e.key === 'V') {
+                if (!isCheering && !isHitting && playerHitStunTimer <= 0) {
+                    playCheerAction();
+                }
+            }
+
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!isJumping && playerHitStunTimer <= 0) {
+                    verticalVelocity = jumpForce;
+                    isJumping = true;
+                    playSfx('jump', 0.6);
+                    if (actions['Jump_Start']) fadeToAction('Jump_Start', 0.1);
+                }
+            }
+
+            if ((e.key === 'e' || e.key === 'E') && activeQuizStar && !activeQuizStar.collected) {
+                openQuiz(activeQuizStar);
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'w' || e.key === 'W') keys.w = false;
+            if (e.key === 's' || e.key === 'S') keys.s = false;
+            if (e.key === 'a' || e.key === 'A') keys.a = false;
+            if (e.key === 'd' || e.key === 'D') keys.d = false;
+            if (e.key === 'Shift') keys.shift = false;
+        });
+
+        window.addEventListener('pointerdown', (e) => {
+            if (e.target.closest('#touch-controls') || e.target.closest('#quiz-modal') || e.target.closest('#fullscreen-btn') || e.target.closest('#reset-cam-btn') || e.target.closest('#btn-action') || e.target.closest('#music-widget') || e.target.closest('#title-screen')) return;
+            isMouseDown = true;
+            prevMouseX = e.clientX;
+            prevMouseY = e.clientY;
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (!isMouseDown) return;
+            const deltaX = e.clientX - prevMouseX;
+            const deltaY = e.clientY - prevMouseY;
+            prevMouseX = e.clientX;
+            prevMouseY = e.clientY;
+            cameraAngle -= deltaX * 0.008;
+            cameraPitch += deltaY * 0.008;
+            cameraPitch = Math.max(-0.4, Math.min(2.6, cameraPitch));
+        });
+
+        window.addEventListener('pointerup', () => { isMouseDown = false; });
+
+        const touchControlsEl = document.getElementById('touch-controls');
+        const fullscreenBtnEl = document.getElementById('fullscreen-btn');
+        const resetCamBtnEl = document.getElementById('reset-cam-btn');
+        const btnAction = document.getElementById('btn-action');
+        const interactPromptEl = document.getElementById('interact-prompt');
+        
+        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024);
+        
+        if (isTouchDevice) {
+            touchControlsEl.style.display = 'flex';
+            resetCamBtnEl.style.display = 'flex';
+            interactPromptEl.style.display = 'none';
+        }
+
+        const joystickBase = document.getElementById('joystick-base');
+        const joystickKnob = document.getElementById('joystick-knob');
+        let joystickTouchId = null;
+        let joystickVector = new THREE.Vector2(0, 0);
+        const baseRadius = 60;
+
+        joystickBase.addEventListener('pointerdown', (e) => {
+            joystickTouchId = e.pointerId;
+            joystickBase.setPointerCapture(e.pointerId);
+            updateJoystick(e);
+        });
+        joystickBase.addEventListener('pointermove', (e) => {
+            if (e.pointerId === joystickTouchId) updateJoystick(e);
+        });
+        function endJoystick(e) {
+            if (e.pointerId === joystickTouchId) {
+                joystickTouchId = null;
+                joystickVector.set(0, 0);
+                joystickKnob.style.transform = `translate(0px, 0px)`;
+            }
+        }
+        joystickBase.addEventListener('pointerup', endJoystick);
+        joystickBase.addEventListener('pointercancel', endJoystick);
+
+        function updateJoystick(e) {
+            const rect = joystickBase.getBoundingClientRect();
+            let dx = e.clientX - (rect.left + rect.width / 2);
+            let dy = e.clientY - (rect.top + rect.height / 2);
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > baseRadius) {
+                dx = (dx / dist) * baseRadius;
+                dy = (dy / dist) * baseRadius;
+            }
+            joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+            joystickVector.set(dx / baseRadius, dy / baseRadius);
+        }
+
+        const btnJump = document.getElementById('btn-jump');
+        btnJump.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            if (playerIsDead || playerHitStunTimer > 0) return;
+            if (!isJumping) {
+                verticalVelocity = jumpForce;
+                isJumping = true;
+                playSfx('jump', 0.6);
+                if (actions['Jump_Start']) fadeToAction('Jump_Start', 0.1);
+            }
+        });
+
+        const btnHit = document.getElementById('btn-hit');
+        btnHit.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            if (playerIsDead || playerHitStunTimer > 0 || isJumping) return;
+            if (!isHitting && !isCheering) playHitAction();
+        });
+
+        btnAction.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            if (playerIsDead) return;
+            if (activeQuizStar && !activeQuizStar.collected) openQuiz(activeQuizStar);
+        });
+
+        function openQuiz(starObj) {
+            isQuizOpen = true;
+            activeQuizStar = starObj;
+            playSfx('opening_box', 0.7);
+            if (!isTouchDevice) {
+                interactPromptEl.style.display = 'none';
+            }
+            btnAction.style.display = 'none';
+
+            skeletons.forEach(skel => {
+                if (!skel.isDead) {
+                    skel.isAttacking = false;
+                    skel.attackTimer = 0;
+                    fadeCpuToAction(skel, 'Idle_A', 0.2);
+                }
+            });
+
+            const modal = document.getElementById('quiz-modal');
+            const questionEl = document.getElementById('quiz-question');
+            const optionsContainer = document.getElementById('quiz-options-container');
+
+            questionEl.innerText = starObj.quiz.q;
+            optionsContainer.innerHTML = '';
+
+            starObj.quiz.options.forEach((optText, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'quiz-option';
+                btn.innerText = `${idx + 1}. ${optText}`;
+                btn.onclick = () => handleAnswer(idx, starObj);
+                optionsContainer.appendChild(btn);
+            });
+            modal.style.display = 'flex';
+        }
+
+        function handleAnswer(selectedIndex, starObj) {
+            const modal = document.getElementById('quiz-modal');
+
+            if (selectedIndex === starObj.quiz.answer) {
+                modal.style.display = 'none';
+                isQuizOpen = false;
+                playSfx('correct', 0.8);
+                starObj.collected = true;
+                starObj.mesh.visible = false;
+                collectedLetters.push(starObj.letter);
+                const slotIndex = collectedLetters.length - 1;
+                const slotEl = document.getElementById(`slot-${slotIndex}`);
+                if (slotEl) {
+                    slotEl.innerText = starObj.letter;
+                    slotEl.classList.add('collected');
+                }
+                
+                if (!isCheering && !isHitting && playerHitStunTimer <= 0) {
+                    playCheerAction();
+                }
+                
+                if (collectedLetters.length === 6) {
+                    let congratsModal = document.createElement('div');
+                    congratsModal.id = 'congrats-modal';
+                    congratsModal.style.position = 'fixed';
+                    congratsModal.style.top = '0';
+                    congratsModal.style.left = '0';
+                    congratsModal.style.width = '100vw';
+                    congratsModal.style.height = '100vh';
+                    congratsModal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                    congratsModal.style.display = 'flex';
+                    congratsModal.style.justifyContent = 'center';
+                    congratsModal.style.alignItems = 'center';
+                    congratsModal.style.zIndex = '10000';
+
+                    let modalContent = document.createElement('div');
+                    modalContent.style.backgroundColor = '#10b981';
+                    modalContent.style.padding = '30px';
+                    modalContent.style.borderRadius = '16px';
+                    modalContent.style.textAlign = 'center';
+                    modalContent.style.color = '#ffffff';
+                    modalContent.style.boxShadow = '0 10px 25px rgba(0,0,0,0.3)';
+                    modalContent.style.maxWidth = '450px';
+                    modalContent.style.width = '90%';
+                    modalContent.style.display = 'flex';
+                    modalContent.style.flexDirection = 'column';
+                    modalContent.style.alignItems = 'center';
+
+                    let heading = document.createElement('h2');
+                    heading.innerText = "Congratulations!";
+                    heading.style.margin = '0 0 10px 0';
+
+                    let p = document.createElement('p');
+                    p.innerText = "You collected all the letters! Enter the secret word:";
+                    p.style.margin = '0 0 20px 0';
+
+                    let lettersBoxClone = document.getElementById('ui-top-right').cloneNode(true);
+                    lettersBoxClone.style.position = 'static';
+                    lettersBoxClone.style.marginBottom = '20px';
+                    lettersBoxClone.style.transform = 'scale(1.3)';
+                    lettersBoxClone.style.transformOrigin = 'center';
+
+                    let input = document.createElement('input');
+                    input.type = 'text';
+                    input.placeholder = 'Secret word...';
+                    input.style.padding = '10px';
+                    input.style.width = '80%';
+                    input.style.borderRadius = '8px';
+                    input.style.border = '1px solid #ccc';
+                    input.style.marginBottom = '15px';
+                    input.style.fontSize = '16px';
+                    input.style.textAlign = 'center';
+
+                    let errorMsg = document.createElement('div');
+                    errorMsg.style.color = '#fee2e2';
+                    errorMsg.style.marginBottom = '15px';
+                    errorMsg.style.fontSize = '14px';
+
+                    let submitBtn = document.createElement('button');
+                    submitBtn.innerText = 'Submit';
+                    submitBtn.style.padding = '10px 20px';
+                    submitBtn.style.backgroundColor = '#ffffff';
+                    submitBtn.style.color = '#10b981';
+                    submitBtn.style.border = 'none';
+                    submitBtn.style.borderRadius = '8px';
+                    submitBtn.style.fontWeight = 'bold';
+                    submitBtn.style.cursor = 'pointer';
+                    submitBtn.style.fontSize = '16px';
+
+                    submitBtn.onclick = function() {
+                        let secretWord = input.value;
+                        if (secretWord.trim().toLowerCase() === "winter") {
+                            playSfx('flag', 0.8);
+                            document.body.removeChild(congratsModal);
+
+                            let finalModal = document.createElement('div');
+                            finalModal.id = 'final-modal';
+                            finalModal.style.position = 'fixed';
+                            finalModal.style.top = '0';
+                            finalModal.style.left = '0';
+                            finalModal.style.width = '100vw';
+                            finalModal.style.height = '100vh';
+                            finalModal.style.backgroundColor = 'rgba(0,0,0,0.85)';
+                            finalModal.style.display = 'flex';
+                            finalModal.style.flexDirection = 'column';
+                            finalModal.style.justifyContent = 'center';
+                            finalModal.style.alignItems = 'center';
+                            finalModal.style.zIndex = '10000';
+                            finalModal.style.gap = '20px';
+                            finalModal.style.padding = '20px';
+                            finalModal.style.boxSizing = 'border-box';
+
+                            let img = document.createElement('img');
+                            img.src = 'snowanswer.webp';
+                            img.style.maxWidth = '50vw';
+                            img.style.maxHeight = '50vh';
+                            img.style.objectFit = 'contain';
+                            img.style.border = '4px solid #fbbf24';
+                            img.style.borderRadius = '16px';
+
+                            let playAgainBtn = document.createElement('button');
+                            playAgainBtn.innerText = 'Play Again';
+                            playAgainBtn.style.padding = '14px 32px';
+                            playAgainBtn.style.backgroundColor = '#22c55e';
+                            playAgainBtn.style.color = '#ffffff';
+                            playAgainBtn.style.border = '3px solid #86efac';
+                            playAgainBtn.style.borderRadius = '12px';
+                            playAgainBtn.style.fontWeight = '900';
+                            playAgainBtn.style.fontSize = '18px';
+                            playAgainBtn.style.cursor = 'pointer';
+                            playAgainBtn.style.boxShadow = '0 6px 0 #166534';
+                            playAgainBtn.onclick = function() {
+                                document.body.removeChild(finalModal);
+                                retryGame();
+                            };
+
+                            finalModal.appendChild(img);
+                            setTimeout(() => {
+                                finalModal.appendChild(playAgainBtn);
+                            }, 3000);
+                            document.body.appendChild(finalModal);
+                        } else {
+                            playSfx('wrong', 0.8);
+                            errorMsg.innerText = "Incorrect secret word! Please try again.";
+                            input.value = '';
+                            input.focus();
+                        }
+                    };
+                    
+                    modalContent.appendChild(lettersBoxClone);
+                    modalContent.appendChild(heading);
+                    modalContent.appendChild(p);
+                    modalContent.appendChild(input);
+                    modalContent.appendChild(errorMsg);
+                    modalContent.appendChild(submitBtn);
+                    congratsModal.appendChild(modalContent);
+                    document.body.appendChild(congratsModal);
+
+                    document.getElementById('win-msg').style.display = 'block';
+                }
+            } else {
+                playSfx('wrong', 0.8);
+                modal.classList.remove('flash-red');
+                void modal.offsetWidth;
+                modal.classList.add('flash-red');
+
+                const options = modal.querySelectorAll('.quiz-option');
+                options.forEach(opt => {
+                    opt.style.pointerEvents = 'none';
+                    opt.style.backgroundColor = '#b91c1c';
+                    opt.style.borderColor = '#f87171';
+                    opt.style.color = '#ffffff';
+                });
+
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    modal.classList.remove('flash-red');
+                    options.forEach(opt => {
+                        opt.style.pointerEvents = 'auto';
+                        opt.style.backgroundColor = '';
+                        opt.style.borderColor = '';
+                        opt.style.color = '';
+                    });
+                    isQuizOpen = false;
+                }, 1000);
+            }
+        }
+
+        const walkSpeed = 6.6;
+        const sprintSpeed = 13.2;
+        const clock = new THREE.Clock();
+
+        function getIntersectedCollider(targetPos) {
+            const playerRadius = 0.35; 
+            for (let i = 0; i < colliders.length; i++) {
+                const box = colliders[i];
+                if (
+                    targetPos.x + playerRadius > box.min.x && targetPos.x - playerRadius < box.max.x &&
+                    targetPos.z + playerRadius > box.min.z && targetPos.z - playerRadius < box.max.z
+                ) {
+                    if (targetPos.y < box.max.y - 0.1) return box;
+                }
+            }
+            return null;
+        }
+
+        function getTargetSurfaceHeight(targetPos) {
+            const playerRadius = 0.35; 
+            let targetFloor = -0.2; 
+            for (let i = 0; i < platforms.length; i++) {
+                const p = platforms[i];
+                if (
+                    targetPos.x + playerRadius > p.box.min.x && targetPos.x - playerRadius < p.box.max.x &&
+                    targetPos.z + playerRadius > p.box.min.z && targetPos.z - playerRadius < p.box.max.z
+                ) {
+                    if (targetPos.y >= p.maxY - 0.6 && p.maxY > targetFloor) targetFloor = p.maxY;
+                }
+            }
+            return targetFloor;
+        }
+
+        const tempVector = new THREE.Vector3();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const warningEl = document.getElementById('rotate-warning');
+            const isPortrait = window.innerHeight > window.innerWidth;
+            if (isPortrait && isTouchDevice) {
+                warningEl.style.display = 'flex';
+                renderer.render(scene, camera);
+                return;
+            } else {
+                warningEl.style.display = 'none';
+            }
+
+            let dt = clock.getDelta();
+            if (dt > 0.1) dt = 0.1;
+
+            if (mixer) mixer.update(dt);
+
+            skeletons.forEach(skel => {
+                if (skel.mixer) skel.mixer.update(dt);
+
+                if (skel.helper.visible || skel.isDead) {
+                    if (skel.isDead && skel.modelRef) {
+                        skel.box.setFromObject(skel.modelRef);
+                        skel.box.max.y = skel.group.position.y + 3.4; 
+                        skel.box.min.x += 0.8;
+                        skel.box.max.x -= 0.8;
+                        skel.box.min.z += 0.8;
+                        skel.box.max.z -= 0.8;
+                    } else {
+                        skel.box.min.set(skel.group.position.x - 0.6, skel.group.position.y, skel.group.position.z - 0.6);
+                        skel.box.max.set(skel.group.position.x + 0.6, skel.group.position.y + 2.0, skel.group.position.z + 0.6);
+                    }
+                    skel.helper.box.copy(skel.box);
+                }
+
+                if (skel.hitStunTimer > 0) {
+                    skel.hitStunTimer -= dt; 
+                }
+
+                if (!skel.isDead) {
+                    if (playerIsDead || isQuizOpen || collectedLetters.length === 6) {
+                        skel.isAttacking = false;
+                        skel.attackTimer = 0;
+                        fadeCpuToAction(skel, 'Idle_A', 0.2);
+                        skel.group.position.y = 0;
+                    } else if (skel.hitStunTimer <= 0) {
+                        const distToPlayer = skel.group.position.distanceTo(playerGroup.position);
+                        const attackRange = 2.2;
+                        const visionRange = 25.0; 
+                        const visionAngleCos = Math.cos(THREE.MathUtils.degToRad(120 / 2));
+
+                        const cpuForward = new THREE.Vector3(0, 0, 1).applyQuaternion(skel.group.quaternion);
+                        const toPlayer = new THREE.Vector3().subVectors(playerGroup.position, skel.group.position);
+                        toPlayer.y = 0;
+                        toPlayer.normalize();
+                        
+                        const dotProduct = cpuForward.dot(toPlayer);
+                        const canSeePlayer = (distToPlayer <= visionRange && dotProduct >= visionAngleCos) || (distToPlayer <= 2.5);
+
+                        if (distToPlayer <= attackRange && canSeePlayer) {
+                            if (!skel.isAttacking) {
+                                skel.isAttacking = true;
+                                skel.attackTimer = 0; 
+                                fadeCpuToAction(skel, 'Attack', 0.1);
+                            }
+
+                            skel.group.lookAt(playerGroup.position.x, playerGroup.position.y, playerGroup.position.z);
+                            skel.group.position.y = 0;
+                            
+                            skel.attackTimer += dt;
+                            if (skel.attackTimer >= 0.7 && skel.attackTimer - dt < 0.7) {
+                                if (!playerIsDead && !isQuizOpen) {
+                                    triggerPlayerHitOrDeath(); 
+                                }
+                            }
+
+                            if (skel.attackTimer >= 1.0) {
+                                skel.attackTimer = 0; 
+                                skel.isAttacking = false; 
+                            }
+                        } else if (canSeePlayer) {
+                            skel.isAttacking = false;
+                            skel.attackTimer = 0;
+
+                            fadeCpuToAction(skel, 'Running_A', 0.2);
+                            skel.group.lookAt(playerGroup.position.x, playerGroup.position.y, playerGroup.position.z);
+                            
+                            const skelStep = 4.8 * dt;
+                            const forwardVec = new THREE.Vector3(0, 0, 1).applyQuaternion(skel.group.quaternion);
+                            const nextSkelPos = skel.group.position.clone();
+                            nextSkelPos.addScaledVector(forwardVec, skelStep);
+
+                            if (!getIntersectedCollider(nextSkelPos)) {
+                                skel.group.translateZ(skelStep);
+                            }
+                            skel.group.position.y = 0;
+                        } else {
+                            skel.isAttacking = false;
+                            skel.attackTimer = 0;
+
+                            skel.wanderTimer += dt;
+                            if (skel.wanderTimer > 5.0) {
+                                skel.wanderTimer = 0;
+                                skel.wanderTarget.set(
+                                    skel.group.position.x + (Math.random() - 0.5) * 12,
+                                    0,
+                                    skel.group.position.z + (Math.random() - 0.5) * 12
+                                );
+                            }
+                            skel.group.lookAt(skel.wanderTarget);
+                            skel.group.position.y = 0;
+                            
+                            const isWalking = skel.group.position.distanceTo(skel.wanderTarget) > 1.0;
+                            if (isWalking) {
+                                fadeCpuToAction(skel, 'Walking_A', 0.2);
+                                const walkStep = 1.2 * dt;
+                                const nextWanderPos = skel.group.position.clone();
+                                const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(skel.group.quaternion);
+                                nextWanderPos.addScaledVector(forward, walkStep);
+
+                                if (!getIntersectedCollider(nextWanderPos)) {
+                                    skel.group.translateZ(walkStep);
+                                }
+                                skel.group.position.y = 0;
+                            } else {
+                                fadeCpuToAction(skel, 'Idle_A', 0.2);
+                            }
+                        }
+                    }
+                }
+
+                const barContainerEl = document.getElementById(`skel-bar-${skel.id}`);
+                const fillEl = document.getElementById(`skel-fill-${skel.id}`);
+                const distToPlayer = skel.group.position.distanceTo(playerGroup.position);
+
+                if (!skel.isDead && distToPlayer <= 25.0 && !isQuizOpen) {
+                    tempVector.set(skel.group.position.x, skel.group.position.y + 2.3, skel.group.position.z);
+                    tempVector.project(camera);
+
+                    if (tempVector.z < 1.0) {
+                        const xPx = (tempVector.x *  .5 + .5) * window.innerWidth;
+                        const yPx = (tempVector.y * -.5 + .5) * window.innerHeight;
+                        barContainerEl.style.display = 'block';
+                        barContainerEl.style.left = `${xPx}px`;
+                        barContainerEl.style.top = `${yPx}px`;
+                        fillEl.style.width = `${Math.max(0, skel.health)}%`;
+                    } else {
+                        barContainerEl.style.display = 'none';
+                    }
+                } else {
+                    if (barContainerEl) barContainerEl.style.display = 'none';
+                }
+            });
+
+            if (playerHitStunTimer > 0) {
+                playerHitStunTimer -= dt;
+                if (playerHitStunTimer < 0) playerHitStunTimer = 0;
+            }
+
+            if (!playerIsDead && playerHealth < 100 && playerHealth > 0) {
+                timeSinceLastDamage += dt;
+                if (timeSinceLastDamage >= regenDelay) {
+                    regenChunkTimer += dt;
+                    if (regenChunkTimer >= regenInterval) {
+                        regenChunkTimer = 0; 
+                        playerHealth = Math.min(100, playerHealth + 5);
+                        updateHealthUI();
+                    }
+                }
+            } else {
+                regenChunkTimer = 0;
+            }
+
+            snowParticles.position.x = playerGroup.position.x;
+            snowParticles.position.z = playerGroup.position.z;
+
+            for (let i = 1; i < snowPositionsArr.length; i += 3) {
+                snowPositionsArr[i] -= 9.0 * dt;
+                if (snowPositionsArr[i] < 0) snowPositionsArr[i] = 50;
+            }
+            snowGeo.attributes.position.needsUpdate = true;
+
+            const elapsedTime = clock.getElapsedTime();
+            stars.forEach(s => {
+                if (!s.collected) {
+                    s.mesh.position.y = s.baseY + Math.sin(elapsedTime * 3 + s.baseY) * 0.4;
+                    s.mesh.rotation.y = elapsedTime * 2;
+                }
+            });
+
+            if (!playerIsDead && !isQuizOpen && playerHitStunTimer <= 0) {
+                const camForward = new THREE.Vector3(-Math.sin(cameraAngle), 0, -Math.cos(cameraAngle));
+                const camRight = new THREE.Vector3(Math.cos(cameraAngle), 0, -Math.sin(cameraAngle));
+
+                let moveDir = new THREE.Vector3(0, 0, 0);
+                if (keys.w) moveDir.add(camForward);
+                if (keys.s) moveDir.sub(camForward);
+                if (keys.d) moveDir.add(camRight);
+                if (keys.a) moveDir.sub(camRight);
+
+                if (joystickVector.lengthSq() > 0) {
+                    moveDir.addScaledVector(camForward, -joystickVector.y);
+                    moveDir.addScaledVector(camRight, joystickVector.x);
+                }
+
+                const isMoving = moveDir.lengthSq() > 0;
+                if (isMoving && isCheering) isCheering = false;
+
+                const isRunning = keys.shift || joystickVector.length() > 0.8;
+                const speed = (isRunning ? sprintSpeed : walkSpeed) * dt;
+
+                updateWalkingAudio(isMoving && !isJumping, isRunning);
+
+                if (!isHitting && !isCheering) {
+                    if (isJumping) {
+                        if (actions['Jump_A']) fadeToAction('Jump_A', 0.1);
+                    } else if (isMoving) {
+                        moveDir.normalize();
+                        
+                        const nextX = playerGroup.position.clone();
+                        nextX.x += moveDir.x * speed;
+                        if (!getIntersectedCollider(nextX)) playerGroup.position.x = nextX.x;
+
+                        const nextZ = playerGroup.position.clone();
+                        nextZ.z += moveDir.z * speed;
+                        if (!getIntersectedCollider(nextZ)) playerGroup.position.z = nextZ.z;
+
+                        const targetRotation = Math.atan2(moveDir.x, moveDir.z);
+                        let diff = targetRotation - playerGroup.rotation.y;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+                        playerGroup.rotation.y += diff * Math.min(1.0, 10 * dt);
+
+                        const targetAnim = isRunning ? 'Running_A' : 'Walking_A';
+                        if (actions[targetAnim]) fadeToAction(targetAnim, 0.2);
+                    } else {
+                        updateWalkingAudio(false, false);
+                        const idleAnim = actions['Idle_B'] ? 'Idle_B' : Object.keys(actions)[0];
+                        if (actions[idleAnim]) fadeToAction(idleAnim, 0.2);
+                    }
+                }
+
+                const distanceFromCenter = Math.sqrt(playerGroup.position.x ** 2 + playerGroup.position.z ** 2);
+                if (distanceFromCenter > maxBoundaryDistance) {
+                    playerGroup.position.x = (playerGroup.position.x / distanceFromCenter) * maxBoundaryDistance;
+                    playerGroup.position.z = (playerGroup.position.z / distanceFromCenter) * maxBoundaryDistance;
+                }
+
+                const collisionDistance = 0.8;
+                skeletons.forEach(skel => {
+                    const distBetweenModels = playerGroup.position.distanceTo(skel.group.position);
+                    if (distBetweenModels < collisionDistance && !skel.isDead) {
+                        const pushDir = new THREE.Vector3().subVectors(playerGroup.position, skel.group.position);
+                        pushDir.y = 0;
+                        pushDir.normalize();
+                        playerGroup.position.addScaledVector(pushDir, collisionDistance - distBetweenModels);
+                    }
+                });
+
+                currentGroundLevel = getTargetSurfaceHeight(playerGroup.position);
+
+                if (isJumping) {
+                    playerGroup.position.y += verticalVelocity * dt;
+                    verticalVelocity -= gravity * 35 * dt;
+                    if (playerGroup.position.y <= currentGroundLevel) {
+                        playerGroup.position.y = currentGroundLevel;
+                        isJumping = false;
+                        verticalVelocity = 0;
+                    }
+                } else {
+                    playerGroup.position.y = Math.max(currentGroundLevel, playerGroup.position.y - (gravity * 35 * dt * 2));
+                }
+
+                activeQuizStar = null;
+                let minDist = 3.5;
+                stars.forEach(s => {
+                    if (!s.collected) {
+                        const dist = playerGroup.position.distanceTo(s.mesh.position);
+                        if (dist < minDist) activeQuizStar = s;
+                    }
+                });
+
+                const showPrompt = activeQuizStar !== null;
+                if (!isTouchDevice) {
+                    interactPromptEl.style.display = showPrompt ? 'block' : 'none';
+                } else {
+                    btnAction.style.display = showPrompt ? 'flex' : 'none';
+                }
+            } else {
+                updateWalkingAudio(false, false);
+            }
+
+            const targetCamX = playerGroup.position.x + Math.sin(cameraAngle) * Math.cos(cameraPitch) * cameraDistance;
+            const targetCamY = playerGroup.position.y + Math.sin(cameraPitch) * cameraDistance + 1.0;
+            const targetCamZ = playerGroup.position.z + Math.cos(cameraAngle) * Math.cos(cameraPitch) * cameraDistance;
+
+            const lerpFactor = Math.min(1.0, 10 * dt);
+            camera.position.x += (targetCamX - camera.position.x) * lerpFactor;
+            camera.position.y += (targetCamY - camera.position.y) * lerpFactor;
+            camera.position.z += (targetCamZ - camera.position.z) * lerpFactor;
+
+            camera.lookAt(playerGroup.position.x, playerGroup.position.y + 1, playerGroup.position.z);
+
+            renderer.render(scene, camera);
+        }
+
+        updateHealthUI();
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        });
+    </script>
+</body>
+</html>
