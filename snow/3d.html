@@ -1852,6 +1852,98 @@
                 void modal.offsetWidth;
                 modal.classList.add('flash-red');
 
+                // --- TELEPORT THE NEXT AVAILABLE SKELETON SEQUENTIALLY ---
+                if (typeof skeletons !== 'undefined' && skeletons.length > 0) {
+                    let targetSkel = null;
+
+                    // First, try to find a dead skeleton to revive and teleport
+                    targetSkel = skeletons.find(skel => skel && skel.isDead);
+
+                    // If all skeletons are alive, pick the one currently furthest from the player
+                    if (!targetSkel) {
+                        let maxDist = -1;
+                        skeletons.forEach(skel => {
+                            if (skel && skel.group) {
+                                const dist = playerGroup.position.distanceTo(skel.group.position);
+                                if (dist > maxDist) {
+                                    maxDist = dist;
+                                    targetSkel = skel;
+                                }
+                            }
+                        });
+                    }
+
+                    if (targetSkel) {
+                        if (targetSkel.isDead && targetSkel.colliderIndex !== -1 && typeof colliders !== 'undefined') {
+                            colliders.splice(targetSkel.colliderIndex, 1);
+                            targetSkel.colliderIndex = -1;
+                        }
+
+                        targetSkel.health = 100;
+                        targetSkel.isDead = false;
+                        targetSkel.hitStunTimer = 0;
+                        targetSkel.isAttacking = false;
+                        targetSkel.attackTimer = 0;
+
+                        let newPos = playerGroup.position.clone();
+                        let safeFound = false;
+                        let attempts = 0;
+
+                        while (!safeFound && attempts < 10) {
+                            attempts++;
+                            const spawnAngle = Math.random() * Math.PI * 2;
+                            const spawnDistance = 4.0 + Math.random() * 3.0; 
+                            
+                            const testPos = playerGroup.position.clone().add(new THREE.Vector3(
+                                Math.cos(spawnAngle) * spawnDistance,
+                                0,
+                                Math.sin(spawnAngle) * spawnDistance
+                            ));
+                            testPos.y = 0;
+
+                            let collides = false;
+                            if (typeof colliders !== 'undefined') {
+                                const skeletonRadius = 0.5;
+                                for (let i = 0; i < colliders.length; i++) {
+                                    const box = colliders[i];
+                                    if (
+                                        testPos.x + skeletonRadius > box.min.x && testPos.x - skeletonRadius < box.max.x &&
+                                        testPos.z + skeletonRadius > box.min.z && testPos.z - skeletonRadius < box.max.z
+                                    ) {
+                                        if (testPos.y < box.max.y) {
+                                            collides = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (!collides) {
+                                newPos = testPos;
+                                safeFound = true;
+                            }
+                        }
+
+                        targetSkel.group.position.copy(newPos);
+                        if (targetSkel.initialPos) {
+                            targetSkel.initialPos.copy(newPos);
+                        }
+
+                        targetSkel.group.lookAt(playerGroup.position.x, targetSkel.group.position.y, playerGroup.position.z);
+
+                        if (targetSkel.mixer && targetSkel.actions) {
+                            targetSkel.mixer.stopAllAction();
+                            const idleAction = targetSkel.actions['Idle'] || targetSkel.actions['Idle_A'] || Object.values(targetSkel.actions)[0];
+                            if (idleAction) {
+                                idleAction.reset().play();
+                                targetSkel.activeAction = idleAction;
+                            }
+                        }
+                    }
+                }
+                // --------------------------------------------------------
+
+                // Visual feedback for the wrong options
                 const options = modal.querySelectorAll('.quiz-option');
                 options.forEach(opt => {
                     opt.style.pointerEvents = 'none';
@@ -1860,6 +1952,7 @@
                     opt.style.color = '#ffffff';
                 });
 
+                // Safely dismiss the dialog modal after 1 second and reset gameplay flags
                 setTimeout(() => {
                     modal.style.display = 'none';
                     modal.classList.remove('flash-red');
