@@ -232,6 +232,58 @@
             box-shadow: 0 2px 0px #b89f00;
         }
 
+        /* --- MUSIC PLAYER STYLES --- */
+        #music-widget {
+            pointer-events: auto !important;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10000;
+            color: white;
+            font-family: sans-serif;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: opacity 0.3s ease;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .music-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            line-height: 1;
+        }
+
+        .music-btn:hover { 
+            transform: scale(1.15); 
+            opacity: 0.8; 
+        }
+
+        #track-title {
+            font-size: 14px;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
         @media (max-width: 768px) {
             h1 { font-size: 24px; }
             p { font-size: 13px; }
@@ -271,6 +323,18 @@
         MINIGAME: <span id="current-world-name" style="color: #ffe600;">Forest RPG</span>
     </div>
 
+    <!-- Floating Music Player Widget -->
+    <div id="music-widget">
+        <span id="track-title">Track 9</span>
+        <div class="controls-group">
+            <button class="music-btn" onclick="prevTrack()" title="Previous">⏮</button>
+            <button class="music-btn" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">▶</button>
+            <button class="music-btn" onclick="nextTrack()" title="Next">⏭</button>
+        </div>
+    </div>
+
+    <audio id="bg-music"></audio>
+
     <div id="game-screen">
         <h2 id="active-game-title"></h2>
         <div id="game-preview-container">
@@ -286,6 +350,99 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
+        // --- MUSIC PLAYER LOGIC ---
+        const playlist = [
+            { name: "1.Adventure", src: "../music/kaisen.mp3" },
+            { name: "2.Summer", src: "../music/natsuyasuminotanken.mp3" }, 
+            { name: "3.Rain", src: "../music/solarisnoame.mp3" }, 
+            { name: "4.Lunar", src: "../music/gesshokunomirage.mp3" }, 
+            { name: "5.Kingdom", src: "../music/icarusnotsuiraku.mp3" },
+            { name: "6.Tomorrow", src: "../music/ashitaetudukusora.mp3" }, 
+            { name: "7.Snow", src: "../music/hatsuyuki.mp3" },
+            { name: "8.Onward", src: "../music/zangyousenshi.mp3" }, 
+            { name: "9.Evening", src: "../music/houkagonoumibe.mp3" }, 
+            { name: "10.Boss", src: "../music/gameover.mp3" }, 
+            { name: "11.Always", src: "../music/suisounishizumutsuki.mp3" },
+            { name: "12.Cosmos", src: "../music/houkagonoyuzora.mp3" }, 
+            { name: "13.Journey", src: "../music/umioiku.mp3" },
+            { name: "14.End", src: "../music/kouyaoiku.mp3" }, 
+            { name: "15.March", src: "../music/funenotabi.mp3" }, 
+            { name: "16.Endless", src: "../music/hateshinaimichi.mp3" }, 
+            { name: "17.Mystery", src: "../music/tsukitowatashi_violin.mp3" }
+        ];
+
+        let currentTrackIndex = 8;
+        const bgMusic = document.getElementById('bg-music');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const trackTitleDisplay = document.getElementById('track-title');
+
+        let wasPlayingBeforeHidden = false;
+
+        trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
+        bgMusic.src = playlist[currentTrackIndex].src;
+
+        function playCurrentTrack() {
+            bgMusic.volume = 1.0; 
+            bgMusic.src = playlist[currentTrackIndex].src;
+            trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
+            bgMusic.play().then(() => {
+                playPauseBtn.textContent = "❚❚"; 
+            }).catch(e => console.log("Audio play blocked or waiting for interaction"));
+        }
+
+        document.addEventListener('pointerdown', function initialPlay() {
+            if (bgMusic.paused && !bgMusic.currentTime) {
+                playCurrentTrack();
+            }
+        }, { once: true });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (!bgMusic.paused) {
+                    wasPlayingBeforeHidden = true;
+                    bgMusic.pause();
+                    playPauseBtn.textContent = "▶";
+                } else {
+                    wasPlayingBeforeHidden = false;
+                }
+            } else {
+                if (wasPlayingBeforeHidden) {
+                    bgMusic.play().then(() => {
+                        playPauseBtn.textContent = "❚❚";
+                    }).catch(e => console.log("Resume audio blocked"));
+                }
+            }
+        });
+
+        bgMusic.addEventListener('ended', () => {
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            playCurrentTrack();
+        });
+
+        function togglePlayPause() {
+            if (bgMusic.paused) {
+                if (!bgMusic.src) {
+                    playCurrentTrack();
+                } else {
+                    bgMusic.play();
+                }
+                playPauseBtn.textContent = "❚❚";
+            } else {
+                bgMusic.pause();
+                playPauseBtn.textContent = "▶"; 
+            }
+        }
+
+        function nextTrack() {
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            playCurrentTrack();
+        }
+
+        function prevTrack() {
+            currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+            playCurrentTrack();
+        }
+
         // --- SCENE SETUP ---
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x020208);
@@ -299,7 +456,6 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
-        // --- FULLSCREEN LOGIC ---
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
@@ -312,7 +468,6 @@
             }
         }
 
-        // --- LIGHTING ---
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
 
@@ -320,7 +475,6 @@
         dirLight.position.set(15, 30, 20);
         scene.add(dirLight);
 
-        // --- BACKGROUND STARFIELD ---
         const starsGeo = new THREE.BufferGeometry();
         const starsCount = 800;
         const starPos = new Float32Array(starsCount * 3);
@@ -341,7 +495,6 @@
         const starsPoints = new THREE.Points(starsGeo, starsMat);
         scene.add(starsPoints);
 
-        // --- WORLD DEFINITIONS ---
         const worldsData = [
             { name: "Forest RPG", type: "image", src: "1.webp", url: "https://sakidori.github.io/quest/game/school_adventure_sprites.html" },
             { name: "Desert Maze", type: "image", src: "2.webp", url: "https://sakidori.github.io/quest/maze.html" },
@@ -384,7 +537,6 @@
                     },
                     undefined,
                     (err) => {
-                        console.warn(`Could not load ${data.src}. Using fallback.`);
                         const fallbackTex = new THREE.CanvasTexture(createFallbackCanvas("MISSING FILE"));
                         picMat.map = fallbackTex;
                         picMat.needsUpdate = true;
@@ -439,15 +591,17 @@
             return canvas;
         }
 
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const loader = document.getElementById('loading-screen');
+        // --- SAFE LOADING SCREEN REMOVAL ---
+        function dismissLoadingScreen() {
+            const loader = document.getElementById('loading-screen');
+            if (loader) {
                 loader.style.opacity = '0';
                 setTimeout(() => loader.remove(), 500);
-            }, 300);
-        });
+            }
+        }
+        window.addEventListener('load', () => { setTimeout(dismissLoadingScreen, 300); });
+        setTimeout(dismissLoadingScreen, 1500); // Failsafe fallback timer
 
-        // --- NAVIGATION STATE ---
         let currentTargetIndex = 0;
         let currentCarouselAngle = 0;
         let targetCarouselAngle = 0;
@@ -487,10 +641,12 @@
             document.getElementById('controls-hint').style.opacity = opacityVal;
             document.getElementById('nav-left').style.opacity = opacityVal;
             document.getElementById('nav-right').style.opacity = opacityVal;
+            document.getElementById('music-widget').style.opacity = opacityVal;
             document.getElementById('fullscreen-btn').style.pointerEvents = visible ? 'auto' : 'none';
             document.getElementById('nav-left').style.pointerEvents = visible ? 'auto' : 'none';
             document.getElementById('nav-right').style.pointerEvents = visible ? 'auto' : 'none';
             document.getElementById('controls-hint').style.pointerEvents = visible ? 'auto' : 'none';
+            document.getElementById('music-widget').style.pointerEvents = visible ? 'auto' : 'none';
         }
 
         function triggerFlyIn() {
@@ -523,7 +679,6 @@
             toggleUIVisibility(false);
         }
 
-        // --- TOUCH & MOUSE INTERACTION ---
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         let touchStartX = 0;
@@ -533,7 +688,7 @@
 
         window.addEventListener('pointerdown', (e) => {
             if (isPlayingGame || isFlyingIn || isFlyingOut) return;
-            if (e.target.closest('.carousel-nav-btn') || e.target.closest('#controls-hint') || e.target.closest('#fullscreen-btn')) return;
+            if (e.target.closest('.carousel-nav-btn') || e.target.closest('#controls-hint') || e.target.closest('#fullscreen-btn') || e.target.closest('#music-widget')) return;
 
             isDragging = true;
             hasMoved = false;
@@ -696,7 +851,6 @@
             }, 500);
         }
 
-        // --- ANIMATION LOOP ---
         let clock = new THREE.Clock();
 
         function animate() {
@@ -768,7 +922,7 @@
                 });
                 starsPoints.material.opacity = fadeInAlpha;
 
-                if (flightProgress >= 0.3 && document.getElementById('home-screen').style.opacity === '1') {
+                if (flightProgress >= 0.3 && document.getElementById('game-screen').style.opacity === '1') {
                     document.getElementById('game-screen').style.opacity = '0';
                 }
 
