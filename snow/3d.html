@@ -1563,17 +1563,19 @@
             prevMouseY = e.clientY;
         });
 
-        window.addEventListener('pointermove', (e) => {
-            if (!isMouseDown) return;
-            const deltaX = e.clientX - prevMouseX;
-            const deltaY = e.clientY - prevMouseY;
-            prevMouseX = e.clientX;
-            prevMouseY = e.clientY;
-            cameraAngle -= deltaX * 0.008;
-            cameraPitch += deltaY * 0.008;
-            cameraPitch = Math.max(-0.4, Math.min(2.6, cameraPitch));
-        });
+window.addEventListener('pointermove', (e) => {
+    if (!isMouseDown) return;
+    const deltaX = e.clientX - prevMouseX;
+    const deltaY = e.clientY - prevMouseY;
+    prevMouseX = e.clientX;
+    prevMouseY = e.clientY;
 
+    // Use a fixed sensitivity multiplier that works independently of movement state
+    const sensitivity = 0.005;
+    cameraAngle -= deltaX * sensitivity;
+    cameraPitch += deltaY * sensitivity;
+    cameraPitch = Math.max(-0.4, Math.min(2.6, cameraPitch));
+});
         window.addEventListener('pointerup', () => { isMouseDown = false; });
 
         const touchControlsEl = document.getElementById('touch-controls');
@@ -2295,16 +2297,17 @@
                 updateWalkingAudio(false, false);
             }
 
-            const targetCamX = playerGroup.position.x + Math.sin(cameraAngle) * Math.cos(cameraPitch) * cameraDistance;
-            const targetCamY = playerGroup.position.y + Math.sin(cameraPitch) * cameraDistance + 1.0;
-            const targetCamZ = playerGroup.position.z + Math.cos(cameraAngle) * Math.cos(cameraPitch) * cameraDistance;
+const targetCamX = playerGroup.position.x + Math.sin(cameraAngle) * Math.cos(cameraPitch) * cameraDistance;
+const targetCamY = playerGroup.position.y + Math.sin(cameraPitch) * cameraDistance + 1.0;
+const targetCamZ = playerGroup.position.z + Math.cos(cameraAngle) * Math.cos(cameraPitch) * cameraDistance;
 
-            const lerpFactor = Math.min(1.0, 10 * dt);
-            camera.position.x += (targetCamX - camera.position.x) * lerpFactor;
-            camera.position.y += (targetCamY - camera.position.y) * lerpFactor;
-            camera.position.z += (targetCamZ - camera.position.z) * lerpFactor;
+// Use a smooth, frame-independent dampening factor
+const lerpFactor = 1.0 - Math.exp(-12.0 * dt); 
+camera.position.x += (targetCamX - camera.position.x) * lerpFactor;
+camera.position.y += (targetCamY - camera.position.y) * lerpFactor;
+camera.position.z += (targetCamZ - camera.position.z) * lerpFactor;
 
-            camera.lookAt(playerGroup.position.x, playerGroup.position.y + 1, playerGroup.position.z);
+camera.lookAt(playerGroup.position.x, playerGroup.position.y + 1, playerGroup.position.z);
 
             renderer.render(scene, camera);
         }
