@@ -729,7 +729,8 @@
             correct: 'correct.mp3',
             wrong: 'wrong.mp3',
             cheer: 'cheer.mp3',
-            flag: 'flag.mp3'
+            flag: 'flag.mp3',
+            gameover: 'gameover.mp3'
         };
 
         for (const [key, url] of Object.entries(sfxFiles)) {
@@ -1094,6 +1095,7 @@
             if (playerHealth <= 0) {
                 playerHealth = 0;
                 playerIsDead = true;
+                playSfx('gameover', 0.8);
                 document.getElementById('gameover-msg').style.display = 'flex';
 
                 if (!mixer) return;
