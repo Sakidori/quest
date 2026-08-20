@@ -1154,7 +1154,7 @@ window.addEventListener('keydown', (event) => {
             isLowPerformanceMode = !isLowPerformanceMode;
 
             if (isLowPerformanceMode) {
-                renderer.setPixelRatio(0.5);
+                renderer.setPixelRatio(1);
                 smaaPass.enabled = false;
                 setTextureQuality(false);
             } else {
