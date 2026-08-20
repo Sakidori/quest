@@ -788,9 +788,9 @@ window.addEventListener('touchcancel', (e) => {
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(-2.0, 1.6, 4.0);
 
-            renderer = new THREE.WebGLRenderer({ antialias: !isLowPerformanceMode, powerPreference: "high-performance" });
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(isLowPerformanceMode ? 1 : Math.min(window.devicePixelRatio, 2));
+            renderer.setPixelRatio(isLowPerformanceMode ? 1 : window.devicePixelRatio);
             renderer.toneMapping = THREE.NoToneMapping;
             renderer.toneMappingExposure = isLowPerformanceMode ? 1.1 : 1;
             renderer.shadowMap.enabled = !isLowPerformanceMode;
@@ -1096,7 +1096,7 @@ window.addEventListener('keydown', (event) => {
                 renderer.shadowMap.type = THREE.PCFShadowMap;
                 dirLight.shadow.needsUpdate = true;
             }
-            renderer.setPixelRatio(isLowPerformanceMode ? 1 : Math.min(window.devicePixelRatio, 2));
+            renderer.setPixelRatio(isLowPerformanceMode ? 1 : window.devicePixelRatio);
             renderer.toneMapping = THREE.NoToneMapping;
             renderer.toneMappingExposure = isLowPerformanceMode ? 1.1 : 1;
             smaaPass.enabled = !isLowPerformanceMode;
@@ -1118,6 +1118,11 @@ window.addEventListener('keydown', (event) => {
                     child.receiveShadow = !isLowPerformanceMode;
                 }
             });
+
+            if (!isLowPerformanceMode) {
+                renderer.shadowMap.needsUpdate = true;
+                dirLight.shadow.needsUpdate = true;
+            }
 
             const modeText = isLowPerformanceMode ? "Max Performance Mode Enabled (Ambient Lighting Only)" : "Standard Graphics Mode Enabled";
             document.getElementById('message-box').innerText = modeText;
