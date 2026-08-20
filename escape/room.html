@@ -459,6 +459,7 @@
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
         import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+        import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 
         const messageBox = document.getElementById('message-box');
         let messageFadeTimeout;
@@ -603,6 +604,10 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
 
         // PERFORMANCE MODE CONFIG
         let isLowPerformanceMode = false;
+        let ambientLight = null;
+        let hemiLight = null;
+        let dirLight = null;
+        let smaaPass = null;
         dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
         globalGltfLoader.setDRACOLoader(dracoLoader);
 
@@ -705,9 +710,11 @@ window.addEventListener('touchmove', (e) => {
         const deltaX = touch.clientX - mobileLastX;
         const deltaY = touch.clientY - mobileLastY;
 
-        controls.getObject().rotation.y -= deltaX * 0.002;
-        camera.rotation.x -= deltaY * 0.002;
-        camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+        const lookRotation = new THREE.Euler(0, 0, 0, 'YXZ').setFromQuaternion(camera.quaternion);
+        lookRotation.y -= deltaX * 0.002 * controls.pointerSpeed;
+        lookRotation.x -= deltaY * 0.002 * controls.pointerSpeed;
+        lookRotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, lookRotation.x));
+        camera.quaternion.setFromEuler(lookRotation);
         mobileLastX = touch.clientX;
         mobileLastY = touch.clientY;
     }
@@ -779,6 +786,8 @@ window.addEventListener('touchcancel', (e) => {
             renderer = new THREE.WebGLRenderer({ antialias: !isLowPerformanceMode, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(isLowPerformanceMode ? 1 : Math.min(window.devicePixelRatio, 1.5));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = isLowPerformanceMode ? 1 : 1.15;
             renderer.shadowMap.enabled = !isLowPerformanceMode;
             if (!isLowPerformanceMode) {
                 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -794,21 +803,28 @@ window.addEventListener('touchcancel', (e) => {
             outlinePass.visibleEdgeColor.set(0xffd54a);
             outlinePass.hiddenEdgeColor.set(0xffd54a);
             composer.addPass(outlinePass);
+            smaaPass = new SMAAPass(window.innerWidth, window.innerHeight);
+            smaaPass.enabled = !isLowPerformanceMode;
+            composer.addPass(smaaPass);
             composer.addPass(new OutputPass());
 
-            const ambientLight = new THREE.AmbientLight(0xddeeff, isLowPerformanceMode ? 1.2 : 0.6);
+            ambientLight = new THREE.AmbientLight(0xddeeff, isLowPerformanceMode ? 1.2 : 0.6);
             scene.add(ambientLight);
 
-            if (!isLowPerformanceMode) {
-                const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
-                hemiLight.position.set(0, 20, 0);
-                scene.add(hemiLight);
+            hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
+            hemiLight.position.set(0, 20, 0);
+            hemiLight.visible = !isLowPerformanceMode;
+            scene.add(hemiLight);
 
-                const dirLight = new THREE.DirectionalLight(0xfffaed, 1.2);
-                dirLight.position.set(15, 3, 0);
-                dirLight.castShadow = true;
-                scene.add(dirLight);
-            }
+            dirLight = new THREE.DirectionalLight(0xfffaed, 1.2);
+            dirLight.position.set(15, 3, 0);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.set(2048, 2048);
+            dirLight.shadow.camera.near = 0.5;
+            dirLight.shadow.camera.far = 50;
+            dirLight.shadow.bias = -0.0005;
+            dirLight.visible = !isLowPerformanceMode;
+            scene.add(dirLight);
 
             const textureLoader = new THREE.TextureLoader();
             textureLoader.load('background.webp', (texture) => {
@@ -1075,7 +1091,15 @@ window.addEventListener('keydown', (event) => {
             isLowPerformanceMode = !isLowPerformanceMode;
             
             renderer.shadowMap.enabled = !isLowPerformanceMode;
+            if (!isLowPerformanceMode) {
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            }
             renderer.setPixelRatio(isLowPerformanceMode ? 1 : Math.min(window.devicePixelRatio, 1.5));
+            renderer.toneMappingExposure = isLowPerformanceMode ? 1 : 1.15;
+            smaaPass.enabled = !isLowPerformanceMode;
+            ambientLight.intensity = isLowPerformanceMode ? 1.2 : 0.6;
+            hemiLight.visible = !isLowPerformanceMode;
+            dirLight.visible = !isLowPerformanceMode;
             
             if (isLowPerformanceMode) {
                 scene.fog = null;
