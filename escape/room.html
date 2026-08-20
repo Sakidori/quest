@@ -1,0 +1,2990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Escape Room Game - Safe Keypad Mapping Tool</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #111;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+        #ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .hud-element {
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid #000;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        /* Mobile Touch & Fullscreen UI */
+#virtual-joystick-zone {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: none; /* Enabled via script on mobile */
+    z-index: 30;
+    touch-action: none;
+}
+#virtual-joystick-thumb {
+    position: absolute;
+    top: 35px;
+    left: 35px;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    pointer-events: none;
+}
+#mobile-interact-btn {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    width: 75px;
+    height: 75px;
+    background: rgba(76, 175, 80, 0.8);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: bold;
+    display: none;
+    z-index: 30;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+        #interaction-prompt {
+            position: absolute;
+            top: 58%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffeb3b;
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+            display: none;
+        }
+        #inventory {
+            display: flex;
+            gap: 10px;
+        }
+        .inventory-slot {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .inventory-slot.active {
+            border-color: #ffeb3b;
+            background: rgba(255, 235, 59, 0.2);
+        }
+        #message-box {
+            align-self: center;
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 20px;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            max-width: 600px;
+        }
+        #instructions {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        #safe-exit-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            padding: 10px 20px;
+            background: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: none;
+            z-index: 25;
+            pointer-events: auto;
+        }
+
+        #inspect-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+            display: none;
+            pointer-events: auto;
+            z-index: 20;
+        }
+        #inspect-canvas-container {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        #cryptex-alignment-guide {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            border: 2px dashed rgba(244, 67, 54, 0.9);
+            background: rgba(244, 67, 54, 0.08);
+            box-shadow: 0 0 15px rgba(244, 67, 54, 0.4);
+            border-radius: 6px;
+            pointer-events: none;
+            display: none;
+            z-index: 22;
+        }
+        #inspect-ui {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: white;
+            pointer-events: none;
+        }
+        #inspect-ui h2 {
+            margin: 0 0 10px 0;
+            color: #ffeb3b;
+        }
+        #inspect-ui p {
+            margin: 0;
+            color: #ccc;
+            font-size: 14px;
+        }
+        #inspect-close-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.2s;
+            z-index: 30;
+        }
+        #inspect-close-btn:hover {
+            background: rgba(244, 67, 54, 0.8);
+            border-color: #ff5252;
+            transform: scale(1.05);
+        }
+
+        #tv-status-overlay {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 140px;
+            font-weight: bold;
+            color: #f44336;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.8), 0 0 10px rgba(244, 67, 54, 0.6);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 40;
+        }
+
+        #win-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            display: none;
+            pointer-events: auto;
+            z-index: 10;
+        }
+        #win-screen h1 {
+            color: #4CAF50;
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        #win-screen img {
+            width: min(512px, 80vw);
+            height: min(512px, 55vh);
+            object-fit: contain;
+            margin: 10px 0 20px;
+        }
+        #safe-code-display {
+            position: absolute;
+            top: 2%; 
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #ffeb3b;
+            padding: clamp(4px, 0.8vh, 20px) clamp(8px, 1.5vw, 40px); 
+            border-radius: 8px;
+            text-align: center;
+            color: #fff;
+            display: none;
+            z-index: 25;
+            pointer-events: none;
+            box-shadow: 0 0 20px rgba(255, 235, 59, 0.4);
+            width: clamp(100px, 18vw, 500px); 
+            box-sizing: border-box;
+        }
+        #safe-code-display h3 {
+            margin: 0 0 2px 0;
+            font-size: clamp(7px, 0.9vw, 18px); 
+            color: #ccc;
+            letter-spacing: 0.5px;
+        }
+        #safe-code-digits {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: clamp(14px, 2.2vw, 52px); 
+            font-weight: bold;
+            letter-spacing: clamp(2px, 0.8vw, 12px);
+            color: #ffeb3b;
+        }
+        #safe-code-display.correct {
+            border-color: #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+        }
+        #safe-code-display.correct #safe-code-digits {
+            color: #4CAF50;
+        }
+        #safe-code-display.wrong {
+            border-color: #f44336;
+            box-shadow: 0 0 20px rgba(244, 67, 54, 0.6);
+        }
+        #safe-code-display.wrong #safe-code-digits {
+            color: #f44336;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background: #45a049; }
+
+        #loader-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #0b0b0b;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+    font-family: sans-serif;
+    color: #fff;
+}
+.loader-content {
+    text-align: center;
+    width: 300px;
+}
+.progress-bar-bg {
+    width: 100%;
+    height: 10px;
+    background-color: #222;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 15px;
+}
+#progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: #4CAF50;
+}
+#progress-text {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #aaa;
+}
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen Overlay -->
+<div id="loader-container">
+    <div class="loader-content">
+        <h2>Loading Escape Room...</h2>
+        <div class="progress-bar-bg">
+            <div id="progress-bar"></div>
+        </div>
+        <p id="progress-text">0%</p>
+    </div>
+</div>
+
+    <div id="crosshair"></div>
+    <div id="interaction-prompt">Click to Interact</div>
+
+    <button id="safe-exit-btn" onclick="closeSafeKeypad()">Back / Reset</button>
+
+    <div id="ui-container">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div class="hud-element" id="inventory">
+                <div class="inventory-slot" id="slot-0">🔒</div>
+                <div class="inventory-slot" id="slot-1">🔒</div>
+                <div class="inventory-slot" id="slot-2">🔒</div>
+            </div>
+            <div class="hud-element" id="instructions">
+                <strong>Controls:</strong><br>
+                WASD / Arrows: Move<br>
+                Shift: Toggle Crouch<br>
+                Mouse: Look Around<br>
+                <strong>[E] or Left Click: Interact / Open</strong><br>
+                H: Toggle Hitboxes<br>
+            </div>
+        </div>
+        <div class="hud-element" id="message-box">Loading classroom...</div>
+    </div>
+
+    <div id="virtual-joystick-zone">
+    <div id="virtual-joystick-thumb"></div>
+</div>
+<button id="mobile-interact-btn">Interact</button>
+
+    <div id="inspect-overlay">
+        <div id="inspect-close-btn">✕</div>
+        <div id="tv-status-overlay">OFF</div>
+        <div id="cryptex-alignment-guide"></div>
+        <div id="inspect-canvas-container"></div>
+        <div id="inspect-ui">
+            <h2 id="inspect-title">Combination Lock</h2>
+            <p id="inspect-instructions">Click Top Half of Dial (+) | Click Bottom Half of Dial (-) | Press [ESC] to Exit</p>
+        </div>
+    </div>
+
+    <div id="win-screen">
+        <h1>CONGRATULATIONS!</h1>
+        <p>You escaped the classroom!</p>
+        <img src="escaped.webp" alt="Escaped classroom">
+        <button onclick="window.resetGame()">Play Again</button>
+    </div>
+
+    <div id="safe-code-display">
+        <h3>SAFE INPUT CODE</h3>
+        <div id="safe-code-digits">----</div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+        import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+        const messageBox = document.getElementById('message-box');
+        let messageFadeTimeout;
+        const messageObserver = new MutationObserver(() => {
+            messageBox.style.opacity = '1';
+            clearTimeout(messageFadeTimeout);
+            messageFadeTimeout = setTimeout(() => {
+                messageBox.style.opacity = '0';
+            }, 3000);
+        });
+        messageObserver.observe(messageBox, { childList: true, characterData: true, subtree: true });
+        messageFadeTimeout = setTimeout(() => {
+            messageBox.style.opacity = '0';
+        }, 3000);
+
+        // 1. Create the Loading Manager first
+const loadingManager = new THREE.LoadingManager();
+
+const loaderContainer = document.getElementById('loader-container');
+const progressBar = document.getElementById('progress-bar');
+const progressText = document.getElementById('progress-text');
+let assetsReady = false;
+let startBackgroundCryptexLoad = null;
+let startDeferredObjectLoads = null;
+
+let displayedPercentage = 0;
+
+loadingManager.onProgress = function (url, itemsLoaded, itemsTotal) {
+    // Calculate raw percentage
+    let rawPercentage = Math.round((itemsLoaded / itemsTotal) * 100);
+    
+    // SAFETY CHECK: Never let the percentage go backward. 
+    // It can only stay equal or increase.
+    if (rawPercentage > displayedPercentage) {
+        displayedPercentage = rawPercentage;
+    }
+
+    // Update the UI
+    progressBar.style.width = displayedPercentage + '%';
+    progressText.innerText = displayedPercentage + '%';
+};
+
+loadingManager.onLoad = function () {
+    assetsReady = true;
+    if (startBackgroundCryptexLoad) startBackgroundCryptexLoad();
+    if (startDeferredObjectLoads) startDeferredObjectLoads();
+    // Force it to hit 100% cleanly at the end
+    displayedPercentage = 100;
+    progressBar.style.width = '100%';
+    progressText.innerText = '100%';
+
+    loaderContainer.style.opacity = '0';
+    setTimeout(() => {
+        loaderContainer.style.display = 'none';
+    }, 500);
+};
+
+loadingManager.onError = function (url) {
+    console.error('Error loading: ' + url);
+};
+
+// 2. Initialize Loaders with the LoadingManager passed in
+const dracoLoader = new DRACOLoader(loadingManager);
+dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+
+const globalGltfLoader = new GLTFLoader(loadingManager);
+globalGltfLoader.setDRACOLoader(dracoLoader);
+const backgroundGltfLoader = new GLTFLoader();
+backgroundGltfLoader.setDRACOLoader(dracoLoader);
+
+        let camera, scene, renderer, composer, outlinePass, controls;
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+        let isCrouching = false; 
+        let prevTime = performance.now();
+        
+        let interactables = [];
+        let safeDigitInteractables = [];
+        let colliders = [];
+        let hitboxHelpers = [];
+        let highlightedObject = null;
+        let animatables = []; 
+        let mainSceneLock = null; 
+        let mainSceneCryptex = null;
+        let woodenChest = null;
+        let chestMixer = null;
+        let chestActions = [];
+
+        let miniChest = null;
+        let miniChestMixer = null;
+        let chestTopAction = null;
+        let keyAction = null;
+        let miniChestKeyMesh = null;
+
+        let safeModel = null;
+        let safeMixer = null;
+        let safeActions = [];
+        let backgroundPlane = null;
+        const chimeAudio = new Audio('chime.mp3');
+        let tvScreenMesh = null; 
+        let tvScreenTexture = null;
+        
+        const raycaster = new THREE.Raycaster();
+        let lastMousePos = { x: 0, y: 0 };
+        const playerRadius = 0.1; 
+        
+        let inspecting = false;
+        let currentInspectType = 'lock';
+        let isZoomedToSafe = false;
+        let inspectScene, inspectCamera, inspectRenderer;
+        let inspectedModel = null;
+        let inspectedCryptexModel = null;
+        let cryptexInspectionReady = false;
+        let lockDials = [];
+        let cryptexDials = [];
+        let inspectedNoteModel = null;
+        let inspectedRemoteModel = null;
+        let inspectMixer = null; 
+        let inspectActions = [];
+        
+
+        let inspectRaycaster = new THREE.Raycaster();
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let blocker;
+        let isAnimatingUnlock = false;
+        let dialNumberPairs = [];
+        let keyAModel = null;
+        let keyAPlatform = null;
+        let keyBModel = null;
+        let keyCModel = null;
+        let doraemonModel = null;
+
+        let boxClosedModel = null;
+        let boxOpenedModel = null;
+        let inspectedBoxClosedModel = null;
+
+        let inspectedNotebookModel = null;
+        let inspectNotebookMixer = null;
+        let inspectNotebookActions = [];
+        let cryptexAnimationComplete = false;
+        let cryptexExitTimer = null;
+
+        // PERFORMANCE MODE CONFIG
+        let isLowPerformanceMode = false;
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+        globalGltfLoader.setDRACOLoader(dracoLoader);
+
+
+        
+// Detect mobile to enable touch UI elements
+const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+if (isMobileDevice) {
+    document.getElementById('virtual-joystick-zone').style.display = 'block';
+    document.getElementById('mobile-interact-btn').style.display = 'block';
+}
+
+
+// Virtual Joystick Logic for Movement
+const joystickZone = document.getElementById('virtual-joystick-zone');
+const joystickThumb = document.getElementById('virtual-joystick-thumb');
+let touchId = null;
+
+joystickZone.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (touchId === null) {
+        touchId = e.changedTouches[0].identifier;
+    }
+});
+
+joystickZone.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === touchId) {
+            let touch = e.changedTouches[i];
+            let rect = joystickZone.getBoundingClientRect();
+            let centerX = rect.left + rect.width / 2;
+            let centerY = rect.top + rect.height / 2;
+            
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            let maxRadius = 35;
+
+            if (distance > maxRadius) {
+                dx *= maxRadius / distance;
+                dy *= maxRadius / distance;
+            }
+
+            joystickThumb.style.transform = `translate(${dx}px, ${dy}px)`;
+
+            // Map dx/dy to your movement flags
+            moveForward = dy < -10;
+            moveBackward = dy > 10;
+            moveLeft = dx < -10;
+            moveRight = dx > 10;
+        }
+    }
+});
+
+joystickZone.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === touchId) {
+            touchId = null;
+            joystickThumb.style.transform = `translate(0px, 0px)`;
+            moveForward = false;
+            moveBackward = false;
+            moveLeft = false;
+            moveRight = false;
+        }
+    }
+});
+
+// Mobile Interaction Button binding
+document.getElementById('mobile-interact-btn').addEventListener('click', () => {
+    triggerInteraction();
+});
+
+// Touch look look-around handling for mobile screens (right side drag)
+let mobileLastX = 0;
+let mobileLastY = 0;
+window.addEventListener('touchstart', (e) => {
+    if (e.touches[0].clientX > window.innerWidth / 2) {
+        mobileLastX = e.touches[0].clientX;
+        mobileLastY = e.touches[0].clientY;
+    }
+});
+
+window.addEventListener('touchmove', (e) => {
+    if (e.touches[0].clientX > window.innerWidth / 2 && controls.isLocked) {
+        let deltaX = e.touches[0].clientX - mobileLastX;
+        let deltaY = e.touches[0].clientY - mobileLastY;
+        
+        camera.rotation.y -= deltaX * 0.005;
+        // Apply clamp to camera X rotation if desired to prevent flipping
+        mobileLastX = e.touches[0].clientX;
+        mobileLastY = e.touches[0].clientY;
+    }
+});
+        const gameState = {
+            hasKeyA: false,
+            hasKeyB: false,
+            hasKeyC: false,
+            escaped: false,
+            hitboxesVisible: false,
+            lockCombination: [2, 3, 6, 0, 3],
+            cryptexCombination: [0, 9, 3, 1, 4],
+            safeCode: ["0", "2", "2", "8"],
+            isSolved: false,
+            cryptexSolved: false,
+            chestOpened: false,
+            miniChestOpened: false,
+            safeOpened: false,
+            tvOn: false
+        };
+
+        window.closeSafeKeypad = function() {
+            zoomOutFromSafe();
+        };
+
+        let enteredCode = [];
+
+        detectInitialHardwareAndInit();
+
+        function detectInitialHardwareAndInit() {
+            const cores = navigator.hardwareConcurrency || 4;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (cores <= 4 || isMobile) {
+                isLowPerformanceMode = true;
+                console.log("[Performance Mode] Low spec hardware detected. Starting in Max Performance Mode.");
+            } else {
+                console.log("[Performance Mode] High spec hardware detected. Starting in Standard Mode.");
+            }
+
+            init();
+            initInspectScene();
+            animate();
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x111111);
+            
+            if (!isLowPerformanceMode) {
+                scene.fog = new THREE.FogExp2(0x111111, 0.03);
+            }
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(-2.0, 1.6, 4.0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: !isLowPerformanceMode, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(isLowPerformanceMode ? 1 : Math.min(window.devicePixelRatio, 1.5));
+            renderer.shadowMap.enabled = !isLowPerformanceMode;
+            if (!isLowPerformanceMode) {
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            }
+            document.body.appendChild(renderer.domElement);
+
+            composer = new EffectComposer(renderer);
+            composer.addPass(new RenderPass(scene, camera));
+            outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
+            outlinePass.edgeStrength = 3.5;
+            outlinePass.edgeGlow = 0;
+            outlinePass.edgeThickness = 1.5;
+            outlinePass.visibleEdgeColor.set(0xffd54a);
+            outlinePass.hiddenEdgeColor.set(0xffd54a);
+            composer.addPass(outlinePass);
+            composer.addPass(new OutputPass());
+
+            const ambientLight = new THREE.AmbientLight(0xddeeff, isLowPerformanceMode ? 1.2 : 0.6);
+            scene.add(ambientLight);
+
+            if (!isLowPerformanceMode) {
+                const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
+                hemiLight.position.set(0, 20, 0);
+                scene.add(hemiLight);
+
+                const dirLight = new THREE.DirectionalLight(0xfffaed, 1.2);
+                dirLight.position.set(15, 3, 0);
+                dirLight.castShadow = true;
+                scene.add(dirLight);
+            }
+
+            const textureLoader = new THREE.TextureLoader();
+            textureLoader.load('background.webp', (texture) => {
+                const bgGeometry = new THREE.PlaneGeometry(80, 45);
+                const bgMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+                backgroundPlane = new THREE.Mesh(bgGeometry, bgMaterial);
+                backgroundPlane.position.set(10, 10, 0);
+                backgroundPlane.rotation.y = -Math.PI / 2; 
+                backgroundPlane.userData = {
+                    name: 'Outside View',
+                    type: 'roomInfo',
+                    noHighlight: true,
+                    action: () => {
+                        document.getElementById('message-box').innerText = 'It looks dangerous outside, I should escape quickly!';
+                    }
+                };
+                interactables.push(backgroundPlane);
+                scene.add(backgroundPlane);
+            }, undefined, (err) => {
+                console.warn('Could not load background.jpg', err);
+            });
+
+            textureLoader.load('poster.webp', (texture) => {
+                const posterGeometry = new THREE.PlaneGeometry(0.5, 0.5);
+                const posterMaterial = new THREE.MeshBasicMaterial({ map: texture });
+                const posterMesh = new THREE.Mesh(posterGeometry, posterMaterial);
+                posterMesh.position.set(-3.8, 1.8, 2.24);
+                posterMesh.rotation.y = 1.6;
+                scene.add(posterMesh);
+            }, undefined, (err) => {
+                console.warn('Could not load poster.webp', err);
+            });
+
+            controls = new PointerLockControls(camera, document.body);
+
+            blocker = document.createElement('div');
+            blocker.style.position = 'absolute';
+            blocker.style.top = '0';
+            blocker.style.left = '0';
+            blocker.style.width = '100%';
+            blocker.style.height = '100%';
+            blocker.style.background = 'rgba(0,0,0,0.6)';
+            blocker.style.display = 'flex';
+            blocker.style.alignItems = 'center';
+            blocker.style.justifyContent = 'center';
+            blocker.style.color = 'white';
+            blocker.style.fontSize = '24px';
+            blocker.style.cursor = 'pointer';
+            blocker.innerHTML = `Click to Play Classroom Escape<br><span style="font-size:14px; color:#ffeb3b; margin-top:10px;">`;
+            document.body.appendChild(blocker);
+
+            document.body.addEventListener('click', () => {
+                if (assetsReady && !controls.isLocked && !gameState.escaped && !inspecting && !isZoomedToSafe && !isAnimatingUnlock) {
+                    controls.lock();
+                }
+            });
+
+            controls.addEventListener('lock', () => { blocker.style.display = 'none'; });
+            controls.addEventListener('unlock', () => {
+                if (!gameState.escaped && !inspecting && !isZoomedToSafe && !isAnimatingUnlock) blocker.style.display = 'flex';
+            });
+
+            document.getElementById('inspect-close-btn').addEventListener('click', () => {
+                closeInspectMode();
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                lastMousePos.x = e.clientX;
+                lastMousePos.y = e.clientY;
+            });
+            
+
+function triggerFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+    }
+}blocker.addEventListener('click', () => {
+    triggerFullscreen();
+    if (assetsReady && !controls.isLocked && !gameState.escaped && !inspecting && !isZoomedToSafe && !isAnimatingUnlock) {
+        controls.lock();
+    }
+});
+
+window.addEventListener('keydown', (event) => {
+    if (event.code === 'KeyP') {
+        const raycaster = new THREE.Raycaster();
+        const centerPoint = new THREE.Vector2(0, 0);
+
+        raycaster.setFromCamera(centerPoint, camera);
+        const intersects = raycaster.intersectObjects(scene.children, true);
+        const hit = intersects.find((intersection) => {
+            const object = intersection.object;
+            return !object.isLine && object.type !== 'Box3Helper';
+        });
+
+        if (hit) {
+            console.log("--- INSPECTING OBJECT ---");
+            console.log("Mesh Name:", hit.object.name || "(empty)");
+            
+            // Check parent hierarchy names up to 3 levels high
+            let curr = hit.object.parent;
+            let level = 1;
+            while (curr && level <= 3) {
+                console.log(`Parent Level ${level} Name:`, curr.name || "(empty)");
+                curr = curr.parent;
+                level++;
+            }
+            
+            console.log("Full Hit Object:", hit.object);
+        } else {
+            console.log("No object found under crosshairs.");
+        }
+    }
+});
+
+            window.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return; 
+                if (inspecting) return;
+
+                if (currentInspectType === 'notebook') {
+                inspectRaycaster.setFromCamera(
+                    new THREE.Vector2(
+                        (e.clientX / window.innerWidth) * 2 - 1,
+                        -(e.clientY / window.innerHeight) * 2 + 1
+                    ),
+                    inspectCamera
+                );
+                const intersects = inspectRaycaster.intersectObject(inspectedNotebookModel, true);
+                if (intersects.length > 0) {
+                    inspectNotebookActions.forEach(action => {
+                        action.reset();
+                        action.play();
+                    });
+                }
+                return;
+            }
+
+                if (isZoomedToSafe) {
+                    triggerSafeDigitInteraction(e);
+                    return;
+                }
+
+                if (controls.isLocked) {
+                    triggerInteraction();
+                }
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (e.code === 'KeyL') {
+                    togglePerformanceMode();
+                    return;
+                }
+
+                if (inspecting) {
+                    if (e.code === 'KeyE' || e.code === 'Escape') {
+                        closeInspectMode();
+                    }
+                    return;
+                }
+
+                if (isZoomedToSafe) {
+                    if (e.code === 'Escape' || e.code === 'KeyE') {
+                        zoomOutFromSafe();
+                    }
+                    if (e.code === 'KeyC') {
+                        logAndCopySafeHitboxPosition();
+                    }
+                    return;
+                }
+
+                switch (e.code) {
+                    case 'KeyW': case 'ArrowUp': moveForward = true; break;
+                    case 'KeyS': case 'ArrowDown': moveBackward = true; break;
+                    case 'KeyA': case 'ArrowLeft': moveLeft = true; break;
+                    case 'KeyD': case 'ArrowRight': moveRight = true; break;
+                    case 'ShiftLeft': case 'ShiftRight': 
+                        isCrouching = !isCrouching; 
+                        break;
+                    case 'KeyH': toggleHitboxes(); break;
+                    case 'KeyC': logCrosshairCoordinates(); break;
+                    case 'KeyB':
+                        if (!gameState.miniChestOpened) {
+                            if (gameState.hasKeyB) {
+                                gameState.miniChestOpened = true;
+                                playAnimationsInOrder('keyFirst'); 
+                                document.getElementById('message-box').innerText = "You used Key B to open the mini chest!";
+                            } else {
+                                document.getElementById('message-box').innerText = "The mini chest is locked! You need Key B.";
+                            }
+                        }
+                        break;
+                    case 'KeyU':
+                        if (!gameState.hasKeyA) {
+                            gameState.hasKeyA = true;
+                            document.getElementById('slot-0').innerHTML = '🔑A';
+                            document.getElementById('slot-0').classList.add('active');
+                            document.getElementById('message-box').innerText = "You obtained Key A!";
+                        }
+                        break;
+                    case 'KeyI':
+                        if (!gameState.hasKeyB) {
+                            gameState.hasKeyB = true;
+                            document.getElementById('slot-1').innerHTML = '🔑B';
+                            document.getElementById('slot-1').classList.add('active');
+                            document.getElementById('message-box').innerText = "You obtained Key B!";
+                        }
+                        break;
+                    case 'KeyO':
+                        if (!gameState.hasKeyC) {
+                            gameState.hasKeyC = true;
+                            document.getElementById('slot-2').innerHTML = '🔑C';
+                            document.getElementById('slot-2').classList.add('active');
+                            document.getElementById('message-box').innerText = "You obtained Key C!";
+                        }
+                        break;
+                    case 'KeyE':
+                        if (controls.isLocked) {
+                            triggerInteraction();
+                        }
+                        break;
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                switch (e.code) {
+                    case 'KeyW': case 'ArrowUp': moveForward = false; break;
+                    case 'KeyS': case 'ArrowDown': moveBackward = false; break;
+                    case 'KeyA': case 'ArrowLeft': moveLeft = false; break;
+                    case 'KeyD': case 'ArrowRight': moveRight = false; break;
+                }
+
+                
+            });
+
+            loadClassroomModel();
+            loadKeyA();
+            loadKeyB();
+            loadKeyC();
+            loadStandaloneTV(); 
+            loadMainSceneLock();
+            loadMainSceneCryptex(); // Loaded, but hidden and not interactive by default
+            loadMainSceneNote();
+            loadWoodenChest();
+            loadMiniChest(); 
+            loadSafeModel();
+            loadCryptexBoxes();
+            loadNotebookModel();
+            startDeferredObjectLoads = () => {
+                startDeferredObjectLoads = null;
+                const start = window.requestIdleCallback || ((callback) => setTimeout(callback, 0));
+                start(() => {
+                    loadDoraemonModel();
+                    loadStoolModel();
+                    loadRemoteModel();
+                });
+            };
+            window.addEventListener('resize', onWindowResize);
+
+        }
+
+        function togglePerformanceMode() {
+            isLowPerformanceMode = !isLowPerformanceMode;
+            
+            renderer.shadowMap.enabled = !isLowPerformanceMode;
+            renderer.setPixelRatio(isLowPerformanceMode ? 1 : Math.min(window.devicePixelRatio, 1.5));
+            
+            if (isLowPerformanceMode) {
+                scene.fog = null;
+            } else {
+                scene.fog = new THREE.FogExp2(0x111111, 0.03);
+            }
+
+            scene.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = !isLowPerformanceMode;
+                    child.receiveShadow = !isLowPerformanceMode;
+                }
+            });
+
+            const modeText = isLowPerformanceMode ? "Max Performance Mode Enabled (Shadows & Fog Disabled)" : "Standard Graphics Mode Enabled";
+            document.getElementById('message-box').innerText = modeText;
+        }
+
+        function logCrosshairCoordinates() {
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            const hit = intersects.find((intersection) => {
+                const object = intersection.object;
+                return !object.isLine && object.type !== 'Box3Helper';
+            });
+
+            if (hit) {
+                const text = `X: ${hit.point.x.toFixed(3)}, Y: ${hit.point.y.toFixed(3)}, Z: ${hit.point.z.toFixed(3)}`;
+                console.log(`--- Looked At Coordinate --- \n${text}`);
+                
+                navigator.clipboard.writeText(text).then(() => {
+                    document.getElementById('message-box').innerText = `Copied to Clipboard: ${text}`;
+                }).catch(err => {
+                    console.error('Clipboard copy failed:', err);
+                });
+            }
+        }
+
+        function logAndCopySafeHitboxPosition() {
+            const mouseVector = new THREE.Vector2(
+                (lastMousePos.x / window.innerWidth) * 2 - 1,
+                -(lastMousePos.y / window.innerHeight) * 2 + 1
+            );
+
+            raycaster.setFromCamera(mouseVector, camera);
+            const intersects = raycaster.intersectObjects(safeModel.children, true);
+
+            if (intersects.length > 0) {
+                const hit = intersects[0];
+                const localPoint = hit.point.clone();
+                safeModel.worldToLocal(localPoint);
+
+                const text = `btnMesh.position.set(${localPoint.x.toFixed(4)}, ${localPoint.y.toFixed(4)}, ${localPoint.z.toFixed(4)});`;
+                console.log(`[SAFE MAPPING] Local Position: ${text}`);
+
+                navigator.clipboard.writeText(text).then(() => {
+                    document.getElementById('message-box').innerText = `Copied Safe Local Pos: ${text}`;
+                }).catch(err => {
+                    console.error('Clipboard copy failed:', err);
+                });
+            }
+        }
+
+        function initInspectScene() {
+            inspectScene = new THREE.Scene();
+
+            inspectCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            inspectCamera.position.set(0, 0, 3.5);
+
+            const ambient = new THREE.AmbientLight(0xffffff, 2.0);
+            inspectScene.add(ambient);
+
+            const frontLight = new THREE.DirectionalLight(0xffffff, 2.5);
+            frontLight.position.set(0, 0, 5);
+            inspectScene.add(frontLight);
+
+            const fillLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            fillLight.position.set(-5, 3, 2);
+            inspectScene.add(fillLight);
+
+            const container = document.getElementById('inspect-canvas-container');
+            
+            inspectRenderer = new THREE.WebGLRenderer({ antialias: !isLowPerformanceMode, alpha: true });
+            inspectRenderer.setSize(window.innerWidth, window.innerHeight);
+            inspectRenderer.setPixelRatio(isLowPerformanceMode ? 1 : Math.min(window.devicePixelRatio, 1.5));
+            inspectRenderer.setClearColor(0x000000, 0); 
+            container.appendChild(inspectRenderer.domElement);
+            
+            globalGltfLoader.load('lock.gltf', (gltf) => {
+                inspectedModel = gltf.scene;
+                
+                const box = new THREE.Box3().setFromObject(inspectedModel);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                
+                inspectedModel.position.sub(center);
+                inspectedModel.position.y += 0.5;
+                
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scaleFactor = 1.5 / maxDim;
+                inspectedModel.scale.multiplyScalar(scaleFactor);
+
+                inspectedModel.rotation.set(0, (3 * Math.PI) / 2, 0);
+
+                inspectedModel.traverse((child) => {
+                    if (child.isMesh && child.material) {
+                        if (child.material.roughness !== undefined) {
+                            child.material.roughness = 1.0;
+                        }
+                        if (child.material.metalness !== undefined) {
+                            child.material.metalness = 0.0;
+                        }
+                        child.material.needsUpdate = true;
+                    }
+                });
+
+                inspectScene.add(inspectedModel);
+
+                if (gltf.animations && gltf.animations.length > 0) {
+                    inspectMixer = new THREE.AnimationMixer(inspectedModel);
+                    gltf.animations.forEach((clip) => {
+                        const action = inspectMixer.clipAction(clip);
+                        action.setLoop(THREE.LoopOnce);
+                        action.clampWhenFinished = true;
+                        inspectActions.push(action);
+                    });
+                }
+
+                const allowedDialNames = ['object_16', 'object_19', 'object_22', 'object_25', 'object_13'];
+
+                inspectedModel.traverse((child) => {
+                    if (child.isMesh) {
+                        const nameLower = child.name.toLowerCase();
+                        if (allowedDialNames.includes(nameLower)) {
+                            const dialTarget = child.parent && child.parent.type === 'Group' ? child.parent : child;
+                            
+                            if (!dialTarget.userData.isConfigured) {
+                                const baseRotationZ = dialTarget.rotation.z;
+
+                                dialTarget.userData = {
+                                    isDial: true,
+                                    name: dialTarget.name,
+                                    currentStep: 0,
+                                    totalClicks: 0,
+                                    baseRotationZ: baseRotationZ,
+                                    targetRotationZ: baseRotationZ,
+                                    action: (screenClickY, dialScreenCenterY) => {
+                                        if (gameState.isSolved) return; 
+
+                                        if (screenClickY < dialScreenCenterY) {
+                                            dialTarget.userData.currentStep = (dialTarget.userData.currentStep + 1) % 10;
+                                            dialTarget.userData.totalClicks += 1;
+                                            
+                                        } else {
+                                            dialTarget.userData.currentStep = (dialTarget.userData.currentStep - 1 + 10) % 10;
+                                            dialTarget.userData.totalClicks -= 1;
+                                        }
+                                        
+                                        const stepAngle = -dialTarget.userData.totalClicks * ((2 * Math.PI) / 10);
+                                        dialTarget.userData.targetRotationZ = dialTarget.userData.baseRotationZ + stepAngle;
+                                        
+                                        checkLockSolution();
+                                    }
+                                };
+                                
+                                dialTarget.userData.isConfigured = true;
+                                lockDials.push(dialTarget);
+                            }
+                        }
+                    }
+                });
+
+                dialNumberPairs = [
+                    { dial: 'Object_16', number: 'Object_17' },
+                    { dial: 'Object_19', number: 'Object_20' },
+                    { dial: 'Object_22', number: 'Object_23' },
+                    { dial: 'Object_25', number: 'Object_26' },
+                    { dial: 'Object_13', number: 'Object_14' }
+                ];
+            });
+        
+
+            startBackgroundCryptexLoad = () => backgroundGltfLoader.load('cryptex.glb', (gltf) => {
+                cryptexInspectionReady = true;
+                inspectedCryptexModel = gltf.scene;
+                
+                const box = new THREE.Box3().setFromObject(inspectedCryptexModel);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                
+                inspectedCryptexModel.position.sub(center);
+                inspectedCryptexModel.position.x += 0.25;
+                inspectedCryptexModel.position.y += 0.0;
+                
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scaleFactor = 2.5 / maxDim;
+                inspectedCryptexModel.scale.multiplyScalar(scaleFactor);
+
+                inspectedCryptexModel.rotation.set(Math.PI / 3, 0, 0);
+
+                inspectedCryptexModel.visible = false;
+                inspectScene.add(inspectedCryptexModel);
+
+                const allowedCryptexDials = ['dial_1', 'dial_2', 'dial_3', 'dial_4', 'dial_5'];
+
+                inspectedCryptexModel.traverse((child) => {
+                    const nameLower = child.name.toLowerCase();
+                    if (allowedCryptexDials.includes(nameLower)) {
+                        const dialTarget = child;
+
+                        if (!dialTarget.userData.isConfigured) {
+                            const baseRotationZ = dialTarget.rotation.z;
+
+                            dialTarget.userData = {
+                                isCryptexDial: true,
+                                name: dialTarget.name,
+                                currentStep: 0,
+                                totalClicks: 0,
+                                baseRotationZ: baseRotationZ,
+                                targetRotationZ: baseRotationZ,
+                                action: (screenClickY, dialScreenCenterY) => {
+                                    if (gameState.cryptexSolved) return;
+                                    
+                                    if (screenClickY < dialScreenCenterY) {
+                                        dialTarget.userData.currentStep = (dialTarget.userData.currentStep + 1) % 10;
+                                        dialTarget.userData.totalClicks += 1;
+                                    } else {
+                                        dialTarget.userData.currentStep = (dialTarget.userData.currentStep - 1 + 10) % 10;
+                                        dialTarget.userData.totalClicks -= 1;
+                                    }
+                                    
+                                    const stepAngle = dialTarget.userData.totalClicks * ((2 * Math.PI) / 10);
+                                    dialTarget.userData.targetRotationZ = dialTarget.userData.baseRotationZ + stepAngle;
+                                    
+                                    let allDials = [];
+                                    inspectedCryptexModel.traverse((c) => {
+                                        if (c.userData && c.userData.isCryptexDial) allDials.push(c);
+                                    });
+                                    allDials.sort((a, b) => {
+                                        const posA = new THREE.Vector3(), posB = new THREE.Vector3();
+                                        a.getWorldPosition(posA); b.getWorldPosition(posB);
+                                        return posA.x - posB.x;
+                                    });
+
+                                    let currentStepsArray = allDials.map(d => (((d.userData.currentStep % 10) + 10) % 10));
+                                    
+                                    checkCryptexSolution();
+                                }
+                            };
+                            dialTarget.userData.isConfigured = true;
+                            cryptexDials.push(dialTarget);
+                        }
+                    }
+                });
+            });
+
+            globalGltfLoader.load('note.glb', (gltf) => {
+                inspectedNoteModel = gltf.scene;
+                const box = new THREE.Box3().setFromObject(inspectedNoteModel);
+                const center = box.getCenter(new THREE.Vector3());
+                inspectedNoteModel.position.sub(center);
+                inspectedNoteModel.scale.multiplyScalar(1.5 / Math.max(...box.getSize(new THREE.Vector3()).toArray()));
+                inspectedNoteModel.visible = false;
+                inspectScene.add(inspectedNoteModel);
+            });
+
+            globalGltfLoader.load('remote.glb', (gltf) => {
+                inspectedRemoteModel = gltf.scene;
+                const box = new THREE.Box3().setFromObject(inspectedRemoteModel);
+                const center = box.getCenter(new THREE.Vector3());
+                inspectedRemoteModel.position.sub(center);
+                inspectedRemoteModel.scale.multiplyScalar(1.5 / Math.max(...box.getSize(new THREE.Vector3()).toArray()));
+                inspectedRemoteModel.rotation.set(Math.PI / 3, 0, 0); 
+                inspectedRemoteModel.visible = false;
+                inspectScene.add(inspectedRemoteModel);
+            });
+
+            const overlay = document.getElementById('inspect-overlay');
+            overlay.addEventListener('mousedown', (e) => {
+                if (!inspecting || e.target.id === 'inspect-close-btn') return;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+
+                if (currentInspectType === 'lock' && inspectedModel && !gameState.isSolved) {
+                    const mouse = new THREE.Vector2(
+                        (e.clientX / window.innerWidth) * 2 - 1,
+                        -(e.clientY / window.innerHeight) * 2 + 1
+                    );
+                    inspectRaycaster.setFromCamera(mouse, inspectCamera);
+                    
+                    let lockInteractables = [];
+                    inspectedModel.traverse((child) => {
+                        if (child.userData && child.userData.isDial) lockInteractables.push(child);
+                    });
+
+                    const intersects = inspectRaycaster.intersectObjects(lockInteractables, false);
+                    if (intersects.length > 0) {
+                        let checkObj = intersects[0].object;
+                        while (checkObj && !checkObj.userData?.action && checkObj !== inspectedModel) {
+                            checkObj = checkObj.parent;
+
+                            const isDoraemonLocked = (checkObj && checkObj.userData?.type === 'doraemon' && !gameState.isSolved);
+
+    if (checkObj && checkObj.userData?.action && !isDoraemonLocked) {
+                            setHighlightedObject(checkObj);
+                            prompt.style.display = 'none';
+    } else {
+                            setHighlightedObject(null);
+        prompt.style.display = 'none';
+    }
+
+                        }
+
+                        if (checkObj && checkObj.userData?.action) {
+                            const dialWorldPos = new THREE.Vector3();
+                            checkObj.getWorldPosition(dialWorldPos);
+                            dialWorldPos.project(inspectCamera);
+                            const dialScreenCenterY = (1 - dialWorldPos.y) * (window.innerHeight / 2);
+                            checkObj.userData.action(e.clientY, dialScreenCenterY);
+                            isDragging = false; 
+                            return;
+                        }
+                    }
+                } else if (currentInspectType === 'cryptex' && inspectedCryptexModel && !gameState.cryptexSolved) {
+                    const mouse = new THREE.Vector2(
+                        (e.clientX / window.innerWidth) * 2 - 1,
+                        -(e.clientY / window.innerHeight) * 2 + 1
+                    );
+                    inspectRaycaster.setFromCamera(mouse, inspectCamera);
+                    
+                    let cryptexInteractables = [];
+                    inspectedCryptexModel.traverse((child) => {
+                        if (child.userData && child.userData.isCryptexDial) cryptexInteractables.push(child);
+                    });
+
+                    const intersects = inspectRaycaster.intersectObjects(cryptexInteractables, true);
+                    if (intersects.length > 0) {
+                        let checkObj = intersects[0].object;
+                        while (checkObj && !checkObj.userData?.action && checkObj !== inspectedCryptexModel) {
+                            checkObj = checkObj.parent;
+                        }
+
+                        if (checkObj && checkObj.userData?.action) {
+                            const dialWorldPos = new THREE.Vector3();
+                            checkObj.getWorldPosition(dialWorldPos);
+                            dialWorldPos.project(inspectCamera);
+                            const dialScreenCenterY = (1 - dialWorldPos.y) * (window.innerHeight / 2);
+                            checkObj.userData.action(e.clientY, dialScreenCenterY);
+                            isDragging = false;
+                            return;
+                        }
+                    }
+                } else if (currentInspectType === 'remote' && e.button === 0 && inspectedRemoteModel) {
+                    const mouse = new THREE.Vector2(
+                        (e.clientX / window.innerWidth) * 2 - 1,
+                        -(e.clientY / window.innerHeight) * 2 + 1
+                    );
+                    inspectRaycaster.setFromCamera(mouse, inspectCamera);
+                    const remoteIntersects = inspectRaycaster.intersectObject(inspectedRemoteModel, true);
+
+                    if (remoteIntersects.length > 0) {
+                        gameState.tvOn = !gameState.tvOn;
+                        
+                        const statusEl = document.getElementById('tv-status-overlay');
+                        statusEl.innerText = gameState.tvOn ? "ON" : "OFF";
+                        statusEl.style.opacity = '1';
+
+                        gsap.killTweensOf(statusEl);
+                        gsap.to(statusEl, {
+                            opacity: 0,
+                            duration: 0.5,
+                            delay: 1.0
+                        });
+
+                        if (tvScreenMesh && tvScreenTexture) {
+                            if (gameState.tvOn) {
+                                tvScreenMesh.material.map = tvScreenTexture;
+                                tvScreenMesh.material.color.set(0xffffff); 
+                                document.getElementById('inspect-title').innerText = "TV - ON";
+                            } else {
+                                tvScreenMesh.material.map = null;
+                                tvScreenMesh.material.color.set(0x050505); 
+                                document.getElementById('inspect-title').innerText = "TV - OFF";
+                            }
+                            tvScreenMesh.material.needsUpdate = true;
+                        }
+                    }
+                }
+                isDragging = true;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging || !inspecting) return;
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                
+                if (currentInspectType === 'cryptex') return;
+
+                let activeTargetModel = inspectedModel;
+                if (currentInspectType === 'note') activeTargetModel = inspectedNoteModel;
+                if (currentInspectType === 'remote') activeTargetModel = inspectedRemoteModel;
+                if (currentInspectType === 'boxclosed') activeTargetModel = inspectedBoxClosedModel; 
+                if (currentInspectType === 'notebook') activeTargetModel = inspectedNotebookModel; 
+                if (activeTargetModel) {
+                    activeTargetModel.rotation.y += deltaX * 0.01;
+                    activeTargetModel.rotation.x += deltaY * 0.01;
+                }
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            window.addEventListener('mouseup', () => { isDragging = false; });
+            
+            globalGltfLoader.load('boxclosed.glb', (gltf) => {
+                const rawModel = gltf.scene;
+                
+                inspectedBoxClosedModel = new THREE.Group();
+                inspectedBoxClosedModel.add(rawModel);
+
+                const box = new THREE.Box3().setFromObject(rawModel);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                
+                rawModel.position.sub(center);
+
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scaleFactor = 1.0 / maxDim;
+                inspectedBoxClosedModel.scale.multiplyScalar(scaleFactor);
+
+                inspectedBoxClosedModel.visible = false;
+                inspectScene.add(inspectedBoxClosedModel);
+            });
+        }
+
+        globalGltfLoader.load('notebook.glb', (gltf) => {
+            inspectedNotebookModel = gltf.scene;
+            const box = new THREE.Box3().setFromObject(inspectedNotebookModel);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            inspectedNotebookModel.position.sub(center);
+            inspectedNotebookModel.position.y += 0.0;
+            inspectedNotebookModel.rotation.set( Math.PI / 2, 0, 0 );
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scaleFactor = 2.0 / maxDim;
+            inspectedNotebookModel.scale.multiplyScalar(scaleFactor);
+            inspectedNotebookModel.visible = false;
+            inspectScene.add(inspectedNotebookModel);
+
+            if (gltf.animations && gltf.animations.length > 0) {
+                inspectNotebookMixer = new THREE.AnimationMixer(inspectedNotebookModel);
+                gltf.animations.forEach((clip) => {
+                    const action = inspectNotebookMixer.clipAction(clip);
+                    action.setLoop(THREE.LoopOnce);
+                    action.clampWhenFinished = true;
+                    inspectNotebookActions.push(action);
+                });
+            }
+        });
+
+       function loadMainSceneLock() {
+            globalGltfLoader.load('lock.gltf', (gltf) => {
+                mainSceneLock = gltf.scene;
+                mainSceneLock.position.set(-3.06, 0.92, -4.252);
+                mainSceneLock.rotation.set(0, -1.5, 0);
+                mainSceneLock.scale.set(0.05, 0.05, 0.05);
+
+                mainSceneLock.traverse((child) => {
+                    if (child.isMesh && child.material) {
+                        if (child.material.roughness !== undefined) {
+                            child.material.roughness = 1.0;
+                        }
+                        if (child.material.metalness !== undefined) {
+                            child.material.metalness = 0.0;
+                        }
+                        child.material.needsUpdate = true;
+                    }
+                });
+
+                mainSceneLock.userData = {
+                    name: 'Combination Lock',
+                    type: 'lock',
+                    action: () => { openInspectMode('lock'); }
+                };
+                interactables.push(mainSceneLock);
+                scene.add(mainSceneLock);
+            });
+        }
+
+        function loadMainSceneCryptex() {
+            globalGltfLoader.load('reduced.glb', (gltf) => {
+                mainSceneCryptex = gltf.scene;
+                mainSceneCryptex.position.set(-1.8, 0.01, -4.552);
+                mainSceneCryptex.rotation.set(0, 0.5, 0);
+                mainSceneCryptex.scale.set(0.03, 0.03, 0.03);
+                
+                // Keep hidden and excluded from interactables initially
+                mainSceneCryptex.visible = false;
+
+                mainSceneCryptex.userData = {
+                    name: 'Cryptex',
+                    type: 'cryptex',
+                    action: () => { openInspectMode('cryptex'); }
+                };
+                scene.add(mainSceneCryptex);
+            }, undefined, (err) => {
+                console.warn('Could not load reduced.glb model file:', err);
+            });
+        }
+
+        function loadMainSceneNote() {
+            globalGltfLoader.load('note.glb', (gltf) => {
+                const mainSceneNote = gltf.scene;
+                mainSceneNote.position.set(1.980, 0.653, -4.644);
+                mainSceneNote.scale.set(0.5, 0.5, 0.5);
+                mainSceneNote.userData = {
+                    name: 'Mysterious Note',
+                    type: 'note',
+                    action: () => { openInspectMode('note'); }
+                };
+                interactables.push(mainSceneNote);
+                scene.add(mainSceneNote);
+            });
+        }
+
+        function loadWoodenChest() {
+            globalGltfLoader.load('chest.glb', (gltf) => {
+                woodenChest = gltf.scene;
+                woodenChest.position.set(-1.8, 0.0, -4.33);
+                woodenChest.scale.set(0.8, 0.8, 0.8);
+
+                if (gltf.animations && gltf.animations.length > 0) {
+                    chestMixer = new THREE.AnimationMixer(woodenChest);
+                    gltf.animations.forEach((clip) => {
+                        const action = chestMixer.clipAction(clip);
+                        action.setLoop(THREE.LoopOnce);
+                        action.clampWhenFinished = true;
+                        chestActions.push(action);
+                    });
+                }
+
+                woodenChest.userData = {
+                    name: 'Wooden Chest',
+                    type: 'chest',
+                    action: () => {
+                        if (!gameState.chestOpened) {
+                            if (gameState.hasKeyA) {
+                                gameState.chestOpened = true;
+                                chestActions.forEach(action => { action.reset(); action.play(); });
+                                document.getElementById('message-box').innerText = "You used Key A to open the wooden chest!";
+
+                                // REVEAL CRYPTEX ONCE CHEST IS OPENED
+                                if (mainSceneCryptex) {
+                                    mainSceneCryptex.visible = true;
+                                    interactables.push(mainSceneCryptex);
+                                }
+                            } else {
+                                document.getElementById('message-box').innerText = "The wooden chest is locked! You need Key A.";
+                            }
+                        }
+                    }
+                };
+
+                const box = new THREE.Box3().setFromObject(woodenChest);
+                colliders.push(box);
+                const helper = new THREE.Box3Helper(box, 0x00ff00);
+                helper.visible = gameState.hitboxesVisible;
+                scene.add(helper);
+                hitboxHelpers.push(helper);
+
+                interactables.push(woodenChest);
+                scene.add(woodenChest);
+            });
+        }
+
+        function loadMiniChest() {
+            globalGltfLoader.load('minichest.glb', (gltf) => {
+                miniChest = gltf.scene;
+                miniChest.position.set(2.9, 0.8, 0.1);
+                miniChest.rotation.set(0, 2, 0);
+                miniChest.scale.set(0.1, 0.1, 0.1);
+
+                miniChest.traverse((child) => {
+                    const nameLower = child.name.toLowerCase();
+                    if (nameLower === 'key_1' || (nameLower.includes('key') && !nameLower.includes('chest'))) {
+                        miniChestKeyMesh = child;
+                        miniChestKeyMesh.visible = false; 
+                    }
+                });
+
+                if (gltf.animations && gltf.animations.length > 0) {
+                    miniChestMixer = new THREE.AnimationMixer(miniChest);
+                    gltf.animations.forEach((clip) => {
+                        const action = miniChestMixer.clipAction(clip);
+                        action.setLoop(THREE.LoopOnce);
+                        action.clampWhenFinished = true;
+                        if (clip.name === 'Chest_topAction') chestTopAction = action;
+                        else if (clip.name.includes('Key')) keyAction = action;
+                    });
+                }
+
+                miniChest.userData = {
+                    name: 'Mini Chest',
+                    type: 'miniChest',
+                    action: () => {
+                        if (!gameState.miniChestOpened) {
+                            if (gameState.hasKeyB) {
+                                gameState.miniChestOpened = true;
+                                playAnimationsInOrder('keyFirst'); 
+                                document.getElementById('message-box').innerText = "You used Key B to open the mini chest!";
+                            } else {
+                                document.getElementById('message-box').innerText = "The mini chest is locked! You need Key B.";
+                            }
+                        }
+                    }
+                };
+
+                const box = new THREE.Box3().setFromObject(miniChest);
+                colliders.push(box);
+                const helper = new THREE.Box3Helper(box, 0x00ff00);
+                helper.visible = gameState.hitboxesVisible;
+                scene.add(helper);
+                hitboxHelpers.push(helper);
+
+                interactables.push(miniChest);
+                scene.add(miniChest);
+            });
+        }
+
+        function playAnimationsInOrder(order) {
+            if (!miniChestMixer) return;
+            if (miniChestKeyMesh) miniChestKeyMesh.visible = true;
+
+            if (order === 'keyFirst') {
+                if (keyAction) keyAction.reset().play();
+                if (chestTopAction) {
+                    setTimeout(() => chestTopAction.reset().play(), keyAction ? keyAction.getClip().duration * 1000 : 0);
+                }
+            }
+        }
+
+        function loadSafeModel() {
+            globalGltfLoader.load('safe.glb', (gltf) => {
+                safeModel = gltf.scene;
+                safeModel.position.set(2.25, -0.3, 4.2);
+                safeModel.rotation.set(0, Math.PI / 2, 0);
+                safeModel.scale.set(50, 50, 50);
+
+                if (gltf.animations && gltf.animations.length > 0) {
+                    safeMixer = new THREE.AnimationMixer(safeModel);
+                    gltf.animations.forEach((clip) => {
+                        const action = safeMixer.clipAction(clip);
+                        action.setLoop(THREE.LoopOnce);
+                        action.clampWhenFinished = true;
+                        safeActions.push(action);
+                    });
+                }
+
+                const safeAction = () => {
+                    if (!gameState.safeOpened) zoomToSafeKeypad();
+                    else document.getElementById('message-box').innerText = "The safe is already open.";
+                };
+                safeModel.userData = {
+                    name: 'Metal Safe',
+                    type: 'safe',
+                    highlightTarget: safeModel,
+                    action: safeAction
+                };
+
+                const keypadTrigger = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.5, 0.5, 0.4),
+                    new THREE.MeshBasicMaterial({ visible: false })
+                );
+                keypadTrigger.position.set(2.25, 0.85, 4.2);
+                keypadTrigger.userData = {
+                    name: 'Metal Safe Keypad',
+                    type: 'safe',
+                    highlightTarget: safeModel,
+                    action: safeAction
+                };
+                scene.add(keypadTrigger);
+                interactables.push(keypadTrigger);
+
+                const buttonData = [
+                    { digit: '1', pos: [0.0061, 0.0215,  0.0012] },
+                    { digit: '2', pos: [0.0061, 0.0215,  0.0000] },
+                    { digit: '3', pos: [0.0061, 0.0215, -0.0012] },
+                    { digit: '4', pos: [0.0061, 0.0204,  0.0012] },
+                    { digit: '5', pos: [0.0061, 0.0204,  0.0000] },
+                    { digit: '6', pos: [0.0061, 0.0204, -0.0012] },
+                    { digit: '7', pos: [0.0061, 0.0193,  0.0012] },
+                    { digit: '8', pos: [0.0061, 0.0193,  0.0000] },
+                    { digit: '9', pos: [0.0061, 0.0193, -0.0012] },
+                    { digit: '0', pos: [0.0061, 0.0182,  0.0000] }
+                ];
+
+                buttonData.forEach(data => {
+                    const btnMesh = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.0005, 0.0006, 0.0008),
+                        new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.6, visible: gameState.hitboxesVisible })
+                    );
+                    btnMesh.position.set(data.pos[0], data.pos[1], data.pos[2]);
+                    btnMesh.userData = { digit: data.digit, name: `Button ${data.digit}` };
+                    safeModel.add(btnMesh);
+                    safeDigitInteractables.push(btnMesh);
+                    hitboxHelpers.push(btnMesh);
+                });
+
+                const box = new THREE.Box3().setFromObject(safeModel);
+                colliders.push(box);
+                const helper = new THREE.Box3Helper(box, 0x00ff00);
+                helper.visible = gameState.hitboxesVisible;
+                scene.add(helper);
+                hitboxHelpers.push(helper);
+
+                scene.add(safeModel);
+                interactables.push(safeModel);
+            });
+        }
+
+        function loadDoraemonModel() {
+            backgroundGltfLoader.load('doraemon.glb', (gltf) => {
+                doraemonModel = gltf.scene;
+                doraemonModel.position.set(-3.24, 1, -4.5); 
+                doraemonModel.scale.set(0.13, 0.13, 0.13);     
+
+                doraemonModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = !isLowPerformanceMode;
+                        child.receiveShadow = !isLowPerformanceMode;
+                    }
+                });
+                doraemonModel.userData = {
+                    name: 'Doraemon',
+                    type: 'doraemon',
+                    action: () => {
+                        if (!gameState.hasKeyB && keyBModel?.userData?.action) {
+                            keyBModel.userData.action();
+                        } else if (gameState.hasKeyB) {
+                            document.getElementById('message-box').innerText = "You have my key now. Keep going!";
+                        }
+                    }
+                };
+
+                interactables.push(doraemonModel);
+                scene.add(doraemonModel);
+            }, undefined, (error) => {
+                console.error('An error occurred while loading doraemon.glb:', error);
+            });
+        }
+
+        function loadStoolModel() {
+            backgroundGltfLoader.load('stool.glb', (gltf) => {
+                const stoolModel = gltf.scene;
+                stoolModel.scale.set(1.5, 2.7, 1.5); 
+                stoolModel.position.set(-3.23, 0.1, -4.45);
+
+                stoolModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = !isLowPerformanceMode;
+                        child.receiveShadow = !isLowPerformanceMode;
+                    }
+                });
+
+                scene.add(stoolModel);
+            }, undefined, (error) => {
+                console.error('An error occurred while loading stool.glb:', error);
+            });
+        }
+
+        function loadStandaloneTV() {
+            const textureLoader = new THREE.TextureLoader();
+
+            textureLoader.load('alice.webp', (texture) => {
+                texture.colorSpace = THREE.SRGBColorSpace;
+                texture.needsUpdate = true;
+                tvScreenTexture = texture;
+
+                globalGltfLoader.load('tv.glb', (gltf) => {
+                    const tvModel = gltf.scene;
+                    tvModel.position.set(3.57, 1.45, 3.2);
+                    tvModel.rotation.set(0, 0.8, 0);
+                    tvModel.scale.set(1.0, 1.0, 1.0);
+
+                    const screenPlaneGeometry = new THREE.PlaneGeometry(1.23, 0.63); 
+                    const screenMaterial = new THREE.MeshBasicMaterial({ 
+                        color: 0x050505, 
+                        side: THREE.DoubleSide
+                    });
+                    tvScreenMesh = new THREE.Mesh(screenPlaneGeometry, screenMaterial);
+                    
+                    tvScreenMesh.position.set(0, 0.46, -0.02); 
+                    tvScreenMesh.rotation.y = Math.PI; 
+
+                    tvModel.add(tvScreenMesh);
+                    const tvAction = () => {
+                        document.getElementById('message-box').innerText = gameState.tvOn
+                            ? 'Who is this character again?.'
+                            : 'Where is the remote?';
+                    };
+                    tvScreenMesh.userData = {
+                        name: 'Television',
+                        type: 'tv',
+                        action: tvAction
+                    };
+                    tvModel.userData = {
+                        name: 'Television',
+                        type: 'tv',
+                        action: tvAction
+                    };
+                    interactables.push(tvModel);
+                    scene.add(tvModel);
+                }, undefined, (err) => {
+                    console.warn('Could not load tv.glb model file:', err);
+                });
+            }, undefined, (err) => {
+                console.warn('Could not load poster.webp:', err);
+            });
+        }
+
+        function loadRemoteModel() {
+            backgroundGltfLoader.load('remote.glb', (gltf) => {
+                const remoteModel = gltf.scene;
+                remoteModel.position.set(2.9, 0.85, 0.1); 
+                remoteModel.rotation.set(0, 2, 0);
+                remoteModel.scale.set(1, 1, 1);
+
+                remoteModel.userData = {
+                    name: 'TV Remote',
+                    type: 'remote',
+                    action: () => {
+                        openInspectMode('remote');
+                    }
+                };
+
+                interactables.push(remoteModel);
+                scene.add(remoteModel);
+            }, undefined, (err) => {
+                console.warn('Could not load remote.glb model file:', err);
+            });
+        }
+
+        let previousCameraPos = new THREE.Vector3();
+        let previousCameraRot = new THREE.Euler();
+
+        function zoomToSafeKeypad() {
+            isZoomedToSafe = true;
+            if (controls.isLocked) controls.unlock();
+            previousCameraPos.copy(camera.position);
+            previousCameraRot.copy(camera.rotation);
+
+            document.getElementById('ui-container').style.display = 'none';
+            document.getElementById('crosshair').style.display = 'none';
+            document.getElementById('interaction-prompt').style.display = 'none';
+            document.getElementById('safe-code-display').style.display = 'block';
+
+            gsap.to(camera.position, {
+                x: 2.25, y: 0.55, z: 3.25,
+                duration: 1.2,
+                ease: "power2.inOut",
+                onUpdate: () => camera.lookAt(2.25, 0.55, 4.08),
+                onComplete: () => { document.getElementById('safe-exit-btn').style.display = 'block'; }
+            });
+        }
+
+        function zoomOutFromSafe() {
+            isZoomedToSafe = false;
+            resetSafeCode();
+            document.getElementById('safe-exit-btn').style.display = 'none';
+            document.getElementById('safe-code-display').style.display = 'none';
+
+            const currentLook = new THREE.Vector3(2.25, 0.55, 4.08); 
+            const forwardVector = new THREE.Vector3(0, 0, -1).applyEuler(previousCameraRot);
+            const targetLook = previousCameraPos.clone().add(forwardVector);
+
+            gsap.to(camera.position, {
+                x: previousCameraPos.x, y: previousCameraPos.y, z: previousCameraPos.z,
+                duration: 1.2, ease: "power2.inOut"
+            });
+
+            gsap.to(currentLook, {
+                x: targetLook.x, y: targetLook.y, z: targetLook.z,
+                duration: 1.2,
+                ease: "power2.inOut",
+                onUpdate: () => camera.lookAt(currentLook),
+                onComplete: () => {
+                    camera.rotation.copy(previousCameraRot);
+                    document.getElementById('ui-container').style.display = 'flex';
+                    document.getElementById('crosshair').style.display = 'block';
+                    if (!gameState.escaped) controls.lock();
+                }
+            });
+        }
+
+        function triggerSafeDigitInteraction(event) {
+            const mouse = new THREE.Vector2(
+                (event.clientX / window.innerWidth) * 2 - 1,
+                -(event.clientY / window.innerHeight) * 2 + 1
+            );
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(safeDigitInteractables, true);
+            if (intersects.length > 0) {
+                const hitObj = intersects[0].object;
+                if (hitObj.userData && hitObj.userData.digit !== undefined) pressKey(hitObj.userData.digit);
+            }
+        }
+
+        function pressKey(digit) {
+            if (digit === '*' || digit === '#') return;
+            if (enteredCode.length < 4) {
+                enteredCode.push(digit);
+                updateSafeDisplay();
+            }
+            if (enteredCode.length === 4) setTimeout(checkSafeCode, 300);
+        }
+
+        function updateSafeDisplay() {
+            let displayText = enteredCode.join("").padEnd(4, "-");
+            document.getElementById('safe-code-digits').innerText = displayText;
+            
+        }
+
+        function checkSafeCode() {
+            const displayEl = document.getElementById('safe-code-display');
+            if (enteredCode.length === gameState.safeCode.length && enteredCode.every((v, i) => v === gameState.safeCode[i])) {
+                gameState.safeOpened = true;
+                displayEl.classList.remove('wrong');
+                displayEl.classList.add('correct');
+                safeActions.forEach(action => action.reset().play());
+                document.getElementById('message-box').innerText = "Correct code! Safe unlocked!";
+                setTimeout(zoomOutFromSafe, 1200);
+            } else {
+                displayEl.classList.remove('correct');
+                displayEl.classList.add('wrong');
+                document.getElementById('message-box').innerText = "Incorrect code! Try again.";
+                setTimeout(resetSafeCode, 1000);
+            }
+        }
+
+        function resetSafeCode() {
+            enteredCode = [];
+            const displayEl = document.getElementById('safe-code-display');
+            displayEl.classList.remove('correct', 'wrong');
+            updateSafeDisplay();
+        }
+
+        function resetGame() {
+            clearTimeout(cryptexExitTimer);
+            cryptexAnimationComplete = false;
+            gsap.killTweensOf(camera.position);
+
+            if (controls.isLocked) controls.unlock();
+
+            Object.assign(gameState, {
+                hasKeyA: false,
+                hasKeyB: false,
+                hasKeyC: false,
+                escaped: false,
+                hitboxesVisible: false,
+                isSolved: false,
+                cryptexSolved: false,
+                chestOpened: false,
+                miniChestOpened: false,
+                safeOpened: false,
+                tvOn: false
+            });
+
+            enteredCode = [];
+            document.getElementById('slot-0').innerHTML = '🔒';
+            document.getElementById('slot-1').innerHTML = '🔒';
+            document.getElementById('slot-2').innerHTML = '🔒';
+            document.querySelectorAll('.inventory-slot').forEach(slot => slot.classList.remove('active'));
+            document.getElementById('message-box').innerText = 'Loading classroom...';
+            document.getElementById('interaction-prompt').style.display = 'none';
+            document.getElementById('win-screen').style.display = 'none';
+            document.getElementById('ui-container').style.display = 'flex';
+            document.getElementById('crosshair').style.display = 'block';
+            document.getElementById('safe-exit-btn').style.display = 'none';
+            document.getElementById('safe-code-display').style.display = 'none';
+            document.getElementById('inspect-overlay').style.display = 'none';
+            document.getElementById('cryptex-alignment-guide').style.display = 'none';
+            document.getElementById('tv-status-overlay').style.opacity = '0';
+
+            if (tvScreenMesh) {
+                tvScreenMesh.material.map = null;
+                tvScreenMesh.material.color.set(0x050505);
+                tvScreenMesh.material.needsUpdate = true;
+            }
+
+            isAnimatingUnlock = false;
+            inspecting = false;
+            isDragging = false;
+            isZoomedToSafe = false;
+            currentInspectType = 'lock';
+            moveForward = false;
+            moveBackward = false;
+            moveLeft = false;
+            moveRight = false;
+
+            camera.position.set(-2.0, 1.6, 4.0);
+            camera.rotation.set(0, 0, 0);
+
+            lockDials.forEach(dial => {
+                dial.userData.currentStep = 0;
+                dial.userData.totalClicks = 0;
+                dial.userData.isLocked = false;
+                dial.userData.targetRotationZ = dial.userData.baseRotationZ;
+                dial.rotation.z = dial.userData.baseRotationZ;
+            });
+            cryptexDials.forEach(dial => {
+                dial.userData.currentStep = 0;
+                dial.userData.totalClicks = 0;
+                dial.userData.isLocked = false;
+                dial.userData.targetRotationZ = dial.userData.baseRotationZ;
+                dial.rotation.z = dial.userData.baseRotationZ;
+            });
+
+            if (mainSceneLock) {
+                mainSceneLock.visible = true;
+                if (!interactables.includes(mainSceneLock)) interactables.push(mainSceneLock);
+            }
+            if (mainSceneCryptex) {
+                mainSceneCryptex.visible = false;
+                interactables = interactables.filter(obj => obj !== mainSceneCryptex);
+            }
+            if (boxClosedModel) {
+                boxClosedModel.visible = true;
+                if (!interactables.includes(boxClosedModel)) interactables.push(boxClosedModel);
+            }
+            if (boxOpenedModel) boxOpenedModel.visible = false;
+
+            [keyAModel, keyBModel, keyCModel].forEach(keyModel => {
+                if (keyModel) {
+                    keyModel.visible = true;
+                    if (!interactables.includes(keyModel)) interactables.push(keyModel);
+                    scene.add(keyModel);
+                }
+            });
+            if (doraemonModel) {
+                doraemonModel.visible = true;
+                if (!interactables.includes(doraemonModel)) interactables.push(doraemonModel);
+                scene.add(doraemonModel);
+            }
+            if (keyAPlatform) {
+                keyAPlatform.visible = true;
+                keyAPlatform.userData.action = () => keyAModel.userData.action();
+                scene.add(keyAPlatform);
+                if (!interactables.includes(keyAPlatform)) interactables.push(keyAPlatform);
+            }
+
+            if (miniChestKeyMesh) miniChestKeyMesh.visible = false;
+            chestActions.forEach(action => action.stop().reset());
+            safeActions.forEach(action => action.stop().reset());
+            if (keyAction) keyAction.stop().reset();
+            if (chestTopAction) chestTopAction.stop().reset();
+            inspectNotebookActions.forEach(action => action.stop().reset());
+
+            scene.traverse(child => {
+                if (child.userData && child.userData.type === 'lockerDoor') {
+                    child.userData.isOpen = false;
+                    child.userData.isAnimating = false;
+                    child.rotation.z = child.userData.baseRotationZ;
+                    child.userData.targetRotationZ = child.userData.baseRotationZ;
+                }
+            });
+
+            interactables = [...new Set(interactables)];
+            setHighlightedObject(null);
+            blocker.style.display = 'flex';
+        }
+
+        window.resetGame = resetGame;
+
+        function checkLockSolution() {
+            if (!inspectedModel || gameState.isSolved) return;
+            let dials = [];
+            inspectedModel.traverse((child) => { if (child.userData && child.userData.isDial) dials.push(child); });
+            if (dials.length < 5) return;
+
+            dials.sort((a, b) => {
+                const posA = new THREE.Vector3(), posB = new THREE.Vector3();
+                a.getWorldPosition(posA); b.getWorldPosition(posB);
+                return posA.x - posB.x;
+            });
+
+            const requiredSteps = [2, 3, 6, 0, 3];
+            let solved = true;
+            for (let i = 0; i < dials.length && i < requiredSteps.length; i++) {
+                if ((((dials[i].userData.currentStep % 10) + 10) % 10) !== requiredSteps[i]) {
+                    solved = false;
+                    break;
+                }
+            }
+
+            if (solved && !gameState.isSolved) {
+                gameState.isSolved = true;
+                isAnimatingUnlock = true;
+                if (mainSceneLock) {
+                    mainSceneLock.visible = false;
+                    interactables = interactables.filter(obj => obj !== mainSceneLock);
+                }
+
+                scene.traverse((child) => {
+                    const nameLower = child.name.toLowerCase();
+if (child.isMesh && nameLower === 'lockerdoor') {
+    let doorMesh = child;
+    doorMesh.userData = {
+        name: 'Locker Door',
+        type: 'lockerDoor',
+        isOpen: false,
+        isAnimating: false,
+        baseRotationZ: doorMesh.rotation.z,
+        targetRotationZ: doorMesh.rotation.z,
+        action: () => {
+            if (!gameState.isSolved) {
+                // If the combination lock is NOT solved, clicking the locker opens the combination lock inspection
+                openInspectMode('lock');
+            } else {
+                // Once solved, clicking the locker door opens/closes the door
+                if (!doorMesh.userData.isAnimating) {
+                    doorMesh.userData.isOpen = !doorMesh.userData.isOpen;
+                    doorMesh.userData.targetRotationZ = doorMesh.userData.isOpen ? doorMesh.userData.baseRotationZ - 1.2 : doorMesh.userData.baseRotationZ;
+                    doorMesh.userData.isAnimating = true;
+                    document.getElementById('message-box').innerText = doorMesh.userData.isOpen ? "Opened the locker door." : "Closed the locker door.";
+                }
+            }
+        }
+    };
+    animatables.push(doorMesh);
+    interactables.push(doorMesh);
+}
+                });
+
+                let longestDuration = 1500;
+                inspectActions.forEach(action => {
+                    action.reset().play();
+                    longestDuration = Math.max(longestDuration, action.getClip().duration * 1000);
+                });
+
+                document.getElementById('inspect-title').innerText = "Unlocked!";
+                document.getElementById('message-box').innerText = "Combination correct! Lock opened!";
+                setTimeout(() => {
+                    closeInspectMode();
+                }, longestDuration);
+            }
+        }
+
+        function checkCryptexSolution() {
+            if (!inspectedCryptexModel || gameState.cryptexSolved) return;
+            let dials = [];
+            inspectedCryptexModel.traverse((child) => { if (child.userData && child.userData.isCryptexDial) dials.push(child); });
+            if (dials.length === 0) return;
+
+            dials.sort((a, b) => {
+                const posA = new THREE.Vector3(), posB = new THREE.Vector3();
+                a.getWorldPosition(posA); b.getWorldPosition(posB);
+                return posA.x - posB.x;
+            });
+
+            const requiredSteps = gameState.cryptexCombination;
+            let solved = true;
+            for (let i = 0; i < dials.length && i < requiredSteps.length; i++) {
+                if ((((dials[i].userData.currentStep % 10) + 10) % 10) !== requiredSteps[i]) {
+                    solved = false;
+                    break;
+                }
+            }
+
+            if (solved && !gameState.cryptexSolved) {
+                gameState.cryptexSolved = true;
+                if (mainSceneCryptex) {
+                    mainSceneCryptex.visible = false;
+                    interactables = interactables.filter(obj => obj !== mainSceneCryptex);
+                }
+
+                dials.forEach(dial => {
+                    dial.userData.isDragging = false;
+                });
+
+                if (boxClosedModel && boxOpenedModel) {
+                    boxClosedModel.visible = false;   
+                    boxOpenedModel.visible = true;    
+
+                    interactables = interactables.filter(obj => obj !== boxClosedModel);
+                }
+
+                const animationDelay = 1000;
+
+                document.getElementById('inspect-title').innerText = "Cryptex Unlocked!";
+                cryptexAnimationComplete = false;
+                clearTimeout(cryptexExitTimer);
+                setTimeout(() => {
+                    dials.forEach(dial => {
+                        dial.userData.isLocked = true;
+                        dial.userData.targetRotationZ = dial.rotation.z + (Math.PI * 2);
+                    });
+                }, animationDelay);
+            }
+        }
+
+       function openInspectMode(type) {
+    if (type === 'cryptex' && !cryptexInspectionReady) {
+        document.getElementById('message-box').innerText = "Cryptex is still loading. Try again in a moment.";
+        return;
+    }
+
+    inspecting = true;
+    currentInspectType = type || 'lock';
+    if (controls.isLocked) controls.unlock();
+    
+    document.getElementById('ui-container').style.display = 'none';
+    document.getElementById('crosshair').style.display = 'none';
+
+    // 1. Force ALL inspected models to be invisible first
+    if (inspectedModel) inspectedModel.visible = false;
+    if (inspectedCryptexModel) inspectedCryptexModel.visible = false;
+    if (inspectedNoteModel) inspectedNoteModel.visible = false;
+    if (inspectedRemoteModel) inspectedRemoteModel.visible = false;
+    if (inspectedBoxClosedModel) inspectedBoxClosedModel.visible = false;
+    if (inspectedNotebookModel) inspectedNotebookModel.visible = false;
+
+    const guideEl = document.getElementById('cryptex-alignment-guide');
+
+    // 2. Enable ONLY the specific model requested
+    if (currentInspectType === 'note') {
+        if (inspectedNoteModel) inspectedNoteModel.visible = true;
+        guideEl.style.display = 'none';
+        document.getElementById('inspect-title').innerText = "Mysterious Note";
+        document.getElementById('inspect-instructions').innerText = "Click and drag to spin note | Press [ESC] or [E] to Exit";
+    } else if (currentInspectType === 'remote') {
+        if (inspectedRemoteModel) inspectedRemoteModel.visible = true;
+        guideEl.style.display = 'none';
+        document.getElementById('inspect-title').innerText = gameState.tvOn ? "TV Remote (Toggled: ON)" : "TV Remote (Toggled: OFF)";
+        document.getElementById('inspect-instructions').innerText = "Click and drag to rotate remote | Click remote to toggle TV | Press [ESC] or [E] to Exit";
+    } else if (currentInspectType === 'cryptex') {
+        if (inspectedCryptexModel) inspectedCryptexModel.visible = true;
+        guideEl.style.display = 'block';
+        document.getElementById('inspect-title').innerText = "Cryptex Puzzle";
+        document.getElementById('inspect-instructions').innerText = "Align code inside the red box | Click Top Half (+) | Click Bottom Half (-) | Press [ESC] to Exit";
+    } else if (currentInspectType === 'boxclosed') {
+        if (inspectedBoxClosedModel) inspectedBoxClosedModel.visible = true;
+        guideEl.style.display = 'none';
+        document.getElementById('inspect-title').innerText = "A mysterious box";
+        document.getElementById('inspect-instructions').innerText = "Click and Drag to Rotate | Press [ESC] to Exit";
+    } else if (currentInspectType === 'notebook') {
+        if (inspectedNotebookModel) inspectedNotebookModel.visible = true;
+        guideEl.style.display = 'none';
+        document.getElementById('inspect-title').innerText = "Someone's notebook";
+        document.getElementById('inspect-instructions').innerText = "Click to open/flip pages | Press [ESC] to Exit";
+    } else {
+        // Fallback: ONLY trigger combination lock if type is explicitly 'lock' or undefined
+        if (inspectedModel) inspectedModel.visible = true;
+        guideEl.style.display = 'none';
+        document.getElementById('inspect-title').innerText = "Combination Lock";
+        document.getElementById('inspect-instructions').innerText = "Click Top Half of Dial (+) | Click Bottom Half of Dial (-) | Press [ESC] to Exit";
+    }
+    
+    document.getElementById('inspect-overlay').style.display = 'block';
+}
+
+        function closeInspectMode() {
+            inspecting = false;
+            isDragging = false;
+            isAnimatingUnlock = false;
+            setHighlightedObject(null);
+            clearTimeout(cryptexExitTimer);
+            document.getElementById('inspect-overlay').style.display = 'none';
+            document.getElementById('cryptex-alignment-guide').style.display = 'none';
+            document.getElementById('ui-container').style.display = 'flex';
+            document.getElementById('crosshair').style.display = 'block';
+            onWindowResize();
+            if (!gameState.escaped) controls.lock();
+        }
+
+        function loadClassroomModel() {
+            globalGltfLoader.load('classroom_demoscene.glb', (gltf) => {
+                const model = gltf.scene;
+                model.position.set(0, 0, 0);
+                scene.add(model);
+
+                model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = !isLowPerformanceMode;
+                        child.receiveShadow = !isLowPerformanceMode;
+                        const nameLower = child.name.toLowerCase();
+                        const busHitPoint = new THREE.Vector3(-0.387, 1.283, -4.591);
+                        const clockHitPoint = new THREE.Vector3(0.187, 2.870, 4.833);
+                        const childBounds = new THREE.Box3().setFromObject(child);
+                        const childSize = childBounds.getSize(new THREE.Vector3());
+                        const isBusAtKnownPosition = childBounds.distanceToPoint(busHitPoint) < 0.05 &&
+                            childSize.x < 3 && childSize.y < 3 && childSize.z < 3;
+                        const isClockAtKnownPosition = childBounds.distanceToPoint(clockHitPoint) < 0.05 &&
+                            childSize.x < 3 && childSize.y < 3 && childSize.z < 3;
+                        const isScissorsAnchor = /^cube\.?074$/i.test(child.name);
+                        const isChimeObject = /^cube043(?:_1)?$/i.test(child.name);
+                        const isGlobePart = /^cylinder056$/i.test(child.name);
+                        const isPenCasePart = /^cylinder025$/i.test(child.name);
+
+                        if (nameLower.includes('bus') || isBusAtKnownPosition) {
+                            child.userData = {
+                                name: 'Toy Bus',
+                                type: 'roomInfo',
+                                action: () => {
+                                    document.getElementById('message-box').innerText = 'This is just a toy bus.';
+                                }
+                            };
+                            interactables.push(child);
+                        } else if (nameLower.includes('scissor') || isScissorsAnchor) {
+                            const scissorsTarget = child.parent || child;
+                            scissorsTarget.userData = {
+                                name: 'Scissors',
+                                type: 'roomInfo',
+                                action: () => {
+                                    document.getElementById('message-box').innerText = "This is dangerous! Don't play with scissors.";
+                                }
+                            };
+                            if (!interactables.includes(scissorsTarget)) interactables.push(scissorsTarget);
+                        } else if (nameLower.includes('globe') || isGlobePart) {
+                            const globeTarget = child.parent || child;
+                            globeTarget.userData = {
+                                name: 'Globe',
+                                type: 'roomInfo',
+                                action: () => {
+                                    document.getElementById('message-box').innerText = "I shouldn't touch this. The teacher might get angry";
+                                }
+                            };
+                            if (!interactables.includes(globeTarget)) interactables.push(globeTarget);
+                        } else if (isPenCasePart) {
+                            const penCaseTarget = child.parent || child;
+                            penCaseTarget.userData = {
+                                name: 'Pencil Case',
+                                type: 'roomInfo',
+                                action: () => {
+                                    document.getElementById('message-box').innerText = "This is not my pencase. I shouldn't take it.";
+                                }
+                            };
+                            if (!interactables.includes(penCaseTarget)) interactables.push(penCaseTarget);
+                        } else if (isChimeObject) {
+                            const chimeTarget = child.parent || child;
+                            chimeTarget.userData = {
+                                name: 'Chime Object',
+                                type: 'roomInfo',
+                                action: () => {
+                                    chimeAudio.currentTime = 0;
+                                    chimeAudio.play().catch((error) => {
+                                        console.warn('Could not play chime.mp3:', error);
+                                    });
+                                }
+                            };
+                            if (!interactables.includes(chimeTarget)) interactables.push(chimeTarget);
+                        } else if (nameLower.includes('clock') || isClockAtKnownPosition) {
+                            child.userData = {
+                                name: 'Clock',
+                                type: 'roomInfo',
+                                action: () => {
+                                    document.getElementById('message-box').innerText = "It's 02:28 now.";
+                                }
+                            };
+                            interactables.push(child);
+                        }
+
+if (nameLower === 'lockerdoor') {
+            let doorMesh = child;
+            doorMesh.userData = {
+                name: 'Locker Door',
+                type: 'lockerDoor',
+                isOpen: false,
+                isAnimating: false,
+                baseRotationZ: doorMesh.rotation.z,
+                targetRotationZ: doorMesh.rotation.z,
+                action: () => {
+                    if (!gameState.isSolved) {
+                        // If combination lock is NOT solved, open the lock inspection mode
+                        openInspectMode('lock');
+                    } else {
+                        // Once solved, open/close the door normally
+                        if (!doorMesh.userData.isAnimating) {
+                            doorMesh.userData.isOpen = !doorMesh.userData.isOpen;
+                            doorMesh.userData.targetRotationZ = doorMesh.userData.isOpen ? doorMesh.userData.baseRotationZ - 1.2 : doorMesh.userData.baseRotationZ;
+                            doorMesh.userData.isAnimating = true;
+                            document.getElementById('message-box').innerText = doorMesh.userData.isOpen ? "Opened the locker door." : "Closed the locker door.";
+                        }
+                    }
+                }
+            };
+            animatables.push(doorMesh);
+            interactables.push(doorMesh);
+        }
+if (!nameLower.includes('plane') && !nameLower.includes('floor') && !nameLower.includes('ceiling')) {
+    const worldPos = new THREE.Vector3();
+    child.getWorldPosition(worldPos);
+    const box = new THREE.Box3();
+    
+    if ((nameLower.includes('desk') || nameLower.includes('table')) && !nameLower.includes('chair')) {
+        box.setFromCenterAndSize(
+            new THREE.Vector3(worldPos.x, worldPos.y + 0.4, worldPos.z),
+            new THREE.Vector3(0.85, 0.9, 0.85)
+        );
+    } else {
+        box.setFromObject(child);
+    }
+    
+    // Calculate the dimensions of the box
+    const sizeX = box.max.x - box.min.x;
+    const sizeY = box.max.y - box.min.y;
+    const sizeZ = box.max.z - box.min.z;
+
+    // Skip this specific chair model based on its unique dimensions (adjust values if needed)
+    const isTargetChair = (Math.abs(sizeX - 0.5) < 0.19 && Math.abs(sizeY - 0.9) < 0.19); // customize based on your exact box size
+
+    if (!box.isEmpty() && !isTargetChair && sizeX < 25 && sizeZ < 25) {
+        colliders.push(box);
+        const helper = new THREE.Box3Helper(box, 0x00ff00);
+        helper.visible = gameState.hitboxesVisible;
+        scene.add(helper);
+        hitboxHelpers.push(helper);
+    }
+}
+
+                        // Added '&& nameLower !== 'walldoor002'' to prevent it from becoming interactive
+if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower.includes('locker') && nameLower !== 'walldoor002') {
+    child.userData = {
+        name: 'Classroom Exit Door',
+        type: 'door',
+        action: () => {
+            if (gameState.hasKeyC) {
+                function triggerEscape() {
+                    gameState.escaped = true;
+
+                    if (controls.isLocked) {
+                        controls.unlock();
+                    }
+
+                    document.getElementById('win-screen').style.display = 'flex';
+
+                    console.log("You have escaped the classroom!");
+                }
+
+                triggerEscape();
+            } else {
+                document.getElementById('message-box').innerText = "The door is locked! You need Key C to escape.";
+            }
+        }
+    };
+    interactables.push(child);
+}
+                    }
+                });
+            });
+        }
+
+        function toggleHitboxes() {
+            gameState.hitboxesVisible = !gameState.hitboxesVisible;
+            hitboxHelpers.forEach(helper => { helper.visible = gameState.hitboxesVisible; });
+            document.getElementById('message-box').innerText = gameState.hitboxesVisible ? "Hitboxes visible" : "Hitboxes hidden";
+        }
+
+        function checkCollisionAt(pos) {
+            const playerBox = new THREE.Box3(
+                new THREE.Vector3(pos.x - playerRadius, pos.y - 1.2, pos.z - playerRadius),
+                new THREE.Vector3(pos.x + playerRadius, pos.y + 0.5, pos.z + playerRadius)
+            );
+            for (let box of colliders) {
+                if (playerBox.intersectsBox(box)) return true;
+            }
+            return false;
+        }
+
+        function setHighlightedObject(object) {
+            if (highlightedObject === object) return;
+
+            highlightedObject = object;
+            if (outlinePass) {
+                const highlightTarget = object?.userData?.noHighlight
+                    ? null
+                    : object?.userData?.highlightTarget || object;
+                outlinePass.selectedObjects = highlightTarget ? [highlightTarget] : [];
+            }
+        }
+
+        function triggerInteraction() {
+        if (!highlightedObject) return;
+
+    // Prevent executing Doraemon's action if the combination lock is still unsolved
+    if (highlightedObject.userData.type === 'doraemon' && !gameState.isSolved) {
+        return;
+    }
+if (highlightedObject.userData && typeof highlightedObject.userData.action === 'function') {
+        highlightedObject.userData.action();
+    }
+}
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            inspectCamera.aspect = window.innerWidth / window.innerHeight;
+            inspectCamera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            inspectRenderer.setSize(window.innerWidth, window.innerHeight);
+            if (composer) composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = performance.now();
+            const delta = Math.min((time - prevTime) / 1000, 0.1);
+
+            if (chestMixer) chestMixer.update(delta);
+            if (miniChestMixer) miniChestMixer.update(delta); 
+            if (safeMixer) safeMixer.update(delta);
+            if (inspectNotebookMixer) inspectNotebookMixer.update(delta);
+
+            for (let dial of lockDials) {
+                if (dial.userData && dial.userData.targetRotationZ !== undefined) {
+                    const diff = dial.userData.targetRotationZ - dial.rotation.z;
+                    const speed = dial.userData.isLocked ? 0.08 : 0.25;
+
+                    if (Math.abs(diff) < 0.001) {
+                        dial.rotation.z = dial.userData.targetRotationZ;
+                    } else {
+                        dial.rotation.z += diff * speed;
+                    }
+                }
+            }
+            for (let dial of cryptexDials) {
+                if (dial.userData && dial.userData.targetRotationZ !== undefined) {
+                    const diff = dial.userData.targetRotationZ - dial.rotation.z;
+                    const speed = dial.userData.isLocked ? 0.08 : 0.25;
+
+                    if (Math.abs(diff) < 0.001) {
+                        dial.rotation.z = dial.userData.targetRotationZ;
+                    } else {
+                        dial.rotation.z += diff * speed;
+                    }
+                }
+            }
+
+            if (gameState.cryptexSolved && currentInspectType === 'cryptex' && inspecting && !cryptexAnimationComplete) {
+                if (cryptexDials.length > 0 && cryptexDials.every(dial => Math.abs(dial.userData.targetRotationZ - dial.rotation.z) < 0.001)) {
+                    cryptexAnimationComplete = true;
+                    const statusEl = document.getElementById('tv-status-overlay');
+                    statusEl.innerText = "Something Opened!";
+                    statusEl.style.fontSize = '50px';
+                    statusEl.style.color = '#4CAF50';
+                    statusEl.style.opacity = '1';
+                    document.getElementById('message-box').innerText = "Something opened!";
+
+                    cryptexExitTimer = setTimeout(() => {
+                        statusEl.style.opacity = '0';
+                        closeInspectMode();
+                    }, 5000);
+                }
+            }
+
+            if (inspectedModel) {
+                dialNumberPairs.forEach(pair => {
+                    let dialObj = inspectedModel.getObjectByName(pair.dial);
+                    let numObj = inspectedModel.getObjectByName(pair.number);
+                    if (dialObj && numObj) numObj.rotation.z = dialObj.rotation.z;
+                });
+            }
+
+            if (inspecting) {
+                if (inspectMixer) inspectMixer.update(delta);
+                
+                if (currentInspectType === 'cryptex' && inspectedCryptexModel) {
+                    const guideEl = document.getElementById('cryptex-alignment-guide');
+                    if (guideEl) {
+                        guideEl.style.display = 'block';
+
+                        const box = new THREE.Box3().setFromObject(inspectedCryptexModel);
+                        const center = box.getCenter(new THREE.Vector3());
+                        center.project(inspectCamera);
+
+                        const p1 = new THREE.Vector3(box.min.x, box.min.y, box.min.z).project(inspectCamera);
+                        const p2 = new THREE.Vector3(box.max.x, box.max.y, box.max.z).project(inspectCamera);
+                        
+                        const rawWidth = Math.abs((p2.x - p1.x) * window.innerWidth * 0.5);
+
+                        const offsetX = rawWidth * -0.044;  
+                        const offsetY = window.innerHeight * 0.02; 
+
+                        const x = (center.x * 0.5 + 0.5) * window.innerWidth + offsetX;
+                        const y = (-(center.y * 0.5) + 0.5) * window.innerHeight + offsetY;
+
+                        guideEl.style.left = `${x}px`;
+                        guideEl.style.top = `${y}px`;
+
+                        const widthMultiplier = 0.525;  
+                        const stableHeightRef = window.innerHeight * 0.35; 
+                        const heightMultiplier = 0.23; 
+
+                        guideEl.style.width = `${rawWidth * widthMultiplier}px`;
+                        guideEl.style.height = `${stableHeightRef * heightMultiplier}px`;
+                    }
+                }
+                inspectRenderer.render(inspectScene, inspectCamera);
+                prevTime = time;
+                return;
+            }
+
+            if (isAnimatingUnlock) {
+                if (inspectMixer) inspectMixer.update(delta);
+                inspectRenderer.render(inspectScene, inspectCamera);
+                prevTime = time;
+                return;
+            }
+
+            for (let obj of animatables) {
+                if (obj.userData && obj.userData.isAnimating) {
+                    const diff = obj.userData.targetRotationZ - obj.rotation.z;
+                    obj.rotation.z += diff * delta * 6.0; 
+                    if (Math.abs(diff) < 0.01) {
+                        obj.rotation.z = obj.userData.targetRotationZ;
+                        obj.userData.isAnimating = false;
+                    }
+                }
+            }
+
+            if (!isZoomedToSafe && controls.isLocked) {
+                const currentSpeed = isCrouching ? 2.0 : 4.0;
+                const targetHeight = isCrouching ? 1.1 : 1.6;
+                
+                camera.position.y += (targetHeight - camera.position.y) * delta * 10.0;
+
+                const actualStep = currentSpeed * delta;
+                const dirVector = new THREE.Vector3();
+                camera.getWorldDirection(dirVector);
+                dirVector.y = 0;
+                dirVector.normalize();
+                const sideVector = new THREE.Vector3(-dirVector.z, 0, dirVector.x);
+
+                let moveX = 0, moveZ = 0;
+                if (moveForward) { moveX += dirVector.x * actualStep; moveZ += dirVector.z * actualStep; }
+                if (moveBackward) { moveX -= dirVector.x * actualStep; moveZ -= dirVector.z * actualStep; }
+                if (moveRight) { moveX += sideVector.x * actualStep; moveZ += sideVector.z * actualStep; } 
+                if (moveLeft) { moveX -= sideVector.x * actualStep; moveZ -= sideVector.z * actualStep; }
+
+                                if (moveX !== 0) {
+                    const nextPos = camera.position.clone();
+                    nextPos.x += moveX;
+                    if (!checkCollisionAt(nextPos)) camera.position.x = nextPos.x;
+                }
+                if (moveZ !== 0) {
+                    const nextPos = camera.position.clone();
+                    nextPos.z += moveZ;
+                    if (!checkCollisionAt(nextPos)) camera.position.z = nextPos.z;
+                }
+
+raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+                const raycastTargets = backgroundPlane && !interactables.includes(backgroundPlane)
+                    ? [...interactables, backgroundPlane]
+                    : interactables;
+                const intersects = raycaster.intersectObjects(raycastTargets, true);
+                const isLookingAtBackground = backgroundPlane && intersects[0]?.object === backgroundPlane;
+                const prompt = document.getElementById('interaction-prompt');
+
+                if (isLookingAtBackground) {
+                    setHighlightedObject(backgroundPlane);
+                    prompt.style.display = 'none';
+                } else if (intersects.length > 0 && intersects[0].distance < 4) {
+                    let checkObj = intersects[0].object;
+                    while (checkObj && !checkObj.userData?.action) checkObj = checkObj.parent;
+                    
+                    // Check if the object is Doraemon and the combination lock is unsolved
+                    const isDoraemonLocked = (checkObj && checkObj.userData?.type === 'doraemon' && !gameState.isSolved);
+
+                    if (checkObj && checkObj.userData?.action && !isDoraemonLocked && !(checkObj.userData.type === 'safe' && gameState.safeOpened)) {
+                        setHighlightedObject(checkObj);
+                        prompt.style.display = 'none';
+                    } else {
+                        setHighlightedObject(null);
+                        prompt.style.display = 'none';
+                    }
+                } else {
+                    setHighlightedObject(null);
+                    prompt.style.display = 'none';
+                }
+            }
+
+            prevTime = time;
+            composer.render();
+        }
+
+        function loadKeyA() {
+            globalGltfLoader.load('KeyA.glb', (gltf) => {
+                keyAModel = gltf.scene;
+                keyAModel.updateMatrixWorld(true);
+
+                const box = new THREE.Box3().setFromObject(keyAModel);
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+
+                if (maxDim > 0) {
+                    const scaleFactor = 0.1 / maxDim;
+                    keyAModel.scale.setScalar(scaleFactor);
+                }
+
+                keyAModel.position.set(2.35, 0.1, 3.7);
+
+                keyAPlatform = new THREE.Mesh(
+                    new THREE.PlaneGeometry(0.35, 0.25),
+                    new THREE.MeshStandardMaterial({
+                        color: 0x7a0d18,
+                        roughness: 0.9,
+                        metalness: 0.0,
+                        side: THREE.DoubleSide
+                    })
+                );
+                keyAPlatform.rotation.x = -Math.PI / 2;
+                keyAModel.updateMatrixWorld(true);
+                const keyABox = new THREE.Box3().setFromObject(keyAModel);
+                const keyACenter = keyABox.getCenter(new THREE.Vector3());
+                keyAPlatform.position.set(keyACenter.x, keyABox.min.y - 0.005, keyACenter.z);
+                keyAPlatform.receiveShadow = !isLowPerformanceMode;
+                scene.add(keyAPlatform);
+
+                keyAModel.userData = {
+                    name: 'Key A',
+                    type: 'keyA',
+                    action: () => {
+                        if (!gameState.hasKeyA) {
+                            gameState.hasKeyA = true;
+                            document.getElementById('slot-0').innerHTML = '🔑A';
+                            document.getElementById('slot-0').classList.add('active');
+                            document.getElementById('message-box').innerText = "You got Key A!";
+
+                            scene.remove(keyAModel);
+                            interactables = interactables.filter(obj => obj !== keyAModel);
+                            if (keyAPlatform) {
+                                keyAPlatform.userData.action = null;
+                                interactables = interactables.filter(obj => obj !== keyAPlatform);
+                            }
+                        }
+                    }
+                };
+
+                keyAPlatform.userData = {
+                    name: 'Key A',
+                    type: 'keyA',
+                    action: () => keyAModel.userData.action()
+                };
+
+                keyAModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material = new THREE.MeshPhysicalMaterial({
+                            color: 0xdddddd,
+                            metalness: 1.0,
+                            roughness: 0.05,
+                            clearcoat: 1.0,
+                            clearcoatRoughness: 0.1,
+                            reflectivity: 1.0,
+                            side: THREE.DoubleSide
+                        });
+                        child.castShadow = !isLowPerformanceMode;
+                        child.receiveShadow = !isLowPerformanceMode;
+                    }
+                });
+
+                interactables.push(keyAModel);
+                interactables.push(keyAPlatform);
+                scene.add(keyAModel);
+            }, undefined, (error) => {
+                console.error('An error occurred while loading KeyA.glb:', error);
+            });
+        }
+
+        function loadKeyB() {
+            globalGltfLoader.load('KeyB.glb', (gltf) => {
+                keyBModel = gltf.scene;
+                keyBModel.updateMatrixWorld(true);
+
+                const box = new THREE.Box3().setFromObject(keyBModel);
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+
+                if (maxDim > 0) {
+                    const scaleFactor = 0.1 / maxDim;
+                    keyBModel.scale.setScalar(scaleFactor);
+                }
+
+                keyBModel.position.set(-3.196, 1.22, -4.377);
+                keyBModel.rotation.set(2, 1.18, 0);
+                keyBModel.userData = {
+                    name: 'Key B',
+                    type: 'keyB',
+                    action: () => {
+                        if (!gameState.hasKeyB) {
+                            gameState.hasKeyB = true;
+                            document.getElementById('slot-1').innerHTML = '🔑B';
+                            document.getElementById('slot-1').classList.add('active');
+                            document.getElementById('message-box').innerText = "You got Key B!";
+
+                            scene.remove(keyBModel);
+                            interactables = interactables.filter(obj => obj !== keyBModel);
+                        }
+                    }
+                };
+
+                keyBModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material = new THREE.MeshPhysicalMaterial({
+                            color: 0xdddddd,
+                            metalness: 1.0,
+                            roughness: 0.05,
+                            clearcoat: 1.0,
+                            clearcoatRoughness: 0.1,
+                            reflectivity: 1.0,
+                            side: THREE.DoubleSide
+                        });
+                        child.castShadow = !isLowPerformanceMode;
+                        child.receiveShadow = !isLowPerformanceMode;
+                    }
+                });
+
+                interactables.push(keyBModel);
+                scene.add(keyBModel);
+            }, undefined, (error) => {
+                console.error('An error occurred while loading KeyB.glb:', error);
+            });
+        }
+
+        function loadKeyC() {
+            globalGltfLoader.load('KeyC.glb', (gltf) => {
+                keyCModel = gltf.scene;
+                keyCModel.updateMatrixWorld(true);
+
+                const box = new THREE.Box3().setFromObject(keyCModel);
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+
+                if (maxDim > 0) {
+                    const scaleFactor = 0.1 / maxDim;
+                    keyCModel.scale.setScalar(scaleFactor);
+                }
+
+                keyCModel.position.set(3.190, 0.90, -2.759);
+                keyCModel.userData = {
+                    name: 'Key C',
+                    type: 'keyC',
+                    action: () => {
+                        if (!gameState.hasKeyC) {
+                            gameState.hasKeyC = true;
+                            document.getElementById('slot-2').innerHTML = '🔑C';
+                            document.getElementById('slot-2').classList.add('active');
+                            document.getElementById('message-box').innerText = "You got Key C!";
+
+                            scene.remove(keyCModel);
+                            interactables = interactables.filter(obj => obj !== keyCModel);
+                        }
+                    }
+                };
+
+                // Use this loop to fix the black appearance without overriding textures/colors:
+                keyCModel.traverse((child) => {
+                    if (child.isMesh) {
+                        if (child.material) {
+                            // Lower metalness slightly or make it respond to standard lights
+                            child.material.metalness = 0.3; 
+                            child.material.roughness = 0.4;
+                            // Ensure the material isn't hiding side data
+                            child.material.side = THREE.DoubleSide;
+                        }
+                        child.castShadow = !isLowPerformanceMode;
+                        child.receiveShadow = !isLowPerformanceMode;
+                    }
+                });
+
+                interactables.push(keyCModel);
+                scene.add(keyCModel);
+            }, undefined, (error) => {
+                console.error('An error occurred while loading KeyC.glb:', error);
+            });
+        }
+
+
+        function loadCryptexBoxes() {
+            globalGltfLoader.load('boxclosed.glb', (gltf) => {
+                boxClosedModel = gltf.scene;
+                boxClosedModel.position.set(3.185, 0.81, -2.76); 
+                boxClosedModel.scale.set(1.5, 1.5, 1.5);
+                
+                boxClosedModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = !isLowPerformanceMode;
+                        child.receiveShadow = !isLowPerformanceMode;
+                    }
+                });
+
+                boxClosedModel.userData = {
+                    name: 'A mysterious box',
+                    type: 'boxclosed',
+                    action: () => {
+                        openInspectMode('boxclosed');
+                    }
+                };
+                interactables.push(boxClosedModel);
+                
+                scene.add(boxClosedModel);
+            }, undefined, (err) => {
+                console.warn('Could not load boxclosed.glb:', err);
+            });
+
+            globalGltfLoader.load('boxopened.glb', (gltf) => {
+                boxOpenedModel = gltf.scene;
+                boxOpenedModel.position.set(3.185, 0.81, -2.76); 
+                boxOpenedModel.scale.set(1.5, 1.5, 1.5);
+                boxOpenedModel.visible = false; 
+                
+                boxOpenedModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = !isLowPerformanceMode;
+                        child.receiveShadow = !isLowPerformanceMode;
+                    }
+                });
+                
+                scene.add(boxOpenedModel);
+            }, undefined, (err) => {
+                console.warn('Could not load boxopened.glb:', err);
+            });
+        }
+
+        function loadNotebookModel() {
+            globalGltfLoader.load('notebook.glb', (gltf) => {
+                const notebookModel = gltf.scene;
+                
+                // Position and scale it on your table/desk
+                notebookModel.position.set(-2.9, 0.85, -1.4); // Adjust coordinates as needed
+                notebookModel.scale.set(0.1, 0.1, 0.1);
+                
+                notebookModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = !isLowPerformanceMode;
+                        child.receiveShadow = !isLowPerformanceMode;
+                    }
+                });
+
+                // Make it interactive to open inspection mode
+                notebookModel.userData = {
+                    name: 'Notebook',
+                    type: 'notebook',
+                    action: () => {
+                        openInspectMode('notebook');
+                    }
+                };
+
+                interactables.push(notebookModel);
+                scene.add(notebookModel);
+            }, undefined, (err) => {
+                console.warn('Could not load notebook.glb:', err);
+            });
+        }
+
+
+
+    </script>
+</body>
+</html>
