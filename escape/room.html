@@ -83,6 +83,8 @@
     font-size: 16px;
     font-weight: bold;
     display: none;
+    align-items: center;
+    justify-content: center;
     z-index: 30;
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
@@ -594,7 +596,7 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 if (isMobileDevice) {
     document.getElementById('virtual-joystick-zone').style.display = 'block';
-    document.getElementById('mobile-interact-btn').style.display = 'block';
+    document.getElementById('mobile-interact-btn').style.display = 'flex';
 }
 
 
@@ -675,7 +677,8 @@ window.addEventListener('touchmove', (e) => {
         let deltaY = e.touches[0].clientY - mobileLastY;
         
         camera.rotation.y -= deltaX * 0.005;
-        // Apply clamp to camera X rotation if desired to prevent flipping
+        camera.rotation.x -= deltaY * 0.005;
+        camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
         mobileLastX = e.touches[0].clientX;
         mobileLastY = e.touches[0].clientY;
     }
