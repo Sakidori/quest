@@ -790,7 +790,7 @@ window.addEventListener('touchcancel', (e) => {
 
             renderer = new THREE.WebGLRenderer({ antialias: !isLowPerformanceMode, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(isLowPerformanceMode ? 1 : Math.min(window.devicePixelRatio, 1.5));
+            renderer.setPixelRatio(isLowPerformanceMode ? 1 : Math.min(window.devicePixelRatio, 2));
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             renderer.toneMappingExposure = isLowPerformanceMode ? 1 : 1.15;
             renderer.shadowMap.enabled = !isLowPerformanceMode;
@@ -813,17 +813,17 @@ window.addEventListener('touchcancel', (e) => {
             composer.addPass(smaaPass);
             composer.addPass(new OutputPass());
 
-            ambientLight = new THREE.AmbientLight(0xddeeff, isLowPerformanceMode ? 1.2 : 0.6);
+            ambientLight = new THREE.AmbientLight(0xddeeff, isLowPerformanceMode ? 0 : 0.6);
             scene.add(ambientLight);
 
-            hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
+            hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, isLowPerformanceMode ? 0 : 0.8);
             hemiLight.position.set(0, 20, 0);
             hemiLight.visible = !isLowPerformanceMode;
             scene.add(hemiLight);
 
-            dirLight = new THREE.DirectionalLight(0xfffaed, 1.2);
-            dirLight.position.set(8, 14, 10);
-            dirLight.target.position.set(0, 1, 0);
+            dirLight = new THREE.DirectionalLight(0xfffaed, isLowPerformanceMode ? 0 : 1.2);
+            dirLight.position.set(15, 3, 0);
+            dirLight.target.position.set(0, 0, 0);
             dirLight.castShadow = true;
             dirLight.shadow.mapSize.set(2048, 2048);
             dirLight.shadow.camera.left = -15;
@@ -1106,10 +1106,12 @@ window.addEventListener('keydown', (event) => {
             if (!isLowPerformanceMode) {
                 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             }
-            renderer.setPixelRatio(isLowPerformanceMode ? 1 : Math.min(window.devicePixelRatio, 1.5));
+            renderer.setPixelRatio(isLowPerformanceMode ? 1 : Math.min(window.devicePixelRatio, 2));
             renderer.toneMappingExposure = isLowPerformanceMode ? 1 : 1.15;
             smaaPass.enabled = !isLowPerformanceMode;
-            ambientLight.intensity = isLowPerformanceMode ? 1.2 : 0.6;
+            ambientLight.intensity = isLowPerformanceMode ? 0 : 0.6;
+            hemiLight.intensity = isLowPerformanceMode ? 0 : 0.8;
+            dirLight.intensity = isLowPerformanceMode ? 0 : 1.2;
             hemiLight.visible = !isLowPerformanceMode;
             dirLight.visible = !isLowPerformanceMode;
             
