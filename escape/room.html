@@ -833,7 +833,8 @@ window.addEventListener('touchcancel', (e) => {
             dirLight.shadow.camera.near = 0.5;
             dirLight.shadow.camera.far = 50;
             dirLight.shadow.bias = -0.0005;
-            dirLight.shadow.radius = 3;
+            dirLight.shadow.radius = 0;
+            dirLight.shadow.camera.updateProjectionMatrix();
             dirLight.visible = !isLowPerformanceMode;
             scene.add(dirLight);
             scene.add(dirLight.target);
@@ -1105,6 +1106,7 @@ window.addEventListener('keydown', (event) => {
             renderer.shadowMap.enabled = !isLowPerformanceMode;
             if (!isLowPerformanceMode) {
                 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                dirLight.shadow.needsUpdate = true;
             }
             renderer.setPixelRatio(isLowPerformanceMode ? 1 : Math.min(window.devicePixelRatio, 2));
             renderer.toneMappingExposure = isLowPerformanceMode ? 1.1 : 1.3;
