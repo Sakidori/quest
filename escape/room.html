@@ -148,12 +148,12 @@ body.mobile-device #inventory {
 }
 body.mobile-device #mobile-performance-btn {
     top: 20px;
-    left: 176px;
+    left: 186px;
     transform: none;
 }
 body.mobile-device #mobile-fullscreen-btn {
     top: 20px;
-    left: 228px;
+    left: 238px;
 }
 #portrait-orientation-overlay {
     position: fixed;
@@ -1058,11 +1058,13 @@ function triggerFullscreen() {
 
     const request = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
     if (!request) {
+        document.getElementById('message-box').innerText = 'Fullscreen is not supported by this browser.';
         console.warn('Fullscreen is not supported by this browser.');
         return;
     }
 
     Promise.resolve(request.call(document.documentElement)).catch(err => {
+        document.getElementById('message-box').innerText = 'Fullscreen was blocked by the browser.';
         console.warn(`Error attempting to enable fullscreen: ${err.message}`);
     });
 }
@@ -1072,8 +1074,11 @@ function toggleFullscreen() {
         const exit = document.exitFullscreen || document.webkitExitFullscreen;
         if (exit) {
             Promise.resolve(exit.call(document)).catch(err => {
+                document.getElementById('message-box').innerText = 'The browser could not exit fullscreen.';
                 console.warn(`Error attempting to exit fullscreen: ${err.message}`);
             });
+        } else {
+            document.getElementById('message-box').innerText = 'Fullscreen exit is not supported by this browser.';
         }
     } else {
         triggerFullscreen();
