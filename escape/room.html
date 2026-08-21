@@ -678,6 +678,8 @@ const progressBar = document.getElementById('progress-bar');
 const progressText = document.getElementById('progress-text');
 let assetsReady = false;
 let startBackgroundCryptexLoad = null;
+let cryptexLoadStarted = false;
+let cryptexLoadFailed = false;
 let startDeferredObjectLoads = null;
 
 let displayedPercentage = 0;
@@ -699,7 +701,7 @@ loadingManager.onProgress = function (url, itemsLoaded, itemsTotal) {
 
 loadingManager.onLoad = function () {
     assetsReady = true;
-    if (startBackgroundCryptexLoad) startBackgroundCryptexLoad();
+    if (startBackgroundCryptexLoad && !cryptexLoadStarted) startBackgroundCryptexLoad();
     if (startDeferredObjectLoads) startDeferredObjectLoads();
     // Force it to hit 100% cleanly at the end
     displayedPercentage = 100;
@@ -1601,7 +1603,10 @@ window.addEventListener('keydown', (event) => {
             });
         
 
-            startBackgroundCryptexLoad = () => backgroundGltfLoader.load('cryptex.glb', (gltf) => {
+            startBackgroundCryptexLoad = () => {
+                if (cryptexLoadStarted) return;
+                cryptexLoadStarted = true;
+                backgroundGltfLoader.load('cryptex.glb', (gltf) => {
                 cryptexInspectionReady = true;
                 inspectedCryptexModel = gltf.scene;
                 
@@ -1672,8 +1677,13 @@ window.addEventListener('keydown', (event) => {
                             cryptexDials.push(dialTarget);
                         }
                     }
+                }, undefined, (error) => {
+                    cryptexLoadFailed = true;
+                    console.error('Could not load cryptex.glb:', error);
+                    document.getElementById('message-box').innerText = 'The cryptex could not be loaded.';
                 });
-            });
+            };
+            if (assetsReady) startBackgroundCryptexLoad();
 
             backgroundGltfLoader.load('note.glb', (gltf) => {
                 inspectedNoteModel = gltf.scene;
@@ -2670,6 +2680,10 @@ if (child.isMesh && nameLower === 'lockerdoor') {
         }
 
        function openInspectMode(type) {
+    if (type === 'cryptex' && cryptexLoadFailed) {
+        document.getElementById('message-box').innerText = "The cryptex failed to load. Refresh the page and try again.";
+        return;
+    }
     if (type === 'cryptex' && !cryptexInspectionReady) {
         document.getElementById('message-box').innerText = "Cryptex is still loading. Try again in a moment.";
         return;
