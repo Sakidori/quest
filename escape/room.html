@@ -911,6 +911,36 @@ document.getElementById('mobile-interact-btn').addEventListener('click', () => {
     triggerInteraction();
 });
 
+function activateAllKeys() {
+    gameState.hasKeyA = true;
+    gameState.hasKeyB = true;
+    gameState.hasKeyC = true;
+    document.getElementById('slot-0').innerHTML = '🔑A';
+    document.getElementById('slot-1').innerHTML = '🔑B';
+    document.getElementById('slot-2').innerHTML = '🔑C';
+    document.querySelectorAll('#inventory .inventory-slot').forEach((slot) => slot.classList.add('active'));
+    document.getElementById('message-box').innerText = 'Cheat activated: all keys obtained!';
+}
+
+let hiddenCheatTapCount = 0;
+let hiddenCheatTapTimeout = null;
+messageBox.addEventListener('click', () => {
+    if (!isMobileDevice) return;
+
+    hiddenCheatTapCount += 1;
+    clearTimeout(hiddenCheatTapTimeout);
+    hiddenCheatTapTimeout = setTimeout(() => {
+        hiddenCheatTapCount = 0;
+    }, 1500);
+
+    if (hiddenCheatTapCount === 5) {
+        hiddenCheatTapCount = 0;
+        clearTimeout(hiddenCheatTapTimeout);
+        const enteredCode = window.prompt('Enter command:');
+        if (enteredCode && enteredCode.trim().toUpperCase() === 'ALLKEYS') activateAllKeys();
+    }
+});
+
 document.getElementById('mobile-crouch-btn').addEventListener('click', (event) => {
     event.stopPropagation();
     isCrouching = !isCrouching;
@@ -2510,7 +2540,10 @@ window.addEventListener('keydown', (event) => {
                 boxClosedModel.visible = true;
                 if (!interactables.includes(boxClosedModel)) interactables.push(boxClosedModel);
             }
-            if (boxOpenedModel) boxOpenedModel.visible = false;
+            if (boxOpenedModel) {
+                boxOpenedModel.visible = false;
+                interactables = interactables.filter(obj => obj !== boxOpenedModel);
+            }
 
             [keyAModel, keyBModel, keyCModel].forEach(keyModel => {
                 if (keyModel) {
@@ -2678,6 +2711,7 @@ if (child.isMesh && nameLower === 'lockerdoor') {
                     boxOpenedModel.visible = true;    
 
                     interactables = interactables.filter(obj => obj !== boxClosedModel);
+                    if (!interactables.includes(boxOpenedModel)) interactables.push(boxOpenedModel);
                 }
 
                 const animationDelay = 1000;
@@ -3519,6 +3553,16 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
                 boxOpenedModel.position.set(3.185, 0.81, -2.76); 
                 boxOpenedModel.scale.set(1.5, 1.5, 1.5);
                 boxOpenedModel.visible = false; 
+                boxOpenedModel.userData = {
+                    name: 'Opened box with Key C',
+                    type: 'keyC',
+                    action: () => {
+                        if (keyCModel && keyCModel.userData && typeof keyCModel.userData.action === 'function') {
+                            keyCModel.userData.action();
+                        }
+                        interactables = interactables.filter(obj => obj !== boxOpenedModel);
+                    }
+                };
                 
                 boxOpenedModel.traverse((child) => {
                     if (child.isMesh) {
