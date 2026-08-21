@@ -126,22 +126,6 @@
     display: none;
     z-index: 30;
 }
-#mobile-fullscreen-btn {
-    position: absolute;
-    top: 20px;
-    left: calc(50% + 34px);
-    width: 46px;
-    height: 42px;
-    padding: 6px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 6px;
-    font-size: 22px;
-    line-height: 1;
-    display: none;
-    z-index: 30;
-}
 body.mobile-device #inventory {
     transform: scale(0.78);
     transform-origin: top left;
@@ -150,10 +134,6 @@ body.mobile-device #mobile-performance-btn {
     top: 20px;
     left: 186px;
     transform: none;
-}
-body.mobile-device #mobile-fullscreen-btn {
-    top: 20px;
-    left: 238px;
 }
 #portrait-orientation-overlay {
     position: fixed;
@@ -226,29 +206,6 @@ body.mobile-device #mobile-fullscreen-btn {
             transition: opacity 0.5s ease;
             max-width: 600px;
         }
-        #instructions {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
-        #instructions.collapsed {
-            width: 34px;
-            height: 34px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            font-size: 0;
-            cursor: pointer;
-        }
-        #instructions.collapsed::before {
-            content: '?';
-            font-size: 20px;
-            font-weight: bold;
-            color: #ffeb3b;
-        }
-
         #safe-exit-btn {
             position: absolute;
             top: 30px;
@@ -506,14 +463,6 @@ body.mobile-device #mobile-fullscreen-btn {
                 <div class="inventory-slot" id="slot-1">🔒</div>
                 <div class="inventory-slot" id="slot-2">🔒</div>
             </div>
-            <div class="hud-element" id="instructions">
-                <strong>Controls:</strong><br>
-                WASD / Arrows: Move<br>
-                Shift: Toggle Crouch<br>
-                Mouse: Look Around<br>
-                <strong>[E] or Left Click: Interact / Open</strong><br>
-                H: Toggle Hitboxes<br>
-            </div>
         </div>
         <div class="hud-element" id="message-box">Loading classroom...</div>
     </div>
@@ -522,7 +471,6 @@ body.mobile-device #mobile-fullscreen-btn {
     <div id="virtual-joystick-thumb"></div>
 </div>
     <button id="mobile-performance-btn" type="button" aria-label="Use Max Performance" title="Use Max Performance">⚡</button>
-    <button id="mobile-fullscreen-btn" type="button" aria-label="Enter Fullscreen" title="Enter Fullscreen">⛶</button>
     <button id="mobile-crouch-btn" type="button" aria-label="Toggle Crouch" aria-pressed="false">Crouch</button>
     <button id="mobile-interact-btn" type="button">Interact</button>
 
@@ -725,7 +673,6 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
 // Detect mobile to enable touch UI elements
 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const mobileInspectionScale = isMobileDevice ? 1.35 : 1;
-let instructionsCollapseTimer = null;
 const portraitOrientationOverlay = document.getElementById('portrait-orientation-overlay');
 function updateOrientationLock() {
     const isPortrait = window.innerHeight > window.innerWidth;
@@ -740,8 +687,6 @@ if (isMobileDevice) {
     document.getElementById('mobile-interact-btn').style.display = 'flex';
     document.getElementById('mobile-crouch-btn').style.display = 'flex';
     document.getElementById('mobile-performance-btn').style.display = 'block';
-    document.getElementById('mobile-fullscreen-btn').style.display = 'block';
-    document.getElementById('instructions').style.display = 'none';
 }
 
 
@@ -823,31 +768,9 @@ function updatePerformanceButtonLabel() {
     performanceButton.title = nextModeLabel;
 }
 
-function scheduleInstructionsCollapse() {
-    if (isMobileDevice) return;
-
-    clearTimeout(instructionsCollapseTimer);
-    instructionsCollapseTimer = setTimeout(() => {
-        document.getElementById('instructions').classList.add('collapsed');
-    }, 5000);
-}
-
-const instructionsPanel = document.getElementById('instructions');
-instructionsPanel.addEventListener('click', () => {
-    if (instructionsPanel.classList.contains('collapsed')) {
-        instructionsPanel.classList.remove('collapsed');
-        clearTimeout(instructionsCollapseTimer);
-    }
-});
-
 document.getElementById('mobile-performance-btn').addEventListener('click', () => {
     togglePerformanceMode();
     updatePerformanceButtonLabel();
-});
-
-document.getElementById('mobile-fullscreen-btn').addEventListener('click', (event) => {
-    event.stopPropagation();
-    toggleFullscreen();
 });
 
 let mobileLastX = 0;
@@ -857,7 +780,7 @@ const mobileLookSensitivity = 0.0045;
 const mobileLookRotation = new THREE.Euler(0, 0, 0, 'YXZ');
 window.addEventListener('touchstart', (e) => {
     const touch = Array.from(e.changedTouches).find((item) => item.clientX > window.innerWidth / 2);
-    const isMobileControl = e.target.closest && e.target.closest('#mobile-interact-btn, #mobile-crouch-btn, #mobile-performance-btn, #mobile-fullscreen-btn');
+    const isMobileControl = e.target.closest && e.target.closest('#mobile-interact-btn, #mobile-crouch-btn, #mobile-performance-btn');
     if (touch && !isMobileControl && mobileLookTouchId === null) {
         mobileLookTouchId = touch.identifier;
         mobileLastX = touch.clientX;
@@ -968,13 +891,38 @@ window.addEventListener('touchcancel', (e) => {
             composer.addPass(new OutputPass());
 
             const textureLoader = new THREE.TextureLoader();
-            textureLoader.load('background.webp', (texture) => {
-                const bgGeometry = new THREE.PlaneGeometry(80, 45);
-                const bgMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+            const backgroundVideo = document.createElement('video');
+            backgroundVideo.src = 'background.webm';
+            backgroundVideo.loop = true;
+            backgroundVideo.muted = true;
+            backgroundVideo.autoplay = true;
+            backgroundVideo.playsInline = true;
+            backgroundVideo.setAttribute('aria-hidden', 'true');
+            backgroundVideo.addEventListener('error', () => {
+                console.warn('Could not load background.webm.');
+            });
+
+            const backgroundVideoTexture = new THREE.VideoTexture(backgroundVideo);
+            backgroundVideoTexture.colorSpace = THREE.SRGBColorSpace;
+            backgroundVideo.play().catch((err) => {
+                console.warn(`Could not autoplay background.webm: ${err.message}`);
+            });
+
+            backgroundVideo.addEventListener('loadeddata', () => {
+                const bgGeometry = new THREE.PlaneGeometry(14, 7.8, 24, 1);
+                const bgPositions = bgGeometry.attributes.position;
+                const bendRadius = 24;
+                for (let i = 0; i < bgPositions.count; i++) {
+                    const localX = bgPositions.getX(i);
+                    bgPositions.setZ(i, (localX * localX) / (2 * bendRadius));
+                }
+                bgPositions.needsUpdate = true;
+                bgGeometry.computeVertexNormals();
+                const bgMaterial = new THREE.MeshBasicMaterial({ map: backgroundVideoTexture, side: THREE.DoubleSide });
                 backgroundPlane = new THREE.Mesh(bgGeometry, bgMaterial);
                 backgroundPlane.castShadow = false;
                 backgroundPlane.receiveShadow = false;
-                backgroundPlane.position.set(10, 10, 0);
+                backgroundPlane.position.set(5.7, 2.4, 0);
                 backgroundPlane.rotation.y = -Math.PI / 2; 
                 backgroundPlane.userData = {
                     name: 'Outside View',
@@ -986,8 +934,6 @@ window.addEventListener('touchcancel', (e) => {
                 };
                 interactables.push(backgroundPlane);
                 scene.add(backgroundPlane);
-            }, undefined, (err) => {
-                console.warn('Could not load background.jpg', err);
             });
 
             textureLoader.load('poster.webp', (texture) => {
@@ -1016,14 +962,15 @@ window.addEventListener('touchcancel', (e) => {
             blocker.style.color = 'white';
             blocker.style.fontSize = '24px';
             blocker.style.cursor = 'pointer';
-            blocker.innerHTML = `Click to Play Classroom Escape<br><span style="font-size:14px; color:#ffeb3b; margin-top:10px;">`;
+            blocker.innerHTML = isMobileDevice
+                ? 'Click to Play Classroom Escape'
+                : `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; white-space:nowrap;">Click to Play Classroom Escape</div><div style="position:absolute; left:50%; bottom:8%; transform:translateX(-50%); width:min(90%, 620px); padding:14px 22px; box-sizing:border-box; background:rgba(0,0,0,0.72); border:1px solid rgba(255,235,59,0.45); border-radius:10px; color:#ffeb3b; font-size:14px; line-height:1.7; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,0.35);">WASD / Arrows: Move &nbsp;&middot;&nbsp; Shift: Toggle Crouch &nbsp;&middot;&nbsp; Mouse: Look Around<br>[E] or Left Click: Interact / Open &nbsp;&middot;&nbsp; H: Toggle Hitboxes</div>`;
             document.body.appendChild(blocker);
             let isStartingGame = false;
 
             controls.addEventListener('lock', () => {
                 isStartingGame = false;
                 blocker.style.display = 'none';
-                scheduleInstructionsCollapse();
             });
             controls.addEventListener('unlock', () => {
                 isStartingGame = false;
@@ -1043,16 +990,6 @@ window.addEventListener('touchcancel', (e) => {
             });
             
 
-function updateFullscreenButton() {
-    const fullscreenButton = document.getElementById('mobile-fullscreen-btn');
-    if (!fullscreenButton) return;
-
-    const isFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
-    const label = isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen';
-    fullscreenButton.setAttribute('aria-label', label);
-    fullscreenButton.title = label;
-}
-
 function triggerFullscreen() {
     if (document.fullscreenElement || document.webkitFullscreenElement) return;
 
@@ -1068,26 +1005,6 @@ function triggerFullscreen() {
         console.warn(`Error attempting to enable fullscreen: ${err.message}`);
     });
 }
-
-function toggleFullscreen() {
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-        const exit = document.exitFullscreen || document.webkitExitFullscreen;
-        if (exit) {
-            Promise.resolve(exit.call(document)).catch(err => {
-                document.getElementById('message-box').innerText = 'The browser could not exit fullscreen.';
-                console.warn(`Error attempting to exit fullscreen: ${err.message}`);
-            });
-        } else {
-            document.getElementById('message-box').innerText = 'Fullscreen exit is not supported by this browser.';
-        }
-    } else {
-        triggerFullscreen();
-    }
-}
-
-document.addEventListener('fullscreenchange', updateFullscreenButton);
-document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
-updateFullscreenButton();
 
 blocker.addEventListener('click', (event) => {
     event.stopPropagation();
