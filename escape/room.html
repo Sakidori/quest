@@ -1677,6 +1677,7 @@ window.addEventListener('keydown', (event) => {
                             cryptexDials.push(dialTarget);
                         }
                     }
+                });
                 }, undefined, (error) => {
                     cryptexLoadFailed = true;
                     console.error('Could not load cryptex.glb:', error);
@@ -3155,7 +3156,7 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
                     cryptexAnimationComplete = true;
                     const statusEl = document.getElementById('tv-status-overlay');
                     statusEl.innerText = "Something Opened!";
-                    statusEl.style.fontSize = '50px';
+                    statusEl.style.fontSize = '30px';
                     statusEl.style.color = '#4CAF50';
                     statusEl.style.opacity = '1';
                     document.getElementById('message-box').innerText = "Something opened!";
