@@ -13,6 +13,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Summer Challenge - English Quest</title>
+    <script>
+        try {
+            if (sessionStorage.getItem('questJustCompleted') === '1') {
+                document.documentElement.classList.add('auto-panoee');
+            }
+        } catch (error) {
+            console.warn('Could not read automatic Panoee state:', error);
+        }
+    </script>
     <style>
         body, html { 
             margin: 0; padding: 0; height: 100%; overflow: hidden; 
@@ -22,6 +31,15 @@
             background-repeat: no-repeat;
             background-attachment: fixed;
         }
+
+        html.auto-panoee body { background: #000; }
+        html.auto-panoee #splash-screen,
+        html.auto-panoee #update-box,
+        html.auto-panoee #sparkle-container,
+        html.auto-panoee .item-container,
+        html.auto-panoee .button-group,
+        html.auto-panoee #music-widget,
+        html.auto-panoee #intro-video-container { display: none !important; }
 
         :fullscreen, :-webkit-full-screen {
             width: 100% !important;
@@ -454,6 +472,21 @@
         window.addEventListener('DOMContentLoaded', () => {
             startMinimizeTimer();
             preloadPanoeeFrame(); // Preload it invisibly in the background right away
+
+            const splash = document.getElementById('splash-screen');
+
+            let shouldAutoStart = false;
+            try {
+                shouldAutoStart = sessionStorage.getItem('questJustCompleted') === '1';
+            } catch (error) {
+                console.warn('Could not read automatic start state:', error);
+            }
+
+            if (shouldAutoStart) {
+                splash.style.opacity = '0';
+                splash.style.display = 'none';
+                startExperience();
+            }
         });
 
         function toggleUpdateNotes(event) {
@@ -681,6 +714,22 @@
             const videoContainer = document.getElementById('intro-video-container');
             const introVideo = document.getElementById('intro-video');
             const panoeeWrapper = document.getElementById('panoee-wrapper');
+
+            let continueToPanoee = false;
+            try {
+                continueToPanoee = sessionStorage.getItem('questJustCompleted') === '1';
+                if (continueToPanoee) sessionStorage.removeItem('questJustCompleted');
+            } catch (error) {
+                console.warn('Could not read game completion state:', error);
+            }
+
+            if (continueToPanoee) {
+                introVideo.pause();
+                videoContainer.style.display = 'none';
+                if (panoeeWrapper) panoeeWrapper.style.display = 'block';
+                playCurrentTrack();
+                return;
+            }
             
             videoHasFinishedOrSkipped = false;
             isVideoPlaying = true;

@@ -126,6 +126,52 @@
     display: none;
     z-index: 30;
 }
+#music-widget {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 16px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 100;
+    color: white;
+    font-family: sans-serif;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+.controls-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+    .music-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+        line-height: 1;
+        margin: 0;
+        border-radius: 0;
+    }
+    .music-btn:hover { 
+        transform: scale(1.15); 
+        opacity: 0.8; 
+        background: none;
+    }
+#track-title {
+    font-size: 13px;
+    white-space: nowrap;
+}
 body.mobile-device #inventory {
     transform: scale(0.78);
     transform-origin: top left;
@@ -334,6 +380,9 @@ body.mobile-device #mobile-performance-btn {
             object-fit: contain;
             margin: 10px 0 20px;
         }
+        #win-screen button {
+            margin: 6px;
+        }
         #safe-code-display {
             position: absolute;
             top: 2%; 
@@ -473,6 +522,13 @@ body.mobile-device #mobile-performance-btn {
     <button id="mobile-performance-btn" type="button" aria-label="Use Max Performance" title="Use Max Performance">⚡</button>
     <button id="mobile-crouch-btn" type="button" aria-label="Toggle Crouch" aria-pressed="false">Crouch</button>
     <button id="mobile-interact-btn" type="button">Interact</button>
+    <div id="music-widget">
+        <span id="track-title">14. End</span>
+        <div class="controls-group">
+            <button class="music-btn" id="play-pause-btn" type="button" title="Play/Pause">❚❚</button>
+        </div>
+    </div>
+    <audio id="bg-music" loop></audio>
 
     <div id="inspect-overlay">
         <div id="inspect-close-btn">✕</div>
@@ -490,6 +546,7 @@ body.mobile-device #mobile-performance-btn {
         <p>You escaped the classroom!</p>
         <img src="escaped.webp" alt="Escaped classroom">
         <button onclick="window.resetGame()">Play Again</button>
+        <button onclick="window.continueGame()">Continue</button>
     </div>
 
     <div id="safe-code-display">
@@ -519,6 +576,60 @@ body.mobile-device #mobile-performance-btn {
         import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 
         const messageBox = document.getElementById('message-box');
+        const bgMusic = document.getElementById('bg-music');
+        const playPauseButton = document.getElementById('play-pause-btn');
+        const roomTrack = {
+            name: '14. End',
+            src: '../music/kouyaoiku.mp3'
+        };
+        const sfxSources = {
+            walking: 'sfx/walking.mp3',
+            interact: 'sfx/interact.mp3',
+            unlocking: 'sfx/unlocking.mp3',
+            spinning: 'sfx/spinning.mp3',
+            button: 'sfx/button.mp3'
+        };
+        const sfxVolumes = {
+            walking: 0.35,
+            interact: 0.7,
+            unlocking: 0.8,
+            spinning: 0.45,
+            button: 0.55
+        };
+
+        function playRoomMusic() {
+            bgMusic.src = roomTrack.src;
+            bgMusic.volume = 1;
+            bgMusic.play().then(() => {
+                playPauseButton.textContent = '❚❚';
+            }).catch(() => {
+                playPauseButton.textContent = '▶';
+            });
+        }
+
+        function toggleRoomMusic() {
+            if (bgMusic.paused) {
+                playRoomMusic();
+            } else {
+                bgMusic.pause();
+                playPauseButton.textContent = '▶';
+            }
+        }
+
+        function playSfx(name) {
+            const source = sfxSources[name];
+            if (!source) return;
+
+            const audio = new Audio(source);
+            audio.volume = sfxVolumes[name] || 0.5;
+            audio.play().catch(() => {});
+        }
+
+        playPauseButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleRoomMusic();
+        });
+
         let messageFadeTimeout;
         const messageObserver = new MutationObserver(() => {
             messageBox.style.opacity = '1';
@@ -591,6 +702,7 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
         let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
         let isCrouching = false; 
         let prevTime = performance.now();
+        let footstepTimer = 0;
         
         let interactables = [];
         let safeDigitInteractables = [];
@@ -659,6 +771,9 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
         let cryptexAnimationComplete = false;
         let cryptexExitTimer = null;
         let escapeWinTimer = null;
+        let exitDoorModel = null;
+        let exitDarknessMesh = null;
+        let exitPortalMesh = null;
 
         // PERFORMANCE MODE CONFIG
         let isLowPerformanceMode = false;
@@ -972,6 +1087,7 @@ window.addEventListener('touchcancel', (e) => {
             controls.addEventListener('lock', () => {
                 isStartingGame = false;
                 blocker.style.display = 'none';
+                if (bgMusic.paused) playRoomMusic();
             });
             controls.addEventListener('unlock', () => {
                 isStartingGame = false;
@@ -2282,6 +2398,7 @@ window.addEventListener('keydown', (event) => {
             document.getElementById('message-box').innerText = 'Loading classroom...';
             document.getElementById('interaction-prompt').style.display = 'none';
             document.getElementById('win-screen').style.display = 'none';
+            document.getElementById('win-screen').style.pointerEvents = 'auto';
             document.getElementById('ui-container').style.display = 'flex';
             document.getElementById('crosshair').style.display = 'block';
             document.getElementById('safe-exit-btn').style.display = 'none';
@@ -2372,6 +2489,7 @@ window.addEventListener('keydown', (event) => {
                 if (child.userData && (child.userData.type === 'lockerDoor' || child.userData.type === 'door')) {
                     child.userData.isOpen = false;
                     child.userData.isAnimating = false;
+                    child.userData.entrySide = null;
                     child.rotation.z = child.userData.baseRotationZ;
                     child.userData.targetRotationZ = child.userData.baseRotationZ;
                 }
@@ -2383,6 +2501,18 @@ window.addEventListener('keydown', (event) => {
         }
 
         window.resetGame = resetGame;
+
+        function continueGame() {
+            clearTimeout(escapeWinTimer);
+            gameState.escaped = false;
+            document.getElementById('win-screen').style.display = 'none';
+            document.getElementById('win-screen').style.pointerEvents = 'auto';
+            document.getElementById('message-box').innerText = 'The door is open. Continue exploring.';
+            blocker.style.display = 'none';
+            if (!controls.isLocked) controls.lock();
+        }
+
+        window.continueGame = continueGame;
 
         function checkLockSolution() {
             if (!inspectedModel || gameState.isSolved) return;
@@ -2744,6 +2874,53 @@ if (!nameLower.includes('plane') && !nameLower.includes('floor') && !nameLower.i
                         // Added '&& nameLower !== 'walldoor002'' to prevent it from becoming interactive
 if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower.includes('locker') && nameLower !== 'walldoor002') {
     const exitDoor = child;
+    exitDoorModel = exitDoor;
+    const exitDoorBounds = new THREE.Box3().setFromObject(exitDoor);
+    colliders = colliders.filter((collider) => !collider.intersectsBox(exitDoorBounds));
+    const exitDoorSize = exitDoorBounds.getSize(new THREE.Vector3());
+    const exitCrossingAxis = exitDoorSize.x <= exitDoorSize.z ? 'x' : 'z';
+    const exitDoorCenter = exitDoorBounds.getCenter(new THREE.Vector3());
+    const outsideSide = camera.position[exitCrossingAxis] < exitDoorCenter[exitCrossingAxis] ? 1 : -1;
+    const darknessGeometry = exitCrossingAxis === 'x'
+        ? new THREE.BoxGeometry(0.2, 4, 3)
+        : new THREE.BoxGeometry(3, 4, 0.2);
+    exitDarknessMesh = new THREE.Mesh(
+        darknessGeometry,
+        new THREE.MeshBasicMaterial({ color: 0x000000 })
+    );
+    exitDarknessMesh.position.copy(exitDoorCenter);
+    exitDarknessMesh.position[exitCrossingAxis] += outsideSide * 1.6;
+    exitDarknessMesh.userData.noHighlight = true;
+    scene.add(exitDarknessMesh);
+
+    const portalGeometry = exitCrossingAxis === 'x'
+        ? new THREE.PlaneGeometry(Math.min(exitDoorSize.z * 2.035, 6.875), Math.min(exitDoorSize.y * 0.9, 3.2))
+        : new THREE.PlaneGeometry(Math.min(exitDoorSize.x * 2.035, 6.875), Math.min(exitDoorSize.y * 0.9, 3.2));
+    const portalMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        side: THREE.DoubleSide,
+        transparent: true
+    });
+    exitPortalMesh = new THREE.Mesh(portalGeometry, portalMaterial);
+    exitPortalMesh.position.copy(exitDoorCenter);
+    exitPortalMesh.position[exitCrossingAxis] += outsideSide * 1.42;
+    const viewToDoor = exitDoorCenter.clone().sub(camera.position);
+    viewToDoor.y = 0;
+    viewToDoor.normalize();
+    const playerViewRight = new THREE.Vector3(-viewToDoor.z, 0, viewToDoor.x);
+    exitPortalMesh.position.addScaledVector(playerViewRight, 0.75);
+    const portalOpeningAngle = -0.35;
+    exitPortalMesh.rotation.y = (exitCrossingAxis === 'x' ? Math.PI / 2 : 0) + portalOpeningAngle;
+    exitPortalMesh.userData.noHighlight = true;
+    scene.add(exitPortalMesh);
+    new THREE.TextureLoader().load('portal.webp', (portalTexture) => {
+        portalTexture.colorSpace = THREE.SRGBColorSpace;
+        portalMaterial.map = portalTexture;
+        portalMaterial.needsUpdate = true;
+    }, undefined, (error) => {
+        console.warn('Could not load portal.webp:', error);
+    });
+
     exitDoor.userData = {
         name: 'Classroom Exit Door',
         type: 'door',
@@ -2751,20 +2928,25 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
         isAnimating: false,
         baseRotationZ: exitDoor.rotation.z,
         targetRotationZ: exitDoor.rotation.z,
+        crossingAxis: exitCrossingAxis,
+        crossingCenter: exitDoorCenter,
+        entrySide: null,
         action: () => {
             if (gameState.hasKeyC && !gameState.escaped) {
-                gameState.escaped = true;
+                if (exitDoor.userData.isOpen) return;
                 exitDoor.userData.isOpen = true;
-                exitDoor.userData.targetRotationZ = exitDoor.userData.baseRotationZ - 1.2;
+                exitDoor.userData.targetRotationZ = exitDoor.userData.baseRotationZ + 1.2;
                 exitDoor.userData.isAnimating = true;
+                const axis = exitDoor.userData.crossingAxis;
+                exitDoor.userData.entrySide = camera.position[axis] < exitDoor.userData.crossingCenter[axis] ? -1 : 1;
                 document.getElementById('message-box').innerText = 'The exit door is opening...';
-
-                if (controls.isLocked) controls.unlock();
 
                 clearTimeout(escapeWinTimer);
                 escapeWinTimer = setTimeout(() => {
+                    if (controls.isLocked) controls.unlock();
+                    blocker.style.display = 'none';
                     document.getElementById('win-screen').style.display = 'flex';
-                    console.log('You have escaped the classroom!');
+                    document.getElementById('win-screen').style.pointerEvents = 'auto';
                 }, 2200);
             } else if (!gameState.hasKeyC) {
                 document.getElementById('message-box').innerText = "The door is locked! You need Key C to escape.";
@@ -2794,6 +2976,29 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
                 if (playerBox.intersectsBox(box)) return true;
             }
             return false;
+        }
+
+        function checkExitDoorCrossing() {
+            if (!exitDoorModel || gameState.escaped || !exitDoorModel.userData.isOpen) return;
+
+            const { crossingAxis, crossingCenter, entrySide } = exitDoorModel.userData;
+            if (!crossingAxis || entrySide === null) return;
+
+            const distanceFromDoor = camera.position[crossingAxis] - crossingCenter[crossingAxis];
+            const hasCrossedDoor = distanceFromDoor * entrySide < -0.45;
+            if (!hasCrossedDoor) return;
+
+            gameState.escaped = true;
+            if (controls.isLocked) controls.unlock();
+            document.getElementById('message-box').innerText = 'You escaped the classroom!';
+            try {
+                const gamesPlayed = Number(sessionStorage.getItem('questGamesPlayed') || 0);
+                sessionStorage.setItem('questGamesPlayed', String(gamesPlayed + 1));
+                sessionStorage.setItem('questJustCompleted', '1');
+            } catch (error) {
+                console.warn('Could not save game completion state:', error);
+            }
+            window.location.href = '../index.html';
         }
 
         function setHighlightedObject(object) {
@@ -2977,6 +3182,8 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
                     nextPos.z += moveZ;
                     if (!checkCollisionAt(nextPos)) camera.position.z = nextPos.z;
                 }
+
+                checkExitDoorCrossing();
 
 raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
                 const raycastTargets = backgroundPlane && !interactables.includes(backgroundPlane)
