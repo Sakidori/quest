@@ -2065,46 +2065,51 @@ window.addEventListener('keydown', (event) => {
                 texture.colorSpace = THREE.SRGBColorSpace;
                 texture.needsUpdate = true;
                 tvScreenTexture = texture;
-
-                globalGltfLoader.load('tv.glb', (gltf) => {
-                    const tvModel = gltf.scene;
-                    tvModel.position.set(3.57, 1.45, 3.2);
-                    tvModel.rotation.set(0, 0.8, 0);
-                    tvModel.scale.set(1.0, 1.0, 1.0);
-
-                    const screenPlaneGeometry = new THREE.PlaneGeometry(1.23, 0.63); 
-                    const screenMaterial = new THREE.MeshBasicMaterial({ 
-                        color: 0x050505, 
-                        side: THREE.DoubleSide
-                    });
-                    tvScreenMesh = new THREE.Mesh(screenPlaneGeometry, screenMaterial);
-                    
-                    tvScreenMesh.position.set(0, 0.46, -0.02); 
-                    tvScreenMesh.rotation.y = Math.PI; 
-
-                    tvModel.add(tvScreenMesh);
-                    const tvAction = () => {
-                        document.getElementById('message-box').innerText = gameState.tvOn
-                            ? 'Who is this character again?.'
-                            : 'Where is the remote?';
-                    };
-                    tvScreenMesh.userData = {
-                        name: 'Television',
-                        type: 'tv',
-                        action: tvAction
-                    };
-                    tvModel.userData = {
-                        name: 'Television',
-                        type: 'tv',
-                        action: tvAction
-                    };
-                    interactables.push(tvModel);
-                    scene.add(tvModel);
-                }, undefined, (err) => {
-                    console.warn('Could not load tv.glb model file:', err);
-                });
+                if (tvScreenMesh) {
+                    tvScreenMesh.material.map = gameState.tvOn ? tvScreenTexture : null;
+                    tvScreenMesh.material.needsUpdate = true;
+                }
             }, undefined, (err) => {
-                console.warn('Could not load poster.webp:', err);
+                console.warn('Could not load alice.webp:', err);
+            });
+
+            backgroundGltfLoader.load('tv.glb', (gltf) => {
+                const tvModel = gltf.scene;
+                tvModel.position.set(3.57, 1.45, 3.2);
+                tvModel.rotation.set(0, 0.8, 0);
+                tvModel.scale.set(1.0, 1.0, 1.0);
+
+                const screenPlaneGeometry = new THREE.PlaneGeometry(1.23, 0.63);
+                const screenMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x050505,
+                    side: THREE.DoubleSide,
+                    map: gameState.tvOn ? tvScreenTexture : null
+                });
+                tvScreenMesh = new THREE.Mesh(screenPlaneGeometry, screenMaterial);
+
+                tvScreenMesh.position.set(0, 0.46, -0.02);
+                tvScreenMesh.rotation.y = Math.PI;
+
+                tvModel.add(tvScreenMesh);
+                const tvAction = () => {
+                    document.getElementById('message-box').innerText = gameState.tvOn
+                        ? 'Who is this character again?.'
+                        : 'Where is the remote?';
+                };
+                tvScreenMesh.userData = {
+                    name: 'Television',
+                    type: 'tv',
+                    action: tvAction
+                };
+                tvModel.userData = {
+                    name: 'Television',
+                    type: 'tv',
+                    action: tvAction
+                };
+                interactables.push(tvModel);
+                scene.add(tvModel);
+            }, undefined, (err) => {
+                console.warn('Could not load tv.glb model file:', err);
             });
         }
 
@@ -2145,10 +2150,10 @@ window.addEventListener('keydown', (event) => {
             document.getElementById('safe-code-display').style.display = 'block';
 
             gsap.to(camera.position, {
-                x: 2.25, y: 0.55, z: 3.25,
+                x: 2.25, y: 0.65, z: 3.46,
                 duration: 1.2,
                 ease: "power2.inOut",
-                onUpdate: () => camera.lookAt(2.25, 0.55, 4.08),
+                onUpdate: () => camera.lookAt(2.25, 0.65, 4.08),
                 onComplete: () => { document.getElementById('safe-exit-btn').style.display = 'block'; }
             });
         }
@@ -2159,7 +2164,7 @@ window.addEventListener('keydown', (event) => {
             document.getElementById('safe-exit-btn').style.display = 'none';
             document.getElementById('safe-code-display').style.display = 'none';
 
-            const currentLook = new THREE.Vector3(2.25, 0.55, 4.08); 
+            const currentLook = new THREE.Vector3(2.25, 0.65, 4.08); 
             const forwardVector = new THREE.Vector3(0, 0, -1).applyEuler(previousCameraRot);
             const targetLook = previousCameraPos.clone().add(forwardVector);
 
@@ -2888,9 +2893,9 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
                         guideEl.style.left = `${x}px`;
                         guideEl.style.top = `${y}px`;
 
-                        const widthMultiplier = 0.525;  
+                        const widthMultiplier = 0.525 * mobileInspectionScale;
                         const stableHeightRef = window.innerHeight * 0.35; 
-                        const heightMultiplier = 0.23; 
+                        const heightMultiplier = 0.23 * mobileInspectionScale;
 
                         guideEl.style.width = `${rawWidth * widthMultiplier}px`;
                         guideEl.style.height = `${stableHeightRef * heightMultiplier}px`;
