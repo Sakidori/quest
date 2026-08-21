@@ -88,6 +88,27 @@
     z-index: 30;
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
+#mobile-crouch-btn {
+    position: absolute;
+    bottom: 40px;
+    right: 112px;
+    width: 64px;
+    height: 64px;
+    background: rgba(255, 193, 7, 0.82);
+    color: #111;
+    border: none;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: bold;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+#mobile-crouch-btn.active {
+    background: rgba(255, 152, 0, 0.95);
+}
 #mobile-performance-btn {
     position: absolute;
     top: 20px;
@@ -196,6 +217,23 @@
             position: absolute;
             top: 20px;
             right: 20px;
+        }
+        #instructions.collapsed {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            font-size: 0;
+            cursor: pointer;
+        }
+        #instructions.collapsed::before {
+            content: '?';
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffeb3b;
         }
 
         #safe-exit-btn {
@@ -472,7 +510,8 @@
 </div>
     <button id="mobile-performance-btn" type="button" aria-label="Use Max Performance" title="Use Max Performance">⚡</button>
     <button id="mobile-fullscreen-btn" type="button" aria-label="Enter Fullscreen" title="Enter Fullscreen">⛶</button>
-<button id="mobile-interact-btn">Interact</button>
+    <button id="mobile-crouch-btn" type="button" aria-label="Toggle Crouch" aria-pressed="false">Crouch</button>
+    <button id="mobile-interact-btn" type="button">Interact</button>
 
     <div id="inspect-overlay">
         <div id="inspect-close-btn">✕</div>
@@ -673,6 +712,7 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
 // Detect mobile to enable touch UI elements
 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const mobileInspectionScale = isMobileDevice ? 1.35 : 1;
+let instructionsCollapseTimer = null;
 const portraitOrientationOverlay = document.getElementById('portrait-orientation-overlay');
 function updateOrientationLock() {
     const isPortrait = window.innerHeight > window.innerWidth;
@@ -684,8 +724,10 @@ window.addEventListener('orientationchange', updateOrientationLock);
 if (isMobileDevice) {
     document.getElementById('virtual-joystick-zone').style.display = 'block';
     document.getElementById('mobile-interact-btn').style.display = 'flex';
+    document.getElementById('mobile-crouch-btn').style.display = 'flex';
     document.getElementById('mobile-performance-btn').style.display = 'block';
     document.getElementById('mobile-fullscreen-btn').style.display = 'block';
+    document.getElementById('instructions').style.display = 'none';
 }
 
 
@@ -750,6 +792,14 @@ document.getElementById('mobile-interact-btn').addEventListener('click', () => {
     triggerInteraction();
 });
 
+document.getElementById('mobile-crouch-btn').addEventListener('click', (event) => {
+    event.stopPropagation();
+    isCrouching = !isCrouching;
+    const crouchButton = document.getElementById('mobile-crouch-btn');
+    crouchButton.classList.toggle('active', isCrouching);
+    crouchButton.setAttribute('aria-pressed', String(isCrouching));
+});
+
 function updatePerformanceButtonLabel() {
     const performanceButton = document.getElementById('mobile-performance-btn');
     if (!performanceButton) return;
@@ -758,6 +808,23 @@ function updatePerformanceButtonLabel() {
     performanceButton.setAttribute('aria-label', nextModeLabel);
     performanceButton.title = nextModeLabel;
 }
+
+function scheduleInstructionsCollapse() {
+    if (isMobileDevice) return;
+
+    clearTimeout(instructionsCollapseTimer);
+    instructionsCollapseTimer = setTimeout(() => {
+        document.getElementById('instructions').classList.add('collapsed');
+    }, 5000);
+}
+
+const instructionsPanel = document.getElementById('instructions');
+instructionsPanel.addEventListener('click', () => {
+    if (instructionsPanel.classList.contains('collapsed')) {
+        instructionsPanel.classList.remove('collapsed');
+        clearTimeout(instructionsCollapseTimer);
+    }
+});
 
 document.getElementById('mobile-performance-btn').addEventListener('click', () => {
     togglePerformanceMode();
@@ -776,7 +843,7 @@ const mobileLookSensitivity = 0.0045;
 const mobileLookRotation = new THREE.Euler(0, 0, 0, 'YXZ');
 window.addEventListener('touchstart', (e) => {
     const touch = Array.from(e.changedTouches).find((item) => item.clientX > window.innerWidth / 2);
-    const isMobileControl = e.target.closest && e.target.closest('#mobile-interact-btn, #mobile-performance-btn, #mobile-fullscreen-btn');
+    const isMobileControl = e.target.closest && e.target.closest('#mobile-interact-btn, #mobile-crouch-btn, #mobile-performance-btn, #mobile-fullscreen-btn');
     if (touch && !isMobileControl && mobileLookTouchId === null) {
         mobileLookTouchId = touch.identifier;
         mobileLastX = touch.clientX;
@@ -942,6 +1009,7 @@ window.addEventListener('touchcancel', (e) => {
             controls.addEventListener('lock', () => {
                 isStartingGame = false;
                 blocker.style.display = 'none';
+                scheduleInstructionsCollapse();
             });
             controls.addEventListener('unlock', () => {
                 isStartingGame = false;
@@ -2284,11 +2352,15 @@ window.addEventListener('keydown', (event) => {
             inspecting = false;
             isDragging = false;
             isZoomedToSafe = false;
+            isCrouching = false;
             currentInspectType = 'lock';
             moveForward = false;
             moveBackward = false;
             moveLeft = false;
             moveRight = false;
+            const crouchButton = document.getElementById('mobile-crouch-btn');
+            crouchButton.classList.remove('active');
+            crouchButton.setAttribute('aria-pressed', 'false');
 
             camera.position.set(-2.0, 1.6, 4.0);
             camera.rotation.set(0, 0, 0);
