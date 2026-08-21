@@ -902,13 +902,36 @@ joystickZone.addEventListener('touchend', (e) => {
             moveBackward = false;
             moveLeft = false;
             moveRight = false;
+            resetMobileCheatSequence();
         }
     }
 });
 
 // Mobile Interaction Button binding
+let mobileCheatInteractCount = 0;
+let mobileCheatInteractTimeout = null;
+
+function resetMobileCheatSequence() {
+    mobileCheatInteractCount = 0;
+    clearTimeout(mobileCheatInteractTimeout);
+}
+
 document.getElementById('mobile-interact-btn').addEventListener('click', () => {
     triggerInteraction();
+
+    if (!isMobileDevice || !moveBackward || !isCrouching) {
+        resetMobileCheatSequence();
+        return;
+    }
+
+    mobileCheatInteractCount += 1;
+    clearTimeout(mobileCheatInteractTimeout);
+    mobileCheatInteractTimeout = setTimeout(resetMobileCheatSequence, 1000);
+
+    if (mobileCheatInteractCount === 2) {
+        resetMobileCheatSequence();
+        activateAllKeys();
+    }
 });
 
 function activateAllKeys() {
@@ -922,31 +945,13 @@ function activateAllKeys() {
     document.getElementById('message-box').innerText = 'Cheat activated: all keys obtained!';
 }
 
-let hiddenCheatTapCount = 0;
-let hiddenCheatTapTimeout = null;
-messageBox.addEventListener('click', () => {
-    if (!isMobileDevice) return;
-
-    hiddenCheatTapCount += 1;
-    clearTimeout(hiddenCheatTapTimeout);
-    hiddenCheatTapTimeout = setTimeout(() => {
-        hiddenCheatTapCount = 0;
-    }, 1500);
-
-    if (hiddenCheatTapCount === 5) {
-        hiddenCheatTapCount = 0;
-        clearTimeout(hiddenCheatTapTimeout);
-        const enteredCode = window.prompt('Enter command:');
-        if (enteredCode && enteredCode.trim().toUpperCase() === 'ALLKEYS') activateAllKeys();
-    }
-});
-
 document.getElementById('mobile-crouch-btn').addEventListener('click', (event) => {
     event.stopPropagation();
     isCrouching = !isCrouching;
     const crouchButton = document.getElementById('mobile-crouch-btn');
     crouchButton.classList.toggle('active', isCrouching);
     crouchButton.setAttribute('aria-pressed', String(isCrouching));
+    if (!isCrouching) resetMobileCheatSequence();
 });
 
 function updatePerformanceButtonLabel() {
@@ -1306,17 +1311,6 @@ window.addEventListener('keydown', (event) => {
                         break;
                     case 'KeyH': toggleHitboxes(); break;
                     case 'KeyC': logCrosshairCoordinates(); break;
-                    case 'KeyB':
-                        if (!gameState.miniChestOpened) {
-                            if (gameState.hasKeyB) {
-                                gameState.miniChestOpened = true;
-                                playAnimationsInOrder('keyFirst'); 
-                                document.getElementById('message-box').innerText = "You used Key B to open the mini chest!";
-                            } else {
-                                document.getElementById('message-box').innerText = "The mini chest is locked! You need Key B.";
-                            }
-                        }
-                        break;
                     case 'KeyU':
                         if (!gameState.hasKeyA) {
                             gameState.hasKeyA = true;
@@ -2818,10 +2812,7 @@ if (child.isMesh && nameLower === 'lockerdoor') {
         }
 
         function loadClassroomModel() {
-            const classroomModelUrl = isLowPerformanceMode
-                ? 'classroom_demoscene.glb'
-                : 'classroom_demoscene_hq.glb';
-            globalGltfLoader.load(classroomModelUrl, (gltf) => {
+            globalGltfLoader.load('classroom_demoscene.glb', (gltf) => {
                 const model = gltf.scene;
                 model.position.set(0, 0, 0);
                 scene.add(model);
