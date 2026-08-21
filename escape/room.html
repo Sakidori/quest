@@ -912,6 +912,11 @@ joystickZone.addEventListener('touchmove', (e) => {
             moveBackward = dy > 10;
             moveLeft = dx < -10;
             moveRight = dx > 10;
+            if (moveBackward) {
+                mobileCheatBackwardArmed = true;
+                clearTimeout(mobileCheatArmTimeout);
+                mobileCheatArmTimeout = setTimeout(resetMobileCheatSequence, 4000);
+            }
         }
     }
 });
@@ -926,7 +931,6 @@ joystickZone.addEventListener('touchend', (e) => {
             moveBackward = false;
             moveLeft = false;
             moveRight = false;
-            resetMobileCheatSequence();
         }
     }
 });
@@ -934,16 +938,20 @@ joystickZone.addEventListener('touchend', (e) => {
 // Mobile Interaction Button binding
 let mobileCheatInteractCount = 0;
 let mobileCheatInteractTimeout = null;
+let mobileCheatBackwardArmed = false;
+let mobileCheatArmTimeout = null;
 
 function resetMobileCheatSequence() {
     mobileCheatInteractCount = 0;
+    mobileCheatBackwardArmed = false;
     clearTimeout(mobileCheatInteractTimeout);
+    clearTimeout(mobileCheatArmTimeout);
 }
 
 document.getElementById('mobile-interact-btn').addEventListener('click', () => {
     triggerInteraction();
 
-    if (!isMobileDevice || !moveBackward || !isCrouching) {
+    if (!isMobileDevice || !mobileCheatBackwardArmed || !isCrouching) {
         resetMobileCheatSequence();
         return;
     }
