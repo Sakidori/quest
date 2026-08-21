@@ -359,6 +359,8 @@ body.mobile-device #mobile-performance-btn {
             left: 0;
             width: 100%;
             height: 100%;
+            box-sizing: border-box;
+            padding: 16px;
             background: rgba(0,0,0,0.85);
             display: flex;
             flex-direction: column;
@@ -372,16 +374,41 @@ body.mobile-device #mobile-performance-btn {
         #win-screen h1 {
             color: #4CAF50;
             font-size: 48px;
-            margin-bottom: 10px;
+            margin: 0 0 6px;
+            text-align: center;
+        }
+        #win-screen p {
+            margin: 0 0 4px;
         }
         #win-screen img {
             width: min(512px, 80vw);
-            height: min(512px, 55vh);
+            height: min(512px, 48vh);
             object-fit: contain;
-            margin: 10px 0 20px;
+            margin: 6px 0 10px;
         }
         #win-screen button {
             margin: 6px;
+        }
+        @media (max-width: 600px), (max-height: 700px) {
+            #win-screen {
+                padding: 10px;
+                overflow: hidden;
+            }
+            #win-screen h1 {
+                max-width: 100%;
+                font-size: clamp(24px, 8vw, 38px);
+                line-height: 1.1;
+            }
+            #win-screen img {
+                width: min(80vw, 360px);
+                height: min(38vh, 280px);
+                margin: 4px 0 6px;
+            }
+            #win-screen button {
+                padding: 9px 14px;
+                font-size: 15px;
+                margin: 3px;
+            }
         }
         #safe-code-display {
             position: absolute;
