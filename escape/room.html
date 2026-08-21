@@ -91,7 +91,7 @@
 #mobile-crouch-btn {
     position: absolute;
     bottom: 40px;
-    right: 112px;
+    right: 124px;
     width: 64px;
     height: 64px;
     background: rgba(255, 193, 7, 0.82);
@@ -2963,9 +2963,9 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
                         guideEl.style.left = `${x}px`;
                         guideEl.style.top = `${y}px`;
 
-                        const widthMultiplier = 0.525 * mobileInspectionScale * (6 / 7);
+                        const widthMultiplier = 0.525 * mobileInspectionScale * (6 / 7) * (5 / 6);
                         const stableHeightRef = window.innerHeight * 0.35; 
-                        const heightMultiplier = 0.23 * mobileInspectionScale * (6 / 7);
+                        const heightMultiplier = 0.23 * mobileInspectionScale * (6 / 7) * (8 / 7);
 
                         guideEl.style.width = `${rawWidth * widthMultiplier}px`;
                         guideEl.style.height = `${stableHeightRef * heightMultiplier}px`;
