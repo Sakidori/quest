@@ -142,6 +142,19 @@
     display: none;
     z-index: 30;
 }
+body.mobile-device #inventory {
+    transform: scale(0.78);
+    transform-origin: top left;
+}
+body.mobile-device #mobile-performance-btn {
+    top: 78px;
+    left: 20px;
+    transform: none;
+}
+body.mobile-device #mobile-fullscreen-btn {
+    top: 78px;
+    left: 72px;
+}
 #portrait-orientation-overlay {
     position: fixed;
     inset: 0;
@@ -722,6 +735,7 @@ updateOrientationLock();
 window.addEventListener('resize', updateOrientationLock);
 window.addEventListener('orientationchange', updateOrientationLock);
 if (isMobileDevice) {
+    document.body.classList.add('mobile-device');
     document.getElementById('virtual-joystick-zone').style.display = 'block';
     document.getElementById('mobile-interact-btn').style.display = 'flex';
     document.getElementById('mobile-crouch-btn').style.display = 'flex';
@@ -2955,7 +2969,7 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
                         const rawWidth = Math.abs((p2.x - p1.x) * window.innerWidth * 0.5);
 
                         const offsetX = rawWidth * -0.044;  
-                        const offsetY = window.innerHeight * 0.02; 
+                        const offsetY = window.innerHeight * 0.02 + (isMobileDevice ? 5 : 0);
 
                         const x = (center.x * 0.5 + 0.5) * window.innerWidth + offsetX;
                         const y = (-(center.y * 0.5) + 0.5) * window.innerHeight + offsetY;
@@ -2967,7 +2981,7 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
                         const stableHeightRef = window.innerHeight * 0.35; 
                         const heightMultiplier = 0.23 * mobileInspectionScale * (6 / 7) * (8 / 7);
 
-                        guideEl.style.width = `${rawWidth * widthMultiplier}px`;
+                        guideEl.style.width = `${rawWidth * widthMultiplier + (isMobileDevice ? 10 : 0)}px`;
                         guideEl.style.height = `${stableHeightRef * heightMultiplier}px`;
                     }
                 }
