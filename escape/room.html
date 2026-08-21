@@ -772,6 +772,7 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
         let cryptexExitTimer = null;
         let escapeWinTimer = null;
         let exitDoorModel = null;
+        let exitDoorCollider = null;
         let exitDarknessMesh = null;
         let exitPortalMesh = null;
 
@@ -1083,7 +1084,7 @@ window.addEventListener('touchcancel', (e) => {
                 : `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; white-space:nowrap;">Click to Play Classroom Escape</div><div style="position:absolute; left:50%; bottom:8%; transform:translateX(-50%); width:min(90%, 620px); padding:14px 22px; box-sizing:border-box; background:rgba(0,0,0,0.72); border:1px solid rgba(255,235,59,0.45); border-radius:10px; color:#ffeb3b; font-size:14px; line-height:1.7; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,0.35);">WASD / Arrows: Move &nbsp;&middot;&nbsp; Shift: Toggle Crouch &nbsp;&middot;&nbsp; Mouse: Look Around<br>[E] or Left Click: Interact / Open &nbsp;&middot;&nbsp; H: Toggle Hitboxes</div>`;
             document.body.appendChild(blocker);
             let isStartingGame = false;
-
+            
             controls.addEventListener('lock', () => {
                 isStartingGame = false;
                 blocker.style.display = 'none';
@@ -2876,9 +2877,27 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
     const exitDoor = child;
     exitDoorModel = exitDoor;
     const exitDoorBounds = new THREE.Box3().setFromObject(exitDoor);
-    colliders = colliders.filter((collider) => !collider.intersectsBox(exitDoorBounds));
     const exitDoorSize = exitDoorBounds.getSize(new THREE.Vector3());
     const exitCrossingAxis = exitDoorSize.x <= exitDoorSize.z ? 'x' : 'z';
+    const exitDoorWidthAxis = exitCrossingAxis === 'x' ? 'z' : 'x';
+    const preservedColliders = [];
+    colliders.forEach((collider) => {
+        if (!collider.intersectsBox(exitDoorBounds)) {
+            preservedColliders.push(collider);
+            return;
+        }
+
+        const lowerSide = collider.clone();
+        lowerSide.max[exitDoorWidthAxis] = Math.min(lowerSide.max[exitDoorWidthAxis], exitDoorBounds.min[exitDoorWidthAxis]);
+        if (lowerSide.min[exitDoorWidthAxis] < lowerSide.max[exitDoorWidthAxis]) preservedColliders.push(lowerSide);
+
+        const upperSide = collider.clone();
+        upperSide.min[exitDoorWidthAxis] = Math.max(upperSide.min[exitDoorWidthAxis], exitDoorBounds.max[exitDoorWidthAxis]);
+        if (upperSide.min[exitDoorWidthAxis] < upperSide.max[exitDoorWidthAxis]) preservedColliders.push(upperSide);
+    });
+    colliders = preservedColliders;
+    exitDoorCollider = exitDoorBounds.clone();
+    colliders.push(exitDoorCollider);
     const exitDoorCenter = exitDoorBounds.getCenter(new THREE.Vector3());
     const outsideSide = camera.position[exitCrossingAxis] < exitDoorCenter[exitCrossingAxis] ? 1 : -1;
     const darknessGeometry = exitCrossingAxis === 'x'
@@ -2912,6 +2931,7 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
     const portalOpeningAngle = -0.35;
     exitPortalMesh.rotation.y = (exitCrossingAxis === 'x' ? Math.PI / 2 : 0) + portalOpeningAngle;
     exitPortalMesh.userData.noHighlight = true;
+    exitPortalMesh.visible = false;
     scene.add(exitPortalMesh);
     new THREE.TextureLoader().load('portal.webp', (portalTexture) => {
         portalTexture.colorSpace = THREE.SRGBColorSpace;
@@ -2935,6 +2955,8 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
             if (gameState.hasKeyC && !gameState.escaped) {
                 if (exitDoor.userData.isOpen) return;
                 exitDoor.userData.isOpen = true;
+                colliders = colliders.filter((collider) => collider !== exitDoorCollider);
+                exitPortalMesh.visible = true;
                 exitDoor.userData.targetRotationZ = exitDoor.userData.baseRotationZ + 1.2;
                 exitDoor.userData.isAnimating = true;
                 const axis = exitDoor.userData.crossingAxis;
@@ -2972,10 +2994,26 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
                 new THREE.Vector3(pos.x - playerRadius, pos.y - 1.2, pos.z - playerRadius),
                 new THREE.Vector3(pos.x + playerRadius, pos.y + 0.5, pos.z + playerRadius)
             );
+            if (exitDoorCollider && exitDoorModel && !exitDoorModel.userData.isOpen && playerBox.intersectsBox(exitDoorCollider)) {
+                return true;
+            }
             for (let box of colliders) {
                 if (playerBox.intersectsBox(box)) return true;
             }
             return false;
+        }
+
+        function moveAlongAxis(axis, distance) {
+            const maxCollisionStep = playerRadius * 0.5;
+            const stepCount = Math.max(1, Math.ceil(Math.abs(distance) / maxCollisionStep));
+            const step = distance / stepCount;
+
+            for (let index = 0; index < stepCount; index++) {
+                const nextPos = camera.position.clone();
+                nextPos[axis] += step;
+                if (checkCollisionAt(nextPos)) break;
+                camera.position[axis] = nextPos[axis];
+            }
         }
 
         function checkExitDoorCrossing() {
@@ -3172,16 +3210,8 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
                 if (moveRight) { moveX += sideVector.x * actualStep; moveZ += sideVector.z * actualStep; } 
                 if (moveLeft) { moveX -= sideVector.x * actualStep; moveZ -= sideVector.z * actualStep; }
 
-                                if (moveX !== 0) {
-                    const nextPos = camera.position.clone();
-                    nextPos.x += moveX;
-                    if (!checkCollisionAt(nextPos)) camera.position.x = nextPos.x;
-                }
-                if (moveZ !== 0) {
-                    const nextPos = camera.position.clone();
-                    nextPos.z += moveZ;
-                    if (!checkCollisionAt(nextPos)) camera.position.z = nextPos.z;
-                }
+                if (moveX !== 0) moveAlongAxis('x', moveX);
+                if (moveZ !== 0) moveAlongAxis('z', moveZ);
 
                 checkExitDoorCrossing();
 
