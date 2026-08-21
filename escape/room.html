@@ -389,10 +389,24 @@ body.mobile-device #mobile-performance-btn {
         #win-screen button {
             margin: 6px;
         }
+        #win-screen button:first-of-type {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            margin: 0;
+            background: #d9534f;
+        }
+        #win-screen button:first-of-type:hover {
+            background: #c9302c;
+        }
         @media (max-width: 600px), (max-height: 700px) {
             #win-screen {
                 padding: 10px;
                 overflow: hidden;
+            }
+            #win-screen button:first-of-type {
+                top: 10px;
+                left: 10px;
             }
             #win-screen h1 {
                 max-width: 100%;
@@ -2543,12 +2557,12 @@ window.addEventListener('keydown', (event) => {
 
         function continueGame() {
             clearTimeout(escapeWinTimer);
-            gameState.escaped = false;
-            document.getElementById('win-screen').style.display = 'none';
-            document.getElementById('win-screen').style.pointerEvents = 'auto';
-            document.getElementById('message-box').innerText = 'The door is open. Continue exploring.';
-            blocker.style.display = 'none';
-            if (!controls.isLocked) controls.lock();
+            try {
+                sessionStorage.setItem('questJustCompleted', '1');
+            } catch (error) {
+                console.warn('Could not save game completion state:', error);
+            }
+            window.location.href = '../index.html';
         }
 
         window.continueGame = continueGame;
@@ -3004,14 +3018,6 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
                 const axis = exitDoor.userData.crossingAxis;
                 exitDoor.userData.entrySide = camera.position[axis] < exitDoor.userData.crossingCenter[axis] ? -1 : 1;
                 document.getElementById('message-box').innerText = 'The exit door is opening...';
-
-                clearTimeout(escapeWinTimer);
-                escapeWinTimer = setTimeout(() => {
-                    if (controls.isLocked) controls.unlock();
-                    blocker.style.display = 'none';
-                    document.getElementById('win-screen').style.display = 'flex';
-                    document.getElementById('win-screen').style.pointerEvents = 'auto';
-                }, 2200);
             } else if (!gameState.hasKeyC) {
                 document.getElementById('message-box').innerText = "The door is locked! You need Key C to escape.";
             }
@@ -3071,14 +3077,11 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
             gameState.escaped = true;
             if (controls.isLocked) controls.unlock();
             document.getElementById('message-box').innerText = 'You escaped the classroom!';
-            try {
-                const gamesPlayed = Number(sessionStorage.getItem('questGamesPlayed') || 0);
-                sessionStorage.setItem('questGamesPlayed', String(gamesPlayed + 1));
-                sessionStorage.setItem('questJustCompleted', '1');
-            } catch (error) {
-                console.warn('Could not save game completion state:', error);
-            }
-            window.location.href = '../index.html';
+            const gamesPlayed = Number(sessionStorage.getItem('questGamesPlayed') || 0);
+            sessionStorage.setItem('questGamesPlayed', String(gamesPlayed + 1));
+            blocker.style.display = 'none';
+            document.getElementById('win-screen').style.display = 'flex';
+            document.getElementById('win-screen').style.pointerEvents = 'auto';
         }
 
         function setHighlightedObject(object) {
