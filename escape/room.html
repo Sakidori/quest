@@ -658,6 +658,7 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
         let inspectNotebookActions = [];
         let cryptexAnimationComplete = false;
         let cryptexExitTimer = null;
+        let escapeWinTimer = null;
 
         // PERFORMANCE MODE CONFIG
         let isLowPerformanceMode = false;
@@ -2253,6 +2254,7 @@ window.addEventListener('keydown', (event) => {
 
         function resetGame() {
             clearTimeout(cryptexExitTimer);
+            clearTimeout(escapeWinTimer);
             cryptexAnimationComplete = false;
             gsap.killTweensOf(camera.position);
 
@@ -2367,7 +2369,7 @@ window.addEventListener('keydown', (event) => {
             inspectNotebookActions.forEach(action => action.stop().reset());
 
             scene.traverse(child => {
-                if (child.userData && child.userData.type === 'lockerDoor') {
+                if (child.userData && (child.userData.type === 'lockerDoor' || child.userData.type === 'door')) {
                     child.userData.isOpen = false;
                     child.userData.isAnimating = false;
                     child.rotation.z = child.userData.baseRotationZ;
@@ -2741,30 +2743,36 @@ if (!nameLower.includes('plane') && !nameLower.includes('floor') && !nameLower.i
 
                         // Added '&& nameLower !== 'walldoor002'' to prevent it from becoming interactive
 if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower.includes('locker') && nameLower !== 'walldoor002') {
-    child.userData = {
+    const exitDoor = child;
+    exitDoor.userData = {
         name: 'Classroom Exit Door',
         type: 'door',
+        isOpen: false,
+        isAnimating: false,
+        baseRotationZ: exitDoor.rotation.z,
+        targetRotationZ: exitDoor.rotation.z,
         action: () => {
-            if (gameState.hasKeyC) {
-                function triggerEscape() {
-                    gameState.escaped = true;
+            if (gameState.hasKeyC && !gameState.escaped) {
+                gameState.escaped = true;
+                exitDoor.userData.isOpen = true;
+                exitDoor.userData.targetRotationZ = exitDoor.userData.baseRotationZ - 1.2;
+                exitDoor.userData.isAnimating = true;
+                document.getElementById('message-box').innerText = 'The exit door is opening...';
 
-                    if (controls.isLocked) {
-                        controls.unlock();
-                    }
+                if (controls.isLocked) controls.unlock();
 
+                clearTimeout(escapeWinTimer);
+                escapeWinTimer = setTimeout(() => {
                     document.getElementById('win-screen').style.display = 'flex';
-
-                    console.log("You have escaped the classroom!");
-                }
-
-                triggerEscape();
-            } else {
+                    console.log('You have escaped the classroom!');
+                }, 2200);
+            } else if (!gameState.hasKeyC) {
                 document.getElementById('message-box').innerText = "The door is locked! You need Key C to escape.";
             }
         }
     };
-    interactables.push(child);
+    animatables.push(exitDoor);
+    interactables.push(exitDoor);
 }
                     }
                 });
@@ -3258,10 +3266,36 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
                     }
                 });
 
+                const notebookMeshes = [];
+                let notebookCoverTarget = null;
+                notebookModel.traverse((child) => {
+                    if (!child.isMesh) return;
+
+                    notebookMeshes.push(child);
+                    const meshName = child.name.toLowerCase();
+                    if (!notebookCoverTarget && /(cover|front|outside)/i.test(meshName) && !/page/i.test(meshName)) {
+                        notebookCoverTarget = child;
+                    }
+                });
+
+                if (!notebookCoverTarget) {
+                    let largestMeshSize = 0;
+                    notebookMeshes.forEach((mesh) => {
+                        const meshBounds = new THREE.Box3().setFromObject(mesh);
+                        const meshSize = meshBounds.getSize(new THREE.Vector3());
+                        const meshArea = meshSize.x * meshSize.y * meshSize.z;
+                        if (meshArea > largestMeshSize) {
+                            largestMeshSize = meshArea;
+                            notebookCoverTarget = mesh;
+                        }
+                    });
+                }
+
                 // Make it interactive to open inspection mode
                 notebookModel.userData = {
                     name: 'Notebook',
                     type: 'notebook',
+                    highlightTarget: notebookCoverTarget,
                     action: () => {
                         openInspectMode('notebook');
                     }
