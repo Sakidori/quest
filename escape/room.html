@@ -2818,7 +2818,10 @@ if (child.isMesh && nameLower === 'lockerdoor') {
         }
 
         function loadClassroomModel() {
-            globalGltfLoader.load('classroom_demoscene.glb', (gltf) => {
+            const classroomModelUrl = isLowPerformanceMode
+                ? 'classroom_demoscene.glb'
+                : 'classroom_demoscene_hq.glb';
+            globalGltfLoader.load(classroomModelUrl, (gltf) => {
                 const model = gltf.scene;
                 model.position.set(0, 0, 0);
                 scene.add(model);
