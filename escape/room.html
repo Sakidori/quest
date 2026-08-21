@@ -257,9 +257,7 @@
             color: #ffeb3b;
         }
         #inspect-ui p {
-            margin: 0;
-            color: #ccc;
-            font-size: 14px;
+            display: none;
         }
         #inspect-close-btn {
             position: absolute;
@@ -2073,7 +2071,7 @@ window.addEventListener('keydown', (event) => {
                 console.warn('Could not load alice.webp:', err);
             });
 
-            backgroundGltfLoader.load('tv.glb', (gltf) => {
+            backgroundGltfLoader.load('TV.glb', (gltf) => {
                 const tvModel = gltf.scene;
                 tvModel.position.set(3.57, 1.45, 3.2);
                 tvModel.rotation.set(0, 0.8, 0);
@@ -2109,7 +2107,7 @@ window.addEventListener('keydown', (event) => {
                 interactables.push(tvModel);
                 scene.add(tvModel);
             }, undefined, (err) => {
-                console.warn('Could not load tv.glb model file:', err);
+                console.warn('Could not load TV.glb model file:', err);
             });
         }
 
@@ -2893,9 +2891,9 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
                         guideEl.style.left = `${x}px`;
                         guideEl.style.top = `${y}px`;
 
-                        const widthMultiplier = 0.525 * mobileInspectionScale;
+                        const widthMultiplier = 0.525 * mobileInspectionScale * (5 / 7);
                         const stableHeightRef = window.innerHeight * 0.35; 
-                        const heightMultiplier = 0.23 * mobileInspectionScale;
+                        const heightMultiplier = 0.23 * mobileInspectionScale * (5 / 7);
 
                         guideEl.style.width = `${rawWidth * widthMultiplier}px`;
                         guideEl.style.height = `${stableHeightRef * heightMultiplier}px`;
