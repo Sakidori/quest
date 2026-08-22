@@ -691,10 +691,6 @@ body.mobile-device #mobile-performance-btn {
             audio.play().catch(() => {});
         }
 
-        document.querySelectorAll('button').forEach((button) => {
-            button.addEventListener('click', () => playSfx('button'));
-        });
-
         playPauseButton.addEventListener('click', (event) => {
             event.stopPropagation();
             toggleRoomMusic();
@@ -952,6 +948,7 @@ function resetPcCheatSequence() {
 }
 
 document.getElementById('mobile-interact-btn').addEventListener('click', () => {
+    playSfx('interact');
     triggerInteraction();
 });
 
@@ -2479,6 +2476,7 @@ window.addEventListener('keydown', (event) => {
         function pressKey(digit) {
             if (digit === '*' || digit === '#') return;
             if (enteredCode.length < 4) {
+                playSfx('button');
                 enteredCode.push(digit);
                 updateSafeDisplay();
             }
@@ -3204,7 +3202,6 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
         return;
     }
 if (highlightedObject.userData && typeof highlightedObject.userData.action === 'function') {
-    playSfx('interact');
         highlightedObject.userData.action();
     }
 }
@@ -3338,7 +3335,7 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
             }
 
             if (!isZoomedToSafe && controls.isLocked) {
-                const currentSpeed = isCrouching ? 2.0 : 4.0;
+                const currentSpeed = isCrouching ? 1.5 : 2.5;
                 const targetHeight = isCrouching ? 1.1 : 1.6;
                 
                 camera.position.y += (targetHeight - camera.position.y) * delta * 10.0;
