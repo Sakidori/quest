@@ -632,7 +632,9 @@ body.mobile-device #mobile-performance-btn {
             door: 'sfx/door.mp3',
             metalDoorOpen: 'sfx/metaldooropen.mp3',
             metalDoorClose: 'sfx/metaldoorclose.mp3',
-            boxOpen: 'sfx/boxopen.mp3'
+            boxOpen: 'sfx/boxopen.mp3',
+            correct: 'sfx/correct.mp3',
+            wrong: 'sfx/wrong.mp3'
         };
         const sfxVolumes = {
             walking: 0.25,
@@ -2532,12 +2534,20 @@ window.addEventListener('keydown', (event) => {
                 gameState.safeOpened = true;
                 displayEl.classList.remove('wrong');
                 displayEl.classList.add('correct');
+                
+                // Play correct sound effect
+                playSfx('correct');
+
                 safeActions.forEach(action => action.reset().play());
                 document.getElementById('message-box').innerText = "Correct code! Safe unlocked!";
                 setTimeout(zoomOutFromSafe, 1200);
             } else {
                 displayEl.classList.remove('correct');
                 displayEl.classList.add('wrong');
+                
+                // Play wrong sound effect
+                playSfx('wrong');
+
                 document.getElementById('message-box').innerText = "Incorrect code! Try again.";
                 setTimeout(resetSafeCode, 1000);
             }
