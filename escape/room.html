@@ -1170,7 +1170,7 @@ window.addEventListener('touchcancel', (e) => {
             backgroundVideo.addEventListener('loadeddata', () => {
                 const bgGeometry = new THREE.PlaneGeometry(14, 7.8, 24, 1);
                 const bgPositions = bgGeometry.attributes.position;
-                const bendRadius = 24;
+                const bendRadius = 26;
                 for (let i = 0; i < bgPositions.count; i++) {
                     const localX = bgPositions.getX(i);
                     bgPositions.setZ(i, (localX * localX) / (2 * bendRadius));
