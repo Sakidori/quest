@@ -628,14 +628,22 @@ body.mobile-device #mobile-performance-btn {
             interact: 'sfx/interact.mp3',
             unlocking: 'sfx/unlocking.mp3',
             spinning: 'sfx/spinning.mp3',
-            button: 'sfx/button.mp3'
+            button: 'sfx/button.mp3',
+            door: 'sfx/door.mp3',
+            metalDoorOpen: 'sfx/metaldooropen.mp3',
+            metalDoorClose: 'sfx/metaldoorclose.mp3',
+            boxOpen: 'sfx/boxopen.mp3'
         };
         const sfxVolumes = {
             walking: 0.35,
             interact: 0.7,
             unlocking: 0.8,
             spinning: 0.45,
-            button: 0.55
+            button: 0.55,
+            door: 0.7,
+            metalDoorOpen: 0.7,
+            metalDoorClose: 0.7,
+            boxOpen: 0.7
         };
         let resumeMusicAfterPageReturn = false;
         let hasStartedGame = false;
@@ -1896,6 +1904,7 @@ window.addEventListener('keydown', (event) => {
 
                     if (remoteIntersects.length > 0) {
                         gameState.tvOn = !gameState.tvOn;
+                        playSfx('button');
                         
                         const statusEl = document.getElementById('tv-status-overlay');
                         statusEl.innerText = gameState.tvOn ? "ON" : "OFF";
@@ -2109,6 +2118,7 @@ window.addEventListener('keydown', (event) => {
                         if (!gameState.chestOpened) {
                             if (gameState.hasKeyA) {
                                 gameState.chestOpened = true;
+                                playSfx('unlocking');
                                 chestActions.forEach(action => { action.reset(); action.play(); });
                                 document.getElementById('message-box').innerText = "You used Key A to open the wooden chest!";
 
@@ -2169,6 +2179,7 @@ window.addEventListener('keydown', (event) => {
                         if (!gameState.miniChestOpened) {
                             if (gameState.hasKeyB) {
                                 gameState.miniChestOpened = true;
+                                playSfx('unlocking');
                                 playAnimationsInOrder('keyFirst'); 
                                 document.getElementById('message-box').innerText = "You used Key B to open the mini chest!";
                             } else {
@@ -2773,6 +2784,7 @@ if (child.isMesh && nameLower === 'lockerdoor') {
                 if (boxClosedModel && boxOpenedModel) {
                     boxClosedModel.visible = false;   
                     boxOpenedModel.visible = true;    
+                    playSfx('boxOpen');
 
                     interactables = interactables.filter(obj => obj !== boxClosedModel);
                     if (!interactables.includes(boxOpenedModel)) interactables.push(boxOpenedModel);
@@ -2985,6 +2997,7 @@ if (nameLower === 'lockerdoor') {
                         // Once solved, open/close the door normally
                         if (!doorMesh.userData.isAnimating) {
                             doorMesh.userData.isOpen = !doorMesh.userData.isOpen;
+                            playSfx(doorMesh.userData.isOpen ? 'metalDoorOpen' : 'metalDoorClose');
                             doorMesh.userData.targetRotationZ = doorMesh.userData.isOpen ? doorMesh.userData.baseRotationZ - 1.2 : doorMesh.userData.baseRotationZ;
                             doorMesh.userData.isAnimating = true;
                             document.getElementById('message-box').innerText = doorMesh.userData.isOpen ? "Opened the locker door." : "Closed the locker door.";
@@ -3109,6 +3122,7 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
             if (gameState.hasKeyC && !gameState.escaped) {
                 if (exitDoor.userData.isOpen) return;
                 exitDoor.userData.isOpen = true;
+                playSfx('door');
                 colliders = colliders.filter((collider) => collider !== exitDoorCollider);
                 exitPortalMesh.visible = true;
                 exitDoor.userData.targetRotationZ = exitDoor.userData.baseRotationZ + 1.2;
@@ -3360,7 +3374,7 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
                     footstepTimer -= delta;
                     if (footstepTimer <= 0) {
                         playSfx('walking');
-                        footstepTimer = isCrouching ? 0.55 : 0.35;
+                        footstepTimer = isCrouching ? 0.8 : 0.55;
                     }
                 } else {
                     footstepTimer = 0;
