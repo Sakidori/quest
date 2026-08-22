@@ -651,7 +651,6 @@ body.mobile-device #mobile-performance-btn {
             metalDoorClose: 2.0
         };
         const combinationLockUnlockSoundDelay = 500;
-        const chestOpenSoundDelay = 1000;
         const sfxPools = {};
         let resumeMusicAfterPageReturn = false;
         let hasStartedGame = false;
@@ -2129,15 +2128,25 @@ window.addEventListener('keydown', (event) => {
                     });
                 }
 
-                woodenChest.userData = {
+      woodenChest.userData = {
                     name: 'Wooden Chest',
                     type: 'chest',
                     action: () => {
                         if (!gameState.chestOpened) {
                             if (gameState.hasKeyA) {
                                 gameState.chestOpened = true;
-                                playSfx('unlocking');
-                                setTimeout(() => playSfx('door'), chestOpenSoundDelay);
+                                
+                                // Play unlocking sound and chain the door sound to play right when it ends
+                                const unlockingAudio = playSfx('unlocking');
+                                if (unlockingAudio && typeof unlockingAudio.addEventListener === 'function') {
+                                    unlockingAudio.addEventListener('ended', () => {
+                                        playSfx('door');
+                                    }, { once: true });
+                                } else {
+                                    // Fallback just in case playSfx doesn't return an audio element
+                                    playSfx('door');
+                                }
+
                                 chestActions.forEach(action => { action.reset(); action.play(); });
                                 document.getElementById('message-box').innerText = "You used Key A to open the wooden chest!";
 
