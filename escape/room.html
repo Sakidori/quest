@@ -635,7 +635,9 @@ body.mobile-device #mobile-performance-btn {
             boxOpen: 'sfx/boxopen.mp3',
             correct: 'sfx/correct.mp3',
             wrong: 'sfx/wrong.mp3',
-            safeopen: 'sfx/safeopen.mp3'
+            safeopen: 'sfx/safeopen.mp3',
+            keypickup: 'sfx/keypickup.mp3',
+            complete: 'sfx/flag.mp3'
         };
         const sfxVolumes = {
             walking: 0.25,
@@ -2339,6 +2341,7 @@ window.addEventListener('keydown', (event) => {
                     action: () => {
                         if (!gameState.hasKeyB && keyBModel?.userData?.action) {
                             keyBModel.userData.action();
+                            playSfx('keypickup');
                         } else if (gameState.hasKeyB) {
                             document.getElementById('message-box').innerText = "You have my key now. Keep going!";
                         }
@@ -3496,6 +3499,7 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
                     type: 'keyA',
                     action: () => {
                         if (!gameState.hasKeyA) {
+                            playSfx('keypickup');
                             gameState.hasKeyA = true;
                             document.getElementById('slot-0').innerHTML = '🔑A';
                             document.getElementById('slot-0').classList.add('active');
@@ -3616,6 +3620,7 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
                     type: 'keyC',
                     action: () => {
                         if (!gameState.hasKeyC) {
+                            playSfx('keypickup');
                             gameState.hasKeyC = true;
                             document.getElementById('slot-2').innerHTML = '🔑C';
                             document.getElementById('slot-2').classList.add('active');
