@@ -691,6 +691,10 @@ body.mobile-device #mobile-performance-btn {
             audio.play().catch(() => {});
         }
 
+        document.querySelectorAll('button').forEach((button) => {
+            button.addEventListener('click', () => playSfx('button'));
+        });
+
         playPauseButton.addEventListener('click', (event) => {
             event.stopPropagation();
             toggleRoomMusic();
@@ -1681,6 +1685,7 @@ window.addEventListener('keydown', (event) => {
                                             dialTarget.userData.totalClicks -= 1;
                                         }
                                         
+                                        playSfx('spinning');
                                         const stepAngle = -dialTarget.userData.totalClicks * ((2 * Math.PI) / 10);
                                         dialTarget.userData.targetRotationZ = dialTarget.userData.baseRotationZ + stepAngle;
                                         
@@ -1757,6 +1762,7 @@ window.addEventListener('keydown', (event) => {
                                         dialTarget.userData.totalClicks -= 1;
                                     }
                                     
+                                    playSfx('spinning');
                                     const stepAngle = dialTarget.userData.totalClicks * ((2 * Math.PI) / 10);
                                     dialTarget.userData.targetRotationZ = dialTarget.userData.baseRotationZ + stepAngle;
                                     
@@ -2682,6 +2688,7 @@ window.addEventListener('keydown', (event) => {
             if (solved && !gameState.isSolved) {
                 gameState.isSolved = true;
                 isAnimatingUnlock = true;
+                playSfx('unlocking');
                 if (mainSceneLock) {
                     mainSceneLock.visible = false;
                     interactables = interactables.filter(obj => obj !== mainSceneLock);
@@ -2755,6 +2762,7 @@ if (child.isMesh && nameLower === 'lockerdoor') {
 
             if (solved && !gameState.cryptexSolved) {
                 gameState.cryptexSolved = true;
+                playSfx('unlocking');
                 if (mainSceneCryptex) {
                     mainSceneCryptex.visible = false;
                     interactables = interactables.filter(obj => obj !== mainSceneCryptex);
@@ -3196,6 +3204,7 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
         return;
     }
 if (highlightedObject.userData && typeof highlightedObject.userData.action === 'function') {
+    playSfx('interact');
         highlightedObject.userData.action();
     }
 }
@@ -3349,6 +3358,16 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
 
                 if (moveX !== 0) moveAlongAxis('x', moveX);
                 if (moveZ !== 0) moveAlongAxis('z', moveZ);
+
+                if (moveX !== 0 || moveZ !== 0) {
+                    footstepTimer -= delta;
+                    if (footstepTimer <= 0) {
+                        playSfx('walking');
+                        footstepTimer = isCrouching ? 0.55 : 0.35;
+                    }
+                } else {
+                    footstepTimer = 0;
+                }
 
                 checkExitDoorCrossing();
 
