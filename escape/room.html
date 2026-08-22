@@ -651,6 +651,7 @@ body.mobile-device #mobile-performance-btn {
             metalDoorClose: 2.0
         };
         const combinationLockUnlockSoundDelay = 500;
+        const chestOpenSoundDelay = 100;
         const sfxPools = {};
         let resumeMusicAfterPageReturn = false;
         let hasStartedGame = false;
@@ -2136,6 +2137,7 @@ window.addEventListener('keydown', (event) => {
                             if (gameState.hasKeyA) {
                                 gameState.chestOpened = true;
                                 playSfx('unlocking');
+                                setTimeout(() => playSfx('door'), chestOpenSoundDelay);
                                 chestActions.forEach(action => { action.reset(); action.play(); });
                                 document.getElementById('message-box').innerText = "You used Key A to open the wooden chest!";
 
