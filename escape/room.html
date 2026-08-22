@@ -3232,7 +3232,7 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
 
             gameState.escaped = true;
             if (controls.isLocked) controls.unlock();
-            playsfx('complete');
+            playSfx('complete');
             document.getElementById('message-box').innerText = 'You escaped the classroom!';
             const gamesPlayed = Number(sessionStorage.getItem('questGamesPlayed') || 0);
             sessionStorage.setItem('questGamesPlayed', String(gamesPlayed + 1));
