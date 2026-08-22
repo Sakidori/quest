@@ -635,7 +635,7 @@ body.mobile-device #mobile-performance-btn {
             boxOpen: 'sfx/boxopen.mp3'
         };
         const sfxVolumes = {
-            walking: 0.35,
+            walking: 0.25,
             interact: 0.7,
             unlocking: 0.8,
             spinning: 0.45,
@@ -956,7 +956,6 @@ function resetPcCheatSequence() {
 }
 
 document.getElementById('mobile-interact-btn').addEventListener('click', () => {
-    playSfx('interact');
     triggerInteraction();
 });
 
@@ -2697,7 +2696,6 @@ window.addEventListener('keydown', (event) => {
             if (solved && !gameState.isSolved) {
                 gameState.isSolved = true;
                 isAnimatingUnlock = true;
-                playSfx('unlocking');
                 if (mainSceneLock) {
                     mainSceneLock.visible = false;
                     interactables = interactables.filter(obj => obj !== mainSceneLock);
@@ -2722,6 +2720,7 @@ if (child.isMesh && nameLower === 'lockerdoor') {
                 // Once solved, clicking the locker door opens/closes the door
                 if (!doorMesh.userData.isAnimating) {
                     doorMesh.userData.isOpen = !doorMesh.userData.isOpen;
+                    playSfx(doorMesh.userData.isOpen ? 'metalDoorOpen' : 'metalDoorClose');
                     doorMesh.userData.targetRotationZ = doorMesh.userData.isOpen ? doorMesh.userData.baseRotationZ - 1.2 : doorMesh.userData.baseRotationZ;
                     doorMesh.userData.isAnimating = true;
                     document.getElementById('message-box').innerText = doorMesh.userData.isOpen ? "Opened the locker door." : "Closed the locker door.";
@@ -2739,6 +2738,7 @@ if (child.isMesh && nameLower === 'lockerdoor') {
                     action.reset().play();
                     longestDuration = Math.max(longestDuration, action.getClip().duration * 1000);
                 });
+                setTimeout(() => playSfx('unlocking'), longestDuration);
 
                 document.getElementById('inspect-title').innerText = "Unlocked!";
                 document.getElementById('message-box').innerText = "Combination correct! Lock opened!";
@@ -2771,7 +2771,6 @@ if (child.isMesh && nameLower === 'lockerdoor') {
 
             if (solved && !gameState.cryptexSolved) {
                 gameState.cryptexSolved = true;
-                playSfx('unlocking');
                 if (mainSceneCryptex) {
                     mainSceneCryptex.visible = false;
                     interactables = interactables.filter(obj => obj !== mainSceneCryptex);
