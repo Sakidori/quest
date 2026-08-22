@@ -651,8 +651,20 @@ body.mobile-device #mobile-performance-btn {
             metalDoorClose: 2.0
         };
         const combinationLockUnlockSoundDelay = 500;
+        const sfxPools = {};
         let resumeMusicAfterPageReturn = false;
         let hasStartedGame = false;
+
+        Object.entries(sfxSources).forEach(([name, source]) => {
+            sfxPools[name] = Array.from({ length: 3 }, () => {
+                const audio = new Audio(source);
+                audio.preload = 'auto';
+                audio.volume = sfxVolumes[name] || 0.5;
+                audio.playbackRate = sfxPlaybackRates[name] || 1;
+                audio.load();
+                return audio;
+            });
+        });
 
         function playRoomMusic() {
             bgMusic.src = roomTrack.src;
@@ -697,12 +709,11 @@ body.mobile-device #mobile-performance-btn {
         window.addEventListener('pageshow', resumeMusicAfterPageReturnIfNeeded);
 
         function playSfx(name) {
-            const source = sfxSources[name];
-            if (!source) return;
+            const pool = sfxPools[name];
+            if (!pool) return;
 
-            const audio = new Audio(source);
-            audio.volume = sfxVolumes[name] || 0.5;
-            audio.playbackRate = sfxPlaybackRates[name] || 1;
+            const audio = pool.find((candidate) => candidate.paused || candidate.ended) || pool[0];
+            audio.currentTime = 0;
             audio.play().catch(() => {});
         }
 
