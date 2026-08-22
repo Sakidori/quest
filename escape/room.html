@@ -647,7 +647,7 @@ body.mobile-device #mobile-performance-btn {
         };
         const sfxPlaybackRates = {
             door: 2.0,
-            metalDoorOpen: 6.0,
+            metalDoorOpen: 2.0,
             metalDoorClose: 2.0
         };
         const combinationLockUnlockSoundDelay = 500;
@@ -1168,7 +1168,7 @@ window.addEventListener('touchcancel', (e) => {
             });
 
             backgroundVideo.addEventListener('loadeddata', () => {
-                const bgGeometry = new THREE.PlaneGeometry(14, 7.8, 24, 1);
+                const bgGeometry = new THREE.PlaneGeometry(14, 5.8, 24, 1);
                 const bgPositions = bgGeometry.attributes.position;
                 const bendRadius = 24;
                 for (let i = 0; i < bgPositions.count; i++) {
