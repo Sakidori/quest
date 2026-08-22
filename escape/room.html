@@ -1168,7 +1168,7 @@ window.addEventListener('touchcancel', (e) => {
             });
 
             backgroundVideo.addEventListener('loadeddata', () => {
-                const bgGeometry = new THREE.PlaneGeometry(14, 5.8, 24, 1);
+                const bgGeometry = new THREE.PlaneGeometry(14, 7.8, 24, 1);
                 const bgPositions = bgGeometry.attributes.position;
                 const bendRadius = 24;
                 for (let i = 0; i < bgPositions.count; i++) {
@@ -1181,7 +1181,7 @@ window.addEventListener('touchcancel', (e) => {
                 backgroundPlane = new THREE.Mesh(bgGeometry, bgMaterial);
                 backgroundPlane.castShadow = false;
                 backgroundPlane.receiveShadow = false;
-                backgroundPlane.position.set(5.7, 2.4, 0);
+                backgroundPlane.position.set(5.7, 4.4, 0);
                 backgroundPlane.rotation.y = -Math.PI / 2; 
                 backgroundPlane.userData = {
                     name: 'Outside View',
