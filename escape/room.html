@@ -634,7 +634,8 @@ body.mobile-device #mobile-performance-btn {
             metalDoorClose: 'sfx/metaldoorclose.mp3',
             boxOpen: 'sfx/boxopen.mp3',
             correct: 'sfx/correct.mp3',
-            wrong: 'sfx/wrong.mp3'
+            wrong: 'sfx/wrong.mp3',
+            safeopen: 'sfx/safeopen.mp3'
         };
         const sfxVolumes = {
             walking: 0.25,
@@ -2538,6 +2539,10 @@ window.addEventListener('keydown', (event) => {
                 // Play correct sound effect
                 playSfx('correct');
 
+                   setTimeout(() => {
+                                    playSfx('safeopen');
+                                }, 200);
+                
                 safeActions.forEach(action => action.reset().play());
                 document.getElementById('message-box').innerText = "Correct code! Safe unlocked!";
                 setTimeout(zoomOutFromSafe, 1200);
