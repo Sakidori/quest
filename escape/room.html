@@ -638,6 +638,7 @@ body.mobile-device #mobile-performance-btn {
             button: 0.55
         };
         let resumeMusicAfterPageReturn = false;
+        let hasStartedGame = false;
 
         function playRoomMusic() {
             bgMusic.src = roomTrack.src;
@@ -912,11 +913,6 @@ joystickZone.addEventListener('touchmove', (e) => {
             moveBackward = dy > 10;
             moveLeft = dx < -10;
             moveRight = dx > 10;
-            if (moveBackward) {
-                mobileCheatBackwardArmed = true;
-                clearTimeout(mobileCheatArmTimeout);
-                mobileCheatArmTimeout = setTimeout(resetMobileCheatSequence, 4000);
-            }
         }
     }
 });
@@ -936,34 +932,44 @@ joystickZone.addEventListener('touchend', (e) => {
 });
 
 // Mobile Interaction Button binding
-let mobileCheatInteractCount = 0;
-let mobileCheatInteractTimeout = null;
-let mobileCheatBackwardArmed = false;
-let mobileCheatArmTimeout = null;
+let mobileCheatSlotIndex = 0;
+let mobileCheatSlotTimeout = null;
+let pcCheatSlotIndex = 0;
+let pcCheatSlotTimeout = null;
 
 function resetMobileCheatSequence() {
-    mobileCheatInteractCount = 0;
-    mobileCheatBackwardArmed = false;
-    clearTimeout(mobileCheatInteractTimeout);
-    clearTimeout(mobileCheatArmTimeout);
+    mobileCheatSlotIndex = 0;
+    clearTimeout(mobileCheatSlotTimeout);
+}
+
+function resetPcCheatSequence() {
+    pcCheatSlotIndex = 0;
+    clearTimeout(pcCheatSlotTimeout);
 }
 
 document.getElementById('mobile-interact-btn').addEventListener('click', () => {
     triggerInteraction();
+});
 
-    if (!isMobileDevice || !mobileCheatBackwardArmed || !isCrouching) {
-        resetMobileCheatSequence();
-        return;
-    }
+document.querySelectorAll('#inventory .inventory-slot').forEach((slot, slotIndex) => {
+    slot.addEventListener('click', () => {
+        const isLookingAtPencilCase = highlightedObject?.userData?.name === 'Pencil Case';
+        const expectedSlotIndex = mobileCheatSlotIndex % 3;
 
-    mobileCheatInteractCount += 1;
-    clearTimeout(mobileCheatInteractTimeout);
-    mobileCheatInteractTimeout = setTimeout(resetMobileCheatSequence, 1000);
+        if (!isMobileDevice || !isCrouching || !isLookingAtPencilCase || slotIndex !== expectedSlotIndex) {
+            resetMobileCheatSequence();
+            return;
+        }
 
-    if (mobileCheatInteractCount === 2) {
-        resetMobileCheatSequence();
-        activateAllKeys();
-    }
+        mobileCheatSlotIndex += 1;
+        clearTimeout(mobileCheatSlotTimeout);
+        mobileCheatSlotTimeout = setTimeout(resetMobileCheatSequence, 3000);
+
+        if (mobileCheatSlotIndex === 6) {
+            resetMobileCheatSequence();
+            activateAllKeys();
+        }
+    });
 });
 
 function activateAllKeys() {
@@ -1198,7 +1204,10 @@ window.addEventListener('touchcancel', (e) => {
             controls.addEventListener('lock', () => {
                 isStartingGame = false;
                 blocker.style.display = 'none';
-                if (bgMusic.paused) playRoomMusic();
+                if (!hasStartedGame) {
+                    hasStartedGame = true;
+                    if (bgMusic.paused) playRoomMusic();
+                }
             });
             controls.addEventListener('unlock', () => {
                 isStartingGame = false;
@@ -1218,29 +1227,33 @@ window.addEventListener('touchcancel', (e) => {
             });
             
 
-function triggerFullscreen() {
-    if (document.fullscreenElement || document.webkitFullscreenElement) return;
+async function triggerFullscreen() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) return true;
 
     const request = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
     if (!request) {
         document.getElementById('message-box').innerText = 'Fullscreen is not supported by this browser.';
         console.warn('Fullscreen is not supported by this browser.');
-        return;
+        return false;
     }
 
-    Promise.resolve(request.call(document.documentElement)).catch(err => {
+    try {
+        await Promise.resolve(request.call(document.documentElement));
+        return true;
+    } catch (err) {
         document.getElementById('message-box').innerText = 'Fullscreen was blocked by the browser.';
         console.warn(`Error attempting to enable fullscreen: ${err.message}`);
-    });
+        return false;
+    }
 }
 
-blocker.addEventListener('click', (event) => {
+blocker.addEventListener('click', async (event) => {
     event.stopPropagation();
     if (isStartingGame) return;
     if (!assetsReady || gameState.escaped || inspecting || isZoomedToSafe || isAnimatingUnlock) return;
 
     isStartingGame = true;
-    triggerFullscreen();
+    await triggerFullscreen();
     if (!controls.isLocked) {
         controls.lock();
     }
@@ -1329,6 +1342,25 @@ window.addEventListener('keydown', (event) => {
                     }
                     if (e.code === 'KeyC') {
                         logAndCopySafeHitboxPosition();
+                    }
+                    return;
+                }
+
+                if (!isMobileDevice && /^[1-3]$/.test(e.key)) {
+                    const isLookingAtPencilCase = highlightedObject?.userData?.name === 'Pencil Case';
+                    const expectedSlot = String((pcCheatSlotIndex % 3) + 1);
+
+                    if (!isCrouching || !isLookingAtPencilCase || e.key !== expectedSlot) {
+                        resetPcCheatSequence();
+                    } else {
+                        pcCheatSlotIndex += 1;
+                        clearTimeout(pcCheatSlotTimeout);
+                        pcCheatSlotTimeout = setTimeout(resetPcCheatSequence, 3000);
+
+                        if (pcCheatSlotIndex === 6) {
+                            resetPcCheatSequence();
+                            activateAllKeys();
+                        }
                     }
                     return;
                 }
