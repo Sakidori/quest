@@ -1118,82 +1118,84 @@ window.addEventListener('touchcancel', (e) => {
             animate();
         }
 
-        function init() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x111111);
+       function init() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x111111);
 
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(-2.0, 1.6, 4.0);
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(-2.0, 1.6, 4.0);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(isLowPerformanceMode ? 1 : window.devicePixelRatio);
-            renderer.outputColorSpace = THREE.SRGBColorSpace;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.1;
-            document.body.appendChild(renderer.domElement);
+    renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(isLowPerformanceMode ? 1 : window.devicePixelRatio);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    document.body.appendChild(renderer.domElement);
 
-            applyInitialLightingSetup();
+    applyInitialLightingSetup();
 
-            composer = new EffectComposer(renderer);
-            composer.addPass(new RenderPass(scene, camera));
-            outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
-            outlinePass.edgeStrength = 3.5;
-            outlinePass.edgeGlow = 0;
-            outlinePass.edgeThickness = 1.5;
-            outlinePass.visibleEdgeColor.set(0xffd54a);
-            outlinePass.hiddenEdgeColor.set(0xffd54a);
-            composer.addPass(outlinePass);
-            smaaPass = new SMAAPass(window.innerWidth, window.innerHeight);
-            smaaPass.enabled = !isLowPerformanceMode;
-            composer.addPass(smaaPass);
-            composer.addPass(new OutputPass());
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
+    outlinePass.edgeStrength = 3.5;
+    outlinePass.edgeGlow = 0;
+    outlinePass.edgeThickness = 1.5;
+    outlinePass.visibleEdgeColor.set(0xffd54a);
+    outlinePass.hiddenEdgeColor.set(0xffd54a);
+    composer.addPass(outlinePass);
+    smaaPass = new SMAAPass(window.innerWidth, window.innerHeight);
+    smaaPass.enabled = !isLowPerformanceMode;
+    composer.addPass(smaaPass);
+    composer.addPass(new OutputPass());
 
-            const textureLoader = new THREE.TextureLoader();
-            const backgroundVideo = document.createElement('video');
-            backgroundVideo.src = 'background.webm';
-            backgroundVideo.loop = true;
-            backgroundVideo.muted = true;
-            backgroundVideo.autoplay = true;
-            backgroundVideo.playsInline = true;
-            backgroundVideo.setAttribute('aria-hidden', 'true');
-            backgroundVideo.addEventListener('error', () => {
-                console.warn('Could not load background.webm.');
-            });
+    const textureLoader = new THREE.TextureLoader();
+    const backgroundVideo = document.createElement('video');
+    backgroundVideo.src = 'widebackground.webm';
+    backgroundVideo.loop = true;
+    backgroundVideo.muted = true;
+    backgroundVideo.autoplay = true;
+    backgroundVideo.playsInline = true;
+    backgroundVideo.setAttribute('aria-hidden', 'true');
+    backgroundVideo.addEventListener('error', () => {
+        console.warn('Could not load widebackground.webm.');
+    });
 
-            const backgroundVideoTexture = new THREE.VideoTexture(backgroundVideo);
-            backgroundVideoTexture.colorSpace = THREE.SRGBColorSpace;
-            backgroundVideo.play().catch((err) => {
-                console.warn(`Could not autoplay background.webm: ${err.message}`);
-            });
+    const backgroundVideoTexture = new THREE.VideoTexture(backgroundVideo);
+    backgroundVideoTexture.colorSpace = THREE.SRGBColorSpace;
+    backgroundVideo.play().catch((err) => {
+        console.warn(`Could not autoplay widebackground.webm: ${err.message}`);
+    });
 
-            backgroundVideo.addEventListener('loadeddata', () => {
-                const bgGeometry = new THREE.PlaneGeometry(14, 7.8, 24, 1);
-                const bgPositions = bgGeometry.attributes.position;
-                const bendRadius = 24;
-                for (let i = 0; i < bgPositions.count; i++) {
-                    const localX = bgPositions.getX(i);
-                    bgPositions.setZ(i, (localX * localX) / (2 * bendRadius));
-                }
-                bgPositions.needsUpdate = true;
-                bgGeometry.computeVertexNormals();
-                const bgMaterial = new THREE.MeshBasicMaterial({ map: backgroundVideoTexture, side: THREE.DoubleSide });
-                backgroundPlane = new THREE.Mesh(bgGeometry, bgMaterial);
-                backgroundPlane.castShadow = false;
-                backgroundPlane.receiveShadow = false;
-                backgroundPlane.position.set(5.7, 2.4, 0);
-                backgroundPlane.rotation.y = -Math.PI / 2; 
-                backgroundPlane.userData = {
-                    name: 'Outside View',
-                    type: 'roomInfo',
-                    noHighlight: true,
-                    action: () => {
-                        document.getElementById('message-box').innerText = 'It looks dangerous outside, I should escape quickly!';
-                    }
-                };
-                interactables.push(backgroundPlane);
-                scene.add(backgroundPlane);
-            });
+    backgroundVideo.addEventListener('loadeddata', () => {
+        const bgGeometry = new THREE.PlaneGeometry(21, 3.9, 72, 1);
+        const bgPositions = bgGeometry.attributes.position;
+        const bendRadius = 24;
+        for (let i = 0; i < bgPositions.count; i++) {
+            const localX = bgPositions.getX(i);
+            bgPositions.setZ(i, (localX * localX) / (2 * bendRadius));
+        }
+        bgPositions.needsUpdate = true;
+        bgGeometry.computeVertexNormals();
+
+        const bgMaterial = new THREE.MeshBasicMaterial({ map: backgroundVideoTexture, side: THREE.DoubleSide });
+        backgroundPlane = new THREE.Mesh(bgGeometry, bgMaterial);
+        backgroundPlane.castShadow = false;
+        backgroundPlane.receiveShadow = false;
+        backgroundPlane.position.set(5.7, 1, 0);
+        backgroundPlane.rotation.y = -Math.PI / 2; 
+        backgroundPlane.userData = {
+            name: 'Outside View',
+            type: 'roomInfo',
+            noHighlight: true,
+            action: () => {
+                document.getElementById('message-box').innerText = 'It looks dangerous outside, I should escape quickly!';
+            }
+        };
+        interactables.push(backgroundPlane);
+        scene.add(backgroundPlane);
+    });
+
 
             textureLoader.load('poster.webp', (texture) => {
                 const posterGeometry = new THREE.PlaneGeometry(0.5, 0.5);
