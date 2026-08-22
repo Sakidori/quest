@@ -2136,16 +2136,12 @@ window.addEventListener('keydown', (event) => {
                             if (gameState.hasKeyA) {
                                 gameState.chestOpened = true;
                                 
-                                // Play unlocking sound and chain the door sound to play right when it ends
-                                const unlockingAudio = playSfx('unlocking');
-                                if (unlockingAudio && typeof unlockingAudio.addEventListener === 'function') {
-                                    unlockingAudio.addEventListener('ended', () => {
-                                        playSfx('door');
-                                    }, { once: true });
-                                } else {
-                                    // Fallback just in case playSfx doesn't return an audio element
+                                playSfx('unlocking');
+                                
+                                // Change '800' to match the exact length of your 'unlocking' sound in milliseconds
+                                setTimeout(() => {
                                     playSfx('door');
-                                }
+                                }, 3000);
 
                                 chestActions.forEach(action => { action.reset(); action.play(); });
                                 document.getElementById('message-box').innerText = "You used Key A to open the wooden chest!";
