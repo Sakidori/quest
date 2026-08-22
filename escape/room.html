@@ -645,6 +645,12 @@ body.mobile-device #mobile-performance-btn {
             metalDoorClose: 0.7,
             boxOpen: 0.7
         };
+        const sfxPlaybackRates = {
+            door: 2.0,
+            metalDoorOpen: 2.0,
+            metalDoorClose: 2.0
+        };
+        const combinationLockUnlockSoundDelay = 500;
         let resumeMusicAfterPageReturn = false;
         let hasStartedGame = false;
 
@@ -696,6 +702,7 @@ body.mobile-device #mobile-performance-btn {
 
             const audio = new Audio(source);
             audio.volume = sfxVolumes[name] || 0.5;
+            audio.playbackRate = sfxPlaybackRates[name] || 1;
             audio.play().catch(() => {});
         }
 
@@ -2738,7 +2745,7 @@ if (child.isMesh && nameLower === 'lockerdoor') {
                     action.reset().play();
                     longestDuration = Math.max(longestDuration, action.getClip().duration * 1000);
                 });
-                setTimeout(() => playSfx('unlocking'), longestDuration);
+                setTimeout(() => playSfx('unlocking'), combinationLockUnlockSoundDelay);
 
                 document.getElementById('inspect-title').innerText = "Unlocked!";
                 document.getElementById('message-box').innerText = "Combination correct! Lock opened!";
