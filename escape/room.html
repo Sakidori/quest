@@ -3173,7 +3173,7 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
                 exitDoor.userData.isAnimating = true;
                 const axis = exitDoor.userData.crossingAxis;
                 exitDoor.userData.entrySide = camera.position[axis] < exitDoor.userData.crossingCenter[axis] ? -1 : 1;
-                document.getElementById('message-box').innerText = 'The exit door is opening...';
+                document.getElementById('message-box').innerText = 'The exit door opened!.';
             } else if (!gameState.hasKeyC) {
                 document.getElementById('message-box').innerText = "The door is locked! You need Key C to escape.";
             }
@@ -3232,12 +3232,14 @@ if ((nameLower.includes('door') || nameLower.includes('walldoor')) && !nameLower
 
             gameState.escaped = true;
             if (controls.isLocked) controls.unlock();
+            playsfx('complete');
             document.getElementById('message-box').innerText = 'You escaped the classroom!';
             const gamesPlayed = Number(sessionStorage.getItem('questGamesPlayed') || 0);
             sessionStorage.setItem('questGamesPlayed', String(gamesPlayed + 1));
             blocker.style.display = 'none';
             document.getElementById('win-screen').style.display = 'flex';
             document.getElementById('win-screen').style.pointerEvents = 'auto';
+            
         }
 
         function setHighlightedObject(object) {
