@@ -1010,8 +1010,13 @@ document.querySelectorAll('#inventory .inventory-slot').forEach((slot, slotIndex
     const loader = new GLTFLoader();
 loader.load('nobita.glb', (gltf) => {
     popupModel = gltf.scene;
-    popupModel.scale.set(0.2, 0.2, 0.2); // Adjust scale as needed
-        popupModel.position.set(0, -1.2, -1.2);
+    popupModel.updateMatrixWorld(true);
+    const popupBounds = new THREE.Box3().setFromObject(popupModel);
+    const popupSize = popupBounds.getSize(new THREE.Vector3());
+    const popupHeight = Math.max(popupSize.y, 0.001);
+    popupModel.scale.setScalar(1.8 / popupHeight);
+    popupModel.rotation.y = Math.PI;
+        popupModel.position.set(0, -1.2, -1.5);
     popupModel.visible = false; // Hidden by default
         popupModel.renderOrder = 1000;
         popupModel.traverse((child) => {
@@ -3815,6 +3820,10 @@ function checkPopupTrigger() {
     if (hasPoppedUp) {
         if (!isLookingAtBackground) {
             popupModel.visible = false;
+            hasPoppedUp = false;
+            stareTimer = 0;
+            popupAnimationProgress = 0;
+            popupModel.position.set(0, -1.2, -1.5);
         }
         return;
     }
@@ -3822,7 +3831,7 @@ function checkPopupTrigger() {
     // 3. Stare Timer
     if (isLookingAtBackground) {
         if (stareTimer === 0) {
-            popupModel.position.set(0, -1.2, -1.2);
+            popupModel.position.set(0, -1.2, -1.5);
         }
 
         stareTimer += 0.016; 
