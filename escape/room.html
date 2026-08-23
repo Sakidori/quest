@@ -3797,7 +3797,7 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
         return;
     }
 
-    // 2. Direct Crosshair Check: Find the exact point the player is looking at on the background
+    // 2. Direct Crosshair Check: Is the background plane centered in the screen?
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
     const intersects = raycaster.intersectObject(backgroundPlane, true);
     const isLookingAtBackground = (intersects.length > 0 && intersects[0].distance <= 3.5);
@@ -3805,22 +3805,18 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
     if (isLookingAtBackground) {
         popupModel.visible = true;
 
-        // Get the exact point where the crosshairs hit the background plane
-        const hitPoint = intersects[0].point;
+        // Get where the player is currently looking straight ahead from the camera
+        const camDir = new THREE.Vector3();
+        camera.getWorldDirection(camDir);
 
-        // Base the position on the crosshair hit point, but push it slightly closer 
-        // to the background mesh (offset along the background's local normal or axis)
-        let targetPosition = hitPoint.clone();
-        
-        // Push it just 0.3 units forward/backward so it stays tight against the background
-        // (Adjust this offset if it's still too far)
-        targetPosition.x += 0.3; 
+        // Place the target position right in front of the camera's view, near the background distance
+        let targetPosition = camera.position.clone().add(camDir.multiplyScalar(2.2));
 
-        // Define ground level (hidden below) and target height (rising to the crosshair height)
-        const groundY = targetPosition.y - 1.5; // Starts lower than the hit point
-        const targetY = targetPosition.y;     // Rises right to where you're looking
+        // Define ground level (hidden below) and target height (right at your eye/crosshair level or slightly below)
+        const groundY = backgroundPlane.position.y - 2.5; // Starts low on the floor
+        const targetY = backgroundPlane.position.y - 0.8; // Popped up nicely in view
 
-        // Smoothly animate (pop up) from below
+        // Smoothly animate (pop up) from the ground
         if (popupAnimationProgress < 1) {
             popupAnimationProgress += 0.08; // Pop-up speed
         }
@@ -3828,12 +3824,9 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 
         popupModel.position.copy(targetPosition);
 
-        // --- FIX FOR FACING DIRECTION ---
-        // Instead of lookAt (which often flips 3D models based on their rigging), 
-        // match the background plane's rotation directly so it faces the exact same way the window faces, 
-        // then rotate it 180 degrees if it's still backwards.
-        popupModel.rotation.copy(backgroundPlane.rotation);
-        popupModel.rotateY(Math.PI); // Flips it around to face the room correctly
+        // Force the model to face directly toward the player so it's never backwards
+        popupModel.lookAt(camera.position.x, popupModel.position.y, camera.position.z);
+        popupModel.rotateY(Math.PI); // Flips it if the front/back of your specific model is inverted
 
         document.getElementById('message-box').innerText = "Something emerged!";
     } else {
