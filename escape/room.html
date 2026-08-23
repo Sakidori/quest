@@ -2943,6 +2943,7 @@ if (child.isMesh && nameLower === 'lockerdoor') {
     inspecting = true;
     currentInspectType = type || 'lock';
     if (controls.isLocked) controls.unlock();
+    document.getElementById('tv-status-overlay').style.opacity = '0';
     
     document.getElementById('ui-container').style.display = 'none';
     document.getElementById('crosshair').style.display = 'none';
@@ -3000,6 +3001,7 @@ if (child.isMesh && nameLower === 'lockerdoor') {
             isAnimatingUnlock = false;
             setHighlightedObject(null);
             clearTimeout(cryptexExitTimer);
+            document.getElementById('tv-status-overlay').style.opacity = '0';
             document.getElementById('inspect-overlay').style.display = 'none';
             document.getElementById('cryptex-alignment-guide').style.display = 'none';
             document.getElementById('ui-container').style.display = 'flex';
@@ -3854,7 +3856,7 @@ function checkPopupTrigger() {
     if (!popupModel || !camera || !backgroundPlane) return;
 
     const distance = camera.position.distanceTo(backgroundPlane.position);
-    if (distance > 3.5) {
+    if (!hasPoppedUp && distance > 3.5) {
         stareTimer = 0;
         hasPoppedUp = false;
         popupModel.visible = false;
