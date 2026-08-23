@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Escape Room Game - Safe Keypad Mapping Tool</title>
+    <title>Escape the Classroom</title>
     <style>
         body {
             margin: 0;
@@ -498,7 +498,7 @@ body.mobile-device #mobile-performance-btn {
 }
 .loader-content {
     text-align: center;
-    width: 300px;
+    width: 600px;
 }
 .progress-bar-bg {
     width: 100%;
@@ -525,15 +525,15 @@ body.mobile-device #mobile-performance-btn {
     <div id="portrait-orientation-overlay" role="dialog" aria-live="polite" aria-label="Rotate device">
         <div class="orientation-message">
             <span class="orientation-icon" aria-hidden="true">&#8635;</span>
-            <h2>Rotate Your Device</h2>
-            <p>This game is only available in landscape mode.</p>
+            <h2>端末を回転させてください</h2>
+            <p>このゲームは横向きモードでのみプレイ可能です。</p>
         </div>
     </div>
 
     <!-- Loading Screen Overlay -->
 <div id="loader-container">
     <div class="loader-content">
-        <h2>Loading Escape Room...</h2>
+        <h2>ロード中、少々お待ちください...</h2>
         <div class="progress-bar-bg">
             <div id="progress-bar"></div>
         </div>
@@ -554,7 +554,7 @@ body.mobile-device #mobile-performance-btn {
                 <div class="inventory-slot" id="slot-2">🔒</div>
             </div>
         </div>
-        <div class="hud-element" id="message-box">Loading classroom...</div>
+        <div class="hud-element" id="message-box">ロード中...</div>
     </div>
 
     <div id="virtual-joystick-zone">
@@ -591,7 +591,7 @@ body.mobile-device #mobile-performance-btn {
     </div>
 
     <div id="safe-code-display">
-        <h3>SAFE INPUT CODE</h3>
+        <h3>SAFE CODE</h3>
         <div id="safe-code-digits">----</div>
     </div>
 
@@ -1322,8 +1322,8 @@ window.addEventListener('touchcancel', (e) => {
             blocker.style.fontSize = '24px';
             blocker.style.cursor = 'pointer';
             blocker.innerHTML = isMobileDevice
-                ? 'Click to Play Classroom Escape'
-                : `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; white-space:nowrap;">Click to Play Classroom Escape</div><div style="position:absolute; left:50%; bottom:8%; transform:translateX(-50%); width:min(90%, 620px); padding:14px 22px; box-sizing:border-box; background:rgba(0,0,0,0.72); border:1px solid rgba(255,235,59,0.45); border-radius:10px; color:#ffeb3b; font-size:14px; line-height:1.7; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,0.35);">WASD / Arrows: Move &nbsp;&middot;&nbsp; Shift: Toggle Crouch &nbsp;&middot;&nbsp; Mouse: Look Around<br>[E] or Left Click: Interact / Open &nbsp;&middot;&nbsp; H: Toggle Hitboxes</div>`;
+                ? 'クリックしてゲームを始める'
+                : `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; white-space:nowrap;">教室から脱出する、クリックしてゲームを始める</div><div style="position:absolute; left:50%; bottom:8%; transform:translateX(-50%); width:min(90%, 620px); padding:14px 22px; box-sizing:border-box; background:rgba(0,0,0,0.72); border:1px solid rgba(255,235,59,0.45); border-radius:10px; color:#ffeb3b; font-size:14px; line-height:1.7; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,0.35);">WASD / 矢印キー：移動 &nbsp;&middot;&nbsp; シフト：しゃがみの切り替え &nbsp;&middot;&nbsp; マウス：周囲を見回す<br>[E] or 左クリック／タップ：操作／開く &nbsp;&middot;&nbsp; </div>`;
             document.body.appendChild(blocker);
             let isStartingGame = false;
             
