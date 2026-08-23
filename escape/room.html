@@ -849,6 +849,7 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
         
         let popupModel = null;
         let hasTriggeredPopup = false;
+        let popupAnimationProgress = 0;
 
         let inspectRaycaster = new THREE.Raycaster();
         let isDragging = false;
@@ -3785,49 +3786,60 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
                 console.warn('Could not load notebook.glb:', err);
             });
         }
-            function checkPopupTrigger() {
+           function checkPopupTrigger() {
     if (!popupModel || !backgroundPlane) return;
 
     // 1. Distance check: Is the player close enough to the background?
     const distance = camera.position.distanceTo(backgroundPlane.position);
-    
-    // If the player walks away or gets too far, hide it immediately
     if (distance > 3.5) {
         popupModel.visible = false;
+        popupAnimationProgress = 0;
         return;
     }
 
-    // 2. Direct Crosshair Check: Is the background dead-center in the crosshairs?
+    // 2. Direct Crosshair Check: Find the exact point the player is looking at on the background
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
     const intersects = raycaster.intersectObject(backgroundPlane, true);
-
-    // Check if the player is currently staring right at the background
     const isLookingAtBackground = (intersects.length > 0 && intersects[0].distance <= 3.5);
 
     if (isLookingAtBackground) {
-        // Position the model near the background
-        popupModel.position.copy(backgroundPlane.position);
-        popupModel.position.x -= 1.5; // Step into the room
-
-        // Side placement based on player position relative to the window
-        if (camera.position.z > backgroundPlane.position.z) {
-            popupModel.position.z -= 2.0; 
-        } else {
-            popupModel.position.z += 2.0; 
-        }
-
-        popupModel.position.y = backgroundPlane.position.y - 1.0; 
-
-        // Face the player
-        popupModel.lookAt(camera.position.x, popupModel.position.y, camera.position.z);
-        popupModel.rotateY(Math.PI); // Adjust if your model's front is backward
-
-        // Show the model
         popupModel.visible = true;
-        document.getElementById('message-box').innerText = "Something is watching you!";
+
+        // Get the exact point where the crosshairs hit the background plane
+        const hitPoint = intersects[0].point;
+
+        // Base the position on the crosshair hit point, but push it slightly closer 
+        // to the background mesh (offset along the background's local normal or axis)
+        let targetPosition = hitPoint.clone();
+        
+        // Push it just 0.3 units forward/backward so it stays tight against the background
+        // (Adjust this offset if it's still too far)
+        targetPosition.x += 0.3; 
+
+        // Define ground level (hidden below) and target height (rising to the crosshair height)
+        const groundY = targetPosition.y - 1.5; // Starts lower than the hit point
+        const targetY = targetPosition.y;     // Rises right to where you're looking
+
+        // Smoothly animate (pop up) from below
+        if (popupAnimationProgress < 1) {
+            popupAnimationProgress += 0.08; // Pop-up speed
+        }
+        targetPosition.y = THREE.MathUtils.lerp(groundY, targetY, popupAnimationProgress);
+
+        popupModel.position.copy(targetPosition);
+
+        // --- FIX FOR FACING DIRECTION ---
+        // Instead of lookAt (which often flips 3D models based on their rigging), 
+        // match the background plane's rotation directly so it faces the exact same way the window faces, 
+        // then rotate it 180 degrees if it's still backwards.
+        popupModel.rotation.copy(backgroundPlane.rotation);
+        popupModel.rotateY(Math.PI); // Flips it around to face the room correctly
+
+        document.getElementById('message-box').innerText = "Something emerged!";
     } else {
-        // If the player looks away, hide the model again!
+        // If the player looks away, hide it and reset
         popupModel.visible = false;
+        popupAnimationProgress = 0;
     }
 }
     </script>
