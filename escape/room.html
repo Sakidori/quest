@@ -268,9 +268,7 @@ body.mobile-device #mobile-performance-btn {
         }
 
         #inspect-overlay {
-}, undefined, (err) => {
-    console.error('Could not load nobita.glb:', err);
-});
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
@@ -852,6 +850,7 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
 let popupModel = null;     
 let stareTimer = 0;
 let hasPoppedUp = false;
+let popupHitPoint = new THREE.Vector3();
 let popupAnimationProgress = 0;
 
         let inspectRaycaster = new THREE.Raycaster();
@@ -1009,35 +1008,14 @@ document.querySelectorAll('#inventory .inventory-slot').forEach((slot, slotIndex
     });
 });
 
-    globalGltfLoader.load('nobita.glb', (gltf) => {
+    const loader = new GLTFLoader();
+loader.load('nobita.glb', (gltf) => {
     popupModel = gltf.scene;
-    popupModel.updateMatrixWorld(true);
-    const popupBounds = new THREE.Box3().setFromObject(popupModel);
-    const popupSize = popupBounds.getSize(new THREE.Vector3());
-    const popupHeight = Math.max(popupSize.y, 0.001);
-    popupModel.scale.setScalar(1.8 / popupHeight);
-    popupModel.rotation.y = Math.PI;
-        popupModel.position.set(0, -1.2, -1.5);
+    popupModel.scale.set(0.2, 0.2, 0.2);
+    popupModel.position.set(5.0, 0, 3.0);
     popupModel.visible = false; // Hidden by default
-        popupModel.renderOrder = 1000;
-        popupModel.traverse((child) => {
-            if (!child.isMesh) return;
-            child.renderOrder = 1000;
-            if (Array.isArray(child.material)) {
-                child.material = child.material.map((material) => material.clone());
-                child.material.forEach((material) => {
-                    material.depthTest = false;
-                    material.depthWrite = false;
-                });
-            } else if (child.material) {
-                child.material = child.material.clone();
-                child.material.depthTest = false;
-                child.material.depthWrite = false;
-            }
-        });
-        if (camera) camera.add(popupModel);
+    scene.add(popupModel);
 });
-
 
 function activateAllKeys() {
     gameState.hasKeyA = true;
@@ -1165,7 +1143,6 @@ window.addEventListener('touchcancel', (e) => {
 
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(-2.0, 1.6, 4.0);
-    if (popupModel) camera.add(popupModel);
 
     renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1246,17 +1223,7 @@ window.addEventListener('touchcancel', (e) => {
     }
 
     backgroundVideo.addEventListener('loadeddata', () => {
-        if (backgroundPlane) {
-            backgroundPlane.material.map = backgroundVideoTexture;
-            backgroundPlane.material.needsUpdate = true;
-        }
-    });
-
-    textureLoader.load('background.webp', (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        createBackgroundPlane(texture);
-    }, undefined, (err) => {
-        console.warn('Could not load background.webp:', err);
+            createBackgroundPlane(backgroundVideoTexture);
     });
 
             textureLoader.load('poster.webp', (texture) => {
@@ -3829,12 +3796,14 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
             });
         }
 function checkPopupTrigger() {
-    if (!popupModel || !backgroundPlane) return;
+    if (!popupModel || !camera) return;
 
-    // The ray hit is more reliable than checking the plane's center distance.
-    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-    const intersects = raycaster.intersectObject(backgroundPlane, true);
-    const isLookingAtBackground = intersects.length > 0;
+    let isLookingAtBackground = controls && controls.isLocked;
+    if (backgroundPlane) {
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+        const intersects = raycaster.intersectObject(backgroundPlane, true);
+        isLookingAtBackground = intersects.length > 0;
+    }
 
     if (hasPoppedUp) {
         if (!isLookingAtBackground) {
@@ -3842,7 +3811,6 @@ function checkPopupTrigger() {
             hasPoppedUp = false;
             stareTimer = 0;
             popupAnimationProgress = 0;
-            popupModel.position.set(0, -1.2, -1.5);
         }
         return;
     }
@@ -3850,7 +3818,9 @@ function checkPopupTrigger() {
     // 3. Stare Timer
     if (isLookingAtBackground) {
         if (stareTimer === 0) {
-            popupModel.position.set(0, -1.2, -1.5);
+            const forward = new THREE.Vector3();
+            camera.getWorldDirection(forward);
+            popupHitPoint.copy(camera.position).add(forward.multiplyScalar(1.5));
         }
 
         stareTimer += 0.016; 
@@ -3874,7 +3844,11 @@ function checkPopupTrigger() {
             popupAnimationProgress += 0.08; 
         }
 
-        popupModel.position.y = THREE.MathUtils.lerp(-1.2, 0, popupAnimationProgress);
+        const startPoint = popupHitPoint.clone();
+        startPoint.y -= 1.0;
+        popupModel.position.lerpVectors(startPoint, popupHitPoint, popupAnimationProgress);
+        popupModel.lookAt(camera.position);
+        popupModel.rotateY(Math.PI);
     }
 }
     </script>
