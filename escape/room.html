@@ -855,6 +855,12 @@ let popupEdgeStart = new THREE.Vector3();
 let popupEdgeEnd = new THREE.Vector3();
 let popupAnimationProgress = 0;
 let popupEdgeLogged = false;
+let popupCenterOffsetY = 0;
+let popupHeadOffsetY = 0;
+let popupTargetLocked = false;
+const popupMinimumHeadY = 1.1;
+const windowOpeningHalfWidth = 6.5;
+const windowOpeningHalfHeight = 1.25;
 
         let inspectRaycaster = new THREE.Raycaster();
         let isDragging = false;
@@ -1016,6 +1022,10 @@ loader.load('nobita.glb', (gltf) => {
     popupModel = gltf.scene;
     popupModel.scale.set(0.2, 0.2, 0.2);
     popupModel.position.set(5.0, 0, 3.0);
+    popupModel.updateMatrixWorld(true);
+    const popupBounds = new THREE.Box3().setFromObject(popupModel);
+    popupCenterOffsetY = popupBounds.getCenter(new THREE.Vector3()).y - popupModel.position.y;
+    popupHeadOffsetY = popupBounds.max.y - popupModel.position.y;
     popupModel.visible = false; // Hidden by default
     scene.add(popupModel);
 });
@@ -1222,6 +1232,10 @@ window.addEventListener('touchcancel', (e) => {
     backgroundVideo.setAttribute('aria-hidden', 'true');
     backgroundVideo.addEventListener('error', () => {
         console.warn('Could not load doublebackground.webm.');
+        textureLoader.load('background.webp', (texture) => {
+            texture.colorSpace = THREE.SRGBColorSpace;
+            createBackgroundPlane(texture);
+        });
     });
 
     const backgroundVideoTexture = new THREE.VideoTexture(backgroundVideo);
@@ -3462,8 +3476,6 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
                 }
             }
 
-checkPopupTrigger();
-
             if (!isZoomedToSafe && controls.isLocked) {
                 const currentSpeed = isCrouching ? 1.5 : 2.5;
                 const targetHeight = isCrouching ? 1.1 : 1.6;
@@ -3531,6 +3543,7 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 
             prevTime = time;
             composer.render();
+            checkPopupTrigger();
         }
 
         function loadKeyA() {
@@ -3840,44 +3853,64 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
             });
         }
 function checkPopupTrigger() {
-    if (!popupModel || !camera) return;
+    if (!popupModel || !camera || !backgroundPlane) return;
 
-    let isLookingAtBackground = controls && controls.isLocked;
-    if (backgroundPlane) {
-        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-        const intersects = raycaster.intersectObject(backgroundPlane, true);
-        isLookingAtBackground = intersects.length > 0;
+    const distance = camera.position.distanceTo(backgroundPlane.position);
+    if (distance > 3.5) {
+        stareTimer = 0;
+        hasPoppedUp = false;
+        popupModel.visible = false;
+        popupAnimationProgress = 0;
+        popupTargetLocked = false;
+        return;
     }
 
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+    const intersects = raycaster.intersectObject(backgroundPlane, true);
+    const isLookingAtBackground = (intersects.length > 0 && intersects[0].distance <= 3.5);
+    const backgroundHit = intersects[0];
+
     if (hasPoppedUp) {
-        if (!isLookingAtBackground) {
+        let isLookingAtPopup = true;
+        if (popupAnimationProgress >= 1) {
+            camera.updateMatrixWorld(true);
+            const cameraFrustum = new THREE.Frustum().setFromProjectionMatrix(
+                new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
+            );
+            const popupBounds = new THREE.Box3().setFromObject(popupModel);
+            isLookingAtPopup = cameraFrustum.intersectsBox(popupBounds);
+        }
+        if (!isLookingAtPopup) {
             popupModel.visible = false;
             hasPoppedUp = false;
             stareTimer = 0;
             popupAnimationProgress = 0;
             popupEdgeLogged = false;
+            popupTargetLocked = false;
             return;
         }
     } else {
         // 3. Stare Timer
-        if (isLookingAtBackground) {
-            if (stareTimer === 0) {
-                const forward = new THREE.Vector3();
-                camera.getWorldDirection(forward);
-                popupHitPoint.copy(camera.position).add(forward.multiplyScalar(1.5));
-            }
-
+        if (isLookingAtBackground || popupTargetLocked) {
             stareTimer += 0.016;
-            document.getElementById('message-box').innerText = `Staring... (${Math.ceil(5 - stareTimer)}s)`;
+
+            if (!popupTargetLocked && stareTimer >= 4.0 && backgroundHit) {
+                const crosshairRay = raycaster.ray.direction.clone().normalize();
+                popupHitPoint.copy(backgroundHit.point)
+                    .addScaledVector(crosshairRay, -0.45);
+                popupHitPoint.y = Math.max(popupHitPoint.y, popupMinimumHeadY);
+                popupTargetLocked = true;
+            }
 
             if (stareTimer >= 5.0) {
                 hasPoppedUp = true;
                 popupModel.visible = true;
-                document.getElementById('message-box').innerText = "Something emerged!";
+            
             }
         } else {
             stareTimer = 0;
-            document.getElementById('message-box').innerText = "";
+            popupTargetLocked = false;
+            
         }
     }
 
@@ -3889,11 +3922,14 @@ function checkPopupTrigger() {
             popupAnimationProgress += 0.08; 
         }
 
-        const startPoint = popupHitPoint.clone();
+        const targetPosition = popupHitPoint.clone();
+        targetPosition.y -= popupHeadOffsetY;
+        const startPoint = targetPosition.clone();
         startPoint.y -= 1.0;
-        popupModel.position.lerpVectors(startPoint, popupHitPoint, popupAnimationProgress);
-        popupModel.lookAt(camera.position);
-        popupModel.rotateY(Math.PI);
+        popupModel.position.lerpVectors(startPoint, targetPosition, popupAnimationProgress);
+        const facingDirection = camera.position.clone().sub(popupModel.position);
+        facingDirection.y = 0;
+        popupModel.rotation.y = Math.atan2(facingDirection.x, facingDirection.z) - Math.PI / 2;
 
         if (popupAnimationProgress >= 1 && !popupEdgeLogged) {
             logPopupBackgroundEdge();
