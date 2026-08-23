@@ -3825,14 +3825,18 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 
     // IF IT HAS NOT POPPED UP YET: Handle the 5-second stare timer
 // IF IT HAS NOT POPPED UP YET: Handle the 5-second stare timer
-    if (isLookingAtBackground) {
-        // If this is the first frame looking at it, save the exact crosshair hit point!
+if (isLookingAtBackground) {
+        // If this is the first frame looking at it, lock the position close to the player!
         if (stareTimer === 0) {
-            popupHitPoint.copy(intersects[0].point);
+            // Get the direction the camera is looking
+            const camDir = new THREE.Vector3();
+            camera.getWorldDirection(camDir);
             
-            // PUT IT HERE: It will only calculate and add the push-out offset once!
-            const pushOut = new THREE.Vector3(0, 0, 0.8).applyEuler(backgroundPlane.rotation);
-            popupHitPoint.add(pushOut);
+            // Place it 2.5 units directly in front of the player (close-up view)
+            popupHitPoint.copy(camera.position).add(camDir.multiplyScalar(2.5));
+            
+            // Keep its height aligned with the background/floor level so it pops up from below
+            popupHitPoint.y = backgroundPlane.position.y; 
         }
 
         // Accumulate time 
