@@ -268,7 +268,9 @@ body.mobile-device #mobile-performance-btn {
         }
 
         #inspect-overlay {
-            position: absolute;
+}, undefined, (err) => {
+    console.error('Could not load nobita.glb:', err);
+});
             top: 0;
             left: 0;
             width: 100%;
@@ -1007,8 +1009,7 @@ document.querySelectorAll('#inventory .inventory-slot').forEach((slot, slotIndex
     });
 });
 
-    const loader = new GLTFLoader();
-loader.load('nobita.glb', (gltf) => {
+    globalGltfLoader.load('nobita.glb', (gltf) => {
     popupModel = gltf.scene;
     popupModel.updateMatrixWorld(true);
     const popupBounds = new THREE.Box3().setFromObject(popupModel);
@@ -1208,7 +1209,11 @@ window.addEventListener('touchcancel', (e) => {
         console.warn(`Could not autoplay doublebackground.webm: ${err.message}`);
     });
 
-    backgroundVideo.addEventListener('loadeddata', () => {
+    let backgroundPlaneCreated = false;
+    function createBackgroundPlane(texture) {
+        if (backgroundPlaneCreated) return;
+        backgroundPlaneCreated = true;
+
         // Increased segments to 96 for a super smooth curve
         const bgGeometry = new THREE.PlaneGeometry(14, 3.9, 96, 1);
         const bgPositions = bgGeometry.attributes.position;
@@ -1220,7 +1225,7 @@ window.addEventListener('touchcancel', (e) => {
         bgPositions.needsUpdate = true;
         bgGeometry.computeVertexNormals();
 
-        const bgMaterial = new THREE.MeshBasicMaterial({ map: backgroundVideoTexture, side: THREE.DoubleSide });
+        const bgMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
         backgroundPlane = new THREE.Mesh(bgGeometry, bgMaterial);
         backgroundPlane.castShadow = false;
         backgroundPlane.receiveShadow = false;
@@ -1238,6 +1243,20 @@ window.addEventListener('touchcancel', (e) => {
         };
         interactables.push(backgroundPlane);
         scene.add(backgroundPlane);
+    }
+
+    backgroundVideo.addEventListener('loadeddata', () => {
+        if (backgroundPlane) {
+            backgroundPlane.material.map = backgroundVideoTexture;
+            backgroundPlane.material.needsUpdate = true;
+        }
+    });
+
+    textureLoader.load('background.webp', (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        createBackgroundPlane(texture);
+    }, undefined, (err) => {
+        console.warn('Could not load background.webp:', err);
     });
 
             textureLoader.load('poster.webp', (texture) => {
