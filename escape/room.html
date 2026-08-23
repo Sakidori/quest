@@ -1008,8 +1008,8 @@ document.querySelectorAll('#inventory .inventory-slot').forEach((slot, slotIndex
     const loader = new GLTFLoader();
 loader.load('nobita.glb', (gltf) => {
     popupModel = gltf.scene;
-    popupModel.scale.set(1, 1, 1); // Adjust scale as needed
-    popupModel.position.set(5.0, 2.0, 3.0); // Place it near the background view
+    popupModel.scale.set(0.2, 0.2, 0.2); // Adjust scale as needed
+    popupModel.position.set(5.0, 0, 3.0); // Place it near the background view
     popupModel.visible = false; // Hidden by default
     scene.add(popupModel);
 });
@@ -3790,7 +3790,7 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 
     // 1. Distance check (e.g., within 3 units of the background plane)
     const distance = camera.position.distanceTo(backgroundPlane.position);
-    if (distance > 10.0) return;
+    if (distance > 5.0) return;
 
     // 2. Gaze check: Are we looking roughly toward the background?
     // Get camera's forward direction vector
