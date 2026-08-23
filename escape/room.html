@@ -3788,58 +3788,43 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
             function checkPopupTrigger() {
     if (!popupModel || hasTriggeredPopup || !backgroundPlane) return;
 
-    // 1. Distance check: Is the player close to the background?
+    // 1. Distance check: Is the player close enough to the background?
     const distance = camera.position.distanceTo(backgroundPlane.position);
     if (distance > 3.5) return;
 
-    // 2. Direct view check (NO WALLS): Raycast from camera to background plane
-    raycaster.set(camera.position, backgroundPlane.position.clone().sub(camera.position).normalize());
-    const intersects = raycaster.intersectObjects(scene.children, true);
-    
-    // If something (like a wall) is closer than the background, block the trigger
-    if (intersects.length > 0) {
-        const hitDistance = intersects[0].distance;
-        const bgDistance = camera.position.distanceTo(backgroundPlane.position);
-        // Allow a small tolerance (0.5 units) in case it hits the background mesh itself
-        if (hitDistance < bgDistance - 0.5) {
-            return; // A wall is blocking the view!
-        }
-    }
+    // 2. Direct Crosshair Check: Shoot a ray straight out of the center of the camera (0,0)
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+    const intersects = raycaster.intersectObject(backgroundPlane, true);
 
-    // 3. Gaze check: Is the player directly staring at the background?
-    const cameraDirection = new THREE.Vector3();
-    camera.getWorldDirection(cameraDirection);
-
-    const toBackground = new THREE.Vector3();
-    toBackground.subVectors(backgroundPlane.position, camera.position).normalize();
-
-    const dotProduct = cameraDirection.dot(toBackground);
-    const crossY = cameraDirection.x * toBackground.z - cameraDirection.z * toBackground.x;
-
-    // Fires when looking directly at it (dotProduct > 0.7 means within a ~45-degree cone)
-    if (dotProduct > 0.7) {
+    // If the background plane is the exact object currently hit by the center crosshair
+    if (intersects.length > 0 && intersects[0].distance <= 3.5) {
         hasTriggeredPopup = true;
+
+        // Calculate view orientation to position it on the left or right side of the background
+        const cameraDirection = new THREE.Vector3();
+        camera.getWorldDirection(cameraDirection);
+        const toBackground = new THREE.Vector3();
+        toBackground.subVectors(backgroundPlane.position, camera.position).normalize();
+        const crossY = cameraDirection.x * toBackground.z - cameraDirection.z * toBackground.x;
 
         // Base position at the background plane
         popupModel.position.copy(backgroundPlane.position);
 
-        // Position it further out to the left or right side of the background so it's clearly visible
+        // Offset to the left or right side of the background
         const sideOffset = new THREE.Vector3();
         if (crossY > 0) {
-            sideOffset.set(-4.0, 0, 0).applyEuler(backgroundPlane.rotation); // Further left
+            sideOffset.set(-4.0, 0, 0).applyEuler(backgroundPlane.rotation);
         } else {
-            sideOffset.set(4.0, 0, 0).applyEuler(backgroundPlane.rotation);  // Further right
+            sideOffset.set(4.0, 0, 0).applyEuler(backgroundPlane.rotation);
         }
         popupModel.position.add(sideOffset);
         
-        // Adjust height if needed (e.g., ground level)
+        // Ground/plane level alignment
         popupModel.position.y = backgroundPlane.position.y - 1.0; 
 
-        // Make the model face the player
+        // Face the player properly
         popupModel.lookAt(camera.position.x, popupModel.position.y, camera.position.z);
-        
-        // Flips the model 180 degrees so it stops facing backward (change if needed)
-        popupModel.rotateY(Math.PI); 
+        popupModel.rotateY(Math.PI); // Flips 180 degrees if model faces backward
 
         popupModel.visible = true;
         document.getElementById('message-box').innerText = "Something is watching you!";
