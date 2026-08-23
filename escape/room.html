@@ -847,6 +847,8 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
         let inspectMixer = null; 
         let inspectActions = [];
         
+        let popupModel = null;
+        let hasTriggeredPopup = false;
 
         let inspectRaycaster = new THREE.Raycaster();
         let isDragging = false;
@@ -1002,6 +1004,16 @@ document.querySelectorAll('#inventory .inventory-slot').forEach((slot, slotIndex
         }
     });
 });
+
+    const loader = new GLTFLoader();
+loader.load('nobita.glb', (gltf) => {
+    popupModel = gltf.scene;
+    popupModel.scale.set(1, 1, 1); // Adjust scale as needed
+    popupModel.position.set(5.0, 2.0, 3.0); // Place it near the background view
+    popupModel.visible = false; // Hidden by default
+    scene.add(popupModel);
+});
+
 
 function activateAllKeys() {
     gameState.hasKeyA = true;
@@ -3395,6 +3407,35 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
                     }
                 }
             }
+
+            function checkPopupTrigger() {
+    if (!popupModel || hasTriggeredPopup || !backgroundPlane) return;
+
+    // 1. Distance check (e.g., within 3 units of the background plane)
+    const distance = camera.position.distanceTo(backgroundPlane.position);
+    if (distance > 3.0) return;
+
+    // 2. Gaze check: Are we looking roughly toward the background?
+    // Get camera's forward direction vector
+    const cameraDirection = new THREE.Vector3();
+    camera.getWorldDirection(cameraDirection);
+
+    // Get vector from camera to the background plane
+    const toBackground = new THREE.Vector3();
+    toBackground.subVectors(backgroundPlane.position, camera.position).normalize();
+
+    // Dot product close to 1 means the camera is facing directly at it
+    const dotProduct = cameraDirection.dot(toBackground);
+
+    if (dotProduct > 0.7) { // 0.7 means looking within roughly a 45-degree cone
+        hasTriggeredPopup = true;
+        popupModel.visible = true; // Reveal the model!
+        
+        // Optional: Play a sound effect or trigger a message
+        //playSfx('popup'); // Assuming you have a sound effect function
+        document.getElementById('message-box').innerText = "Something appeared!";
+    }
+}
 
             if (!isZoomedToSafe && controls.isLocked) {
                 const currentSpeed = isCrouching ? 1.5 : 2.5;
