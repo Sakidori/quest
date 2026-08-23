@@ -851,7 +851,10 @@ let popupModel = null;
 let stareTimer = 0;
 let hasPoppedUp = false;
 let popupHitPoint = new THREE.Vector3();
+let popupEdgeStart = new THREE.Vector3();
+let popupEdgeEnd = new THREE.Vector3();
 let popupAnimationProgress = 0;
+let popupEdgeLogged = false;
 
         let inspectRaycaster = new THREE.Raycaster();
         let isDragging = false;
@@ -1026,6 +1029,47 @@ function activateAllKeys() {
     document.getElementById('slot-2').innerHTML = '🔑C';
     document.querySelectorAll('#inventory .inventory-slot').forEach((slot) => slot.classList.add('active'));
     document.getElementById('message-box').innerText = 'Cheat activated: all keys obtained!';
+}
+
+function logPopupBackgroundEdge() {
+    if (!popupModel || !camera) return;
+
+    popupModel.updateMatrixWorld(true);
+    const bounds = new THREE.Box3().setFromObject(popupModel);
+    const corners = [
+        new THREE.Vector3(bounds.min.x, bounds.min.y, bounds.min.z),
+        new THREE.Vector3(bounds.min.x, bounds.min.y, bounds.max.z),
+        new THREE.Vector3(bounds.min.x, bounds.max.y, bounds.min.z),
+        new THREE.Vector3(bounds.min.x, bounds.max.y, bounds.max.z),
+        new THREE.Vector3(bounds.max.x, bounds.min.y, bounds.min.z),
+        new THREE.Vector3(bounds.max.x, bounds.min.y, bounds.max.z),
+        new THREE.Vector3(bounds.max.x, bounds.max.y, bounds.min.z),
+        new THREE.Vector3(bounds.max.x, bounds.max.y, bounds.max.z)
+    ];
+    const backgroundDirection = backgroundPlane
+        ? backgroundPlane.position.clone().sub(camera.position).normalize()
+        : camera.getWorldDirection(new THREE.Vector3());
+    const backgroundTangent = new THREE.Vector3(1, 0, 0)
+        .applyQuaternion(backgroundPlane?.quaternion || camera.quaternion)
+        .normalize();
+    const edgeDepth = Math.max(...corners.map((corner) =>
+        corner.clone().sub(camera.position).dot(backgroundDirection)));
+    const edgeCorners = corners.filter((corner) =>
+        Math.abs(corner.clone().sub(camera.position).dot(backgroundDirection) - edgeDepth) < 0.0001
+    );
+    const edgeCenter = edgeCorners.reduce((sum, corner) => sum.add(corner), new THREE.Vector3())
+        .multiplyScalar(1 / edgeCorners.length);
+    const edgeHalfLength = Math.max(...edgeCorners.map((corner) =>
+        Math.abs(corner.clone().sub(edgeCenter).dot(backgroundTangent))
+    ));
+    popupEdgeStart.copy(edgeCenter).addScaledVector(backgroundTangent, -edgeHalfLength);
+    popupEdgeEnd.copy(edgeCenter).addScaledVector(backgroundTangent, edgeHalfLength);
+
+    console.log('Nobita edge closest to background:', {
+        start: { x: popupEdgeStart.x, y: popupEdgeStart.y, z: popupEdgeStart.z },
+        end: { x: popupEdgeEnd.x, y: popupEdgeEnd.y, z: popupEdgeEnd.z },
+        distanceFromPlayer: edgeCenter.distanceTo(camera.position)
+    });
 }
 
 document.getElementById('mobile-crouch-btn').addEventListener('click', (event) => {
@@ -3811,29 +3855,30 @@ function checkPopupTrigger() {
             hasPoppedUp = false;
             stareTimer = 0;
             popupAnimationProgress = 0;
-        }
-        return;
-    }
-
-    // 3. Stare Timer
-    if (isLookingAtBackground) {
-        if (stareTimer === 0) {
-            const forward = new THREE.Vector3();
-            camera.getWorldDirection(forward);
-            popupHitPoint.copy(camera.position).add(forward.multiplyScalar(1.5));
-        }
-
-        stareTimer += 0.016; 
-        document.getElementById('message-box').innerText = `Staring... (${Math.ceil(5 - stareTimer)}s)`;
-
-        if (stareTimer >= 5.0) {
-            hasPoppedUp = true;
-            popupModel.visible = true;
-            document.getElementById('message-box').innerText = "Something emerged!";
+            popupEdgeLogged = false;
+            return;
         }
     } else {
-        stareTimer = 0;
-        document.getElementById('message-box').innerText = "";
+        // 3. Stare Timer
+        if (isLookingAtBackground) {
+            if (stareTimer === 0) {
+                const forward = new THREE.Vector3();
+                camera.getWorldDirection(forward);
+                popupHitPoint.copy(camera.position).add(forward.multiplyScalar(1.5));
+            }
+
+            stareTimer += 0.016;
+            document.getElementById('message-box').innerText = `Staring... (${Math.ceil(5 - stareTimer)}s)`;
+
+            if (stareTimer >= 5.0) {
+                hasPoppedUp = true;
+                popupModel.visible = true;
+                document.getElementById('message-box').innerText = "Something emerged!";
+            }
+        } else {
+            stareTimer = 0;
+            document.getElementById('message-box').innerText = "";
+        }
     }
 
     // 4. Pop-up animation
@@ -3849,6 +3894,11 @@ function checkPopupTrigger() {
         popupModel.position.lerpVectors(startPoint, popupHitPoint, popupAnimationProgress);
         popupModel.lookAt(camera.position);
         popupModel.rotateY(Math.PI);
+
+        if (popupAnimationProgress >= 1 && !popupEdgeLogged) {
+            logPopupBackgroundEdge();
+            popupEdgeLogged = true;
+        }
     }
 }
     </script>
