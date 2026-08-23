@@ -3824,16 +3824,18 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
     }
 
     // IF IT HAS NOT POPPED UP YET: Handle the 5-second stare timer
+// IF IT HAS NOT POPPED UP YET: Handle the 5-second stare timer
     if (isLookingAtBackground) {
         // If this is the first frame looking at it, save the exact crosshair hit point!
         if (stareTimer === 0) {
             popupHitPoint.copy(intersects[0].point);
-        }
-const pushOut = new THREE.Vector3(0, 0, 0.8).applyEuler(backgroundPlane.rotation);
+            
+            // PUT IT HERE: It will only calculate and add the push-out offset once!
+            const pushOut = new THREE.Vector3(0, 0, 0.8).applyEuler(backgroundPlane.rotation);
             popupHitPoint.add(pushOut);
         }
-        // Accumulate time (delta is handled in animate, or we can use a standard performance tick)
-        // Since animate runs every frame (~60fps), adding 1/60th of a second per frame:
+
+        // Accumulate time 
         stareTimer += 0.016; 
 
         document.getElementById('message-box').innerText = `Staring... (${Math.ceil(5 - stareTimer)}s)`;
