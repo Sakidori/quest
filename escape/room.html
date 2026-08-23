@@ -847,9 +847,10 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
         let inspectMixer = null; 
         let inspectActions = [];
         
-        let popupModel = null;
-        let hasTriggeredPopup = false;
-        let popupAnimationProgress = 0;
+let stareTimer = 0;
+let hasPoppedUp = false;
+let popupHitPoint = new THREE.Vector3(); // Stores the locked crosshair location
+let popupAnimationProgress = 0;
 
         let inspectRaycaster = new THREE.Raycaster();
         let isDragging = false;
@@ -3786,53 +3787,85 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
                 console.warn('Could not load notebook.glb:', err);
             });
         }
-           function checkPopupTrigger() {
+          function checkPopupTrigger() {
     if (!popupModel || !backgroundPlane) return;
 
     // 1. Distance check: Is the player close enough to the background?
     const distance = camera.position.distanceTo(backgroundPlane.position);
     if (distance > 3.5) {
+        // If player walks away, reset everything
+        stareTimer = 0;
+        hasPoppedUp = false;
         popupModel.visible = false;
         popupAnimationProgress = 0;
         return;
     }
 
-    // 2. Direct Crosshair Check: Is the background plane centered in the screen?
+    // 2. Direct Crosshair Check: Find out if the player is currently looking at the background
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
     const intersects = raycaster.intersectObject(backgroundPlane, true);
     const isLookingAtBackground = (intersects.length > 0 && intersects[0].distance <= 3.5);
 
-    if (isLookingAtBackground) {
-        popupModel.visible = true;
+    // IF IT ALREADY POPPED UP: Check if player's view is away from the model
+    if (hasPoppedUp) {
+        // Check if player is still looking at the popup model itself
+        const popupIntersects = raycaster.intersectObject(popupModel, true);
+        const isLookingAtPopup = (popupIntersects.length > 0);
 
-        // Get where the player is currently looking straight ahead from the camera
-        const camDir = new THREE.Vector3();
-        camera.getWorldDirection(camDir);
-
-        // Place the target position right in front of the camera's view, near the background distance
-        let targetPosition = camera.position.clone().add(camDir.multiplyScalar(2.2));
-
-        // Define ground level (hidden below) and target height (right at your eye/crosshair level or slightly below)
-        const groundY = backgroundPlane.position.y - 2.5; // Starts low on the floor
-        const targetY = backgroundPlane.position.y - 0.8; // Popped up nicely in view
-
-        // Smoothly animate (pop up) from the ground
-        if (popupAnimationProgress < 1) {
-            popupAnimationProgress += 0.08; // Pop-up speed
+        // If the player looks away from the model entirely, make it disappear
+        if (!isLookingAtPopup && !isLookingAtBackground) {
+            popupModel.visible = false;
+            // Optional: if you want it to stay gone forever once looked away, leave it. 
+            // If you want it to reset so it can happen again, uncomment the line below:
+            // hasPoppedUp = false; stareTimer = 0; popupAnimationProgress = 0;
         }
-        targetPosition.y = THREE.MathUtils.lerp(groundY, targetY, popupAnimationProgress);
+        return;
+    }
 
-        popupModel.position.copy(targetPosition);
+    // IF IT HAS NOT POPPED UP YET: Handle the 5-second stare timer
+    if (isLookingAtBackground) {
+        // If this is the first frame looking at it, save the exact crosshair hit point!
+        if (stareTimer === 0) {
+            popupHitPoint.copy(intersects[0].point);
+        }
 
-        // Force the model to face directly toward the player so it's never backwards
-        popupModel.lookAt(camera.position.x, popupModel.position.y, camera.position.z);
-        popupModel.rotateY(Math.PI); // Flips it if the front/back of your specific model is inverted
+        // Accumulate time (delta is handled in animate, or we can use a standard performance tick)
+        // Since animate runs every frame (~60fps), adding 1/60th of a second per frame:
+        stareTimer += 0.016; 
 
-        document.getElementById('message-box').innerText = "Something emerged!";
+        document.getElementById('message-box').innerText = `Staring... (${Math.ceil(5 - stareTimer)}s)`;
+
+        // After 5 seconds of continuous staring... POP UP!
+        if (stareTimer >= 5.0) {
+            hasPoppedUp = true;
+            popupModel.visible = true;
+            document.getElementById('message-box').innerText = "Something emerged!";
+        }
     } else {
-        // If the player looks away, hide it and reset
-        popupModel.visible = false;
-        popupAnimationProgress = 0;
+        // If the player looks away before 5 seconds, reset the timer
+        stareTimer = 0;
+        document.getElementById('message-box').innerText = "";
+    }
+
+    // HANDLE THE POP-UP ANIMATION (When triggered)
+    if (hasPoppedUp) {
+        // Ground level starts lower than the locked crosshair hit point
+        const groundY = popupHitPoint.y - 2.0; 
+        const targetY = popupHitPoint.y;     
+
+        // Smoothly animate (pop up) from below to the locked crosshair location
+        if (popupAnimationProgress < 1) {
+            popupAnimationProgress += 0.05; // Speed of the pop-up
+        }
+
+        let currentPos = popupHitPoint.clone();
+        currentPos.y = THREE.MathUtils.lerp(groundY, targetY, popupAnimationProgress);
+        
+        popupModel.position.copy(currentPos);
+
+        // Face the player directly
+        popupModel.lookAt(camera.position.x, camera.position.y, camera.position.z);
+        popupModel.rotateY(Math.PI); // Flips it if your model's front is inverted
     }
 }
     </script>
