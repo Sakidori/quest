@@ -3408,34 +3408,7 @@ if (highlightedObject.userData && typeof highlightedObject.userData.action === '
                 }
             }
 
-            function checkPopupTrigger() {
-    if (!popupModel || hasTriggeredPopup || !backgroundPlane) return;
-
-    // 1. Distance check (e.g., within 3 units of the background plane)
-    const distance = camera.position.distanceTo(backgroundPlane.position);
-    if (distance > 3.0) return;
-
-    // 2. Gaze check: Are we looking roughly toward the background?
-    // Get camera's forward direction vector
-    const cameraDirection = new THREE.Vector3();
-    camera.getWorldDirection(cameraDirection);
-
-    // Get vector from camera to the background plane
-    const toBackground = new THREE.Vector3();
-    toBackground.subVectors(backgroundPlane.position, camera.position).normalize();
-
-    // Dot product close to 1 means the camera is facing directly at it
-    const dotProduct = cameraDirection.dot(toBackground);
-
-    if (dotProduct > 0.7) { // 0.7 means looking within roughly a 45-degree cone
-        hasTriggeredPopup = true;
-        popupModel.visible = true; // Reveal the model!
-        
-        // Optional: Play a sound effect or trigger a message
-        //playSfx('popup'); // Assuming you have a sound effect function
-        document.getElementById('message-box').innerText = "Something appeared!";
-    }
-}
+checkPopupTrigger();
 
             if (!isZoomedToSafe && controls.isLocked) {
                 const currentSpeed = isCrouching ? 1.5 : 2.5;
@@ -3812,7 +3785,34 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
                 console.warn('Could not load notebook.glb:', err);
             });
         }
+            function checkPopupTrigger() {
+    if (!popupModel || hasTriggeredPopup || !backgroundPlane) return;
 
+    // 1. Distance check (e.g., within 3 units of the background plane)
+    const distance = camera.position.distanceTo(backgroundPlane.position);
+    if (distance > 10.0) return;
+
+    // 2. Gaze check: Are we looking roughly toward the background?
+    // Get camera's forward direction vector
+    const cameraDirection = new THREE.Vector3();
+    camera.getWorldDirection(cameraDirection);
+
+    // Get vector from camera to the background plane
+    const toBackground = new THREE.Vector3();
+    toBackground.subVectors(backgroundPlane.position, camera.position).normalize();
+
+    // Dot product close to 1 means the camera is facing directly at it
+    const dotProduct = cameraDirection.dot(toBackground);
+
+    if (dotProduct > 0.7) { // 0.7 means looking within roughly a 45-degree cone
+        hasTriggeredPopup = true;
+        popupModel.visible = true; // Reveal the model!
+        
+        // Optional: Play a sound effect or trigger a message
+        //playSfx('popup'); // Assuming you have a sound effect function
+        document.getElementById('message-box').innerText = "Something appeared!";
+    }
+}
 
 
     </script>
