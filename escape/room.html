@@ -3786,48 +3786,48 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
             });
         }
             function checkPopupTrigger() {
-    if (!popupModel || hasTriggeredPopup || !backgroundPlane) return;
+    if (!popupModel || !backgroundPlane) return;
 
     // 1. Distance check: Is the player close enough to the background?
     const distance = camera.position.distanceTo(backgroundPlane.position);
-    if (distance > 3.5) return;
+    
+    // If the player walks away or gets too far, hide it immediately
+    if (distance > 3.5) {
+        popupModel.visible = false;
+        return;
+    }
 
-    // 2. Direct Crosshair Check: Shoot a ray straight out of the center of the camera (0,0)
+    // 2. Direct Crosshair Check: Is the background dead-center in the crosshairs?
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
     const intersects = raycaster.intersectObject(backgroundPlane, true);
 
-    // If the background plane is the exact object currently hit by the center crosshair
-    if (intersects.length > 0 && intersects[0].distance <= 3.5) {
-        hasTriggeredPopup = true;
+    // Check if the player is currently staring right at the background
+    const isLookingAtBackground = (intersects.length > 0 && intersects[0].distance <= 3.5);
 
-        // Calculate view orientation to position it on the left or right side of the background
-        const cameraDirection = new THREE.Vector3();
-        camera.getWorldDirection(cameraDirection);
-        const toBackground = new THREE.Vector3();
-        toBackground.subVectors(backgroundPlane.position, camera.position).normalize();
-        const crossY = cameraDirection.x * toBackground.z - cameraDirection.z * toBackground.x;
-
-        // Base position at the background plane
+    if (isLookingAtBackground) {
+        // Position the model near the background
         popupModel.position.copy(backgroundPlane.position);
+        popupModel.position.x -= 1.5; // Step into the room
 
-        // Offset to the left or right side of the background
-        const sideOffset = new THREE.Vector3();
-        if (crossY > 0) {
-            sideOffset.set(-4.0, 0, 0).applyEuler(backgroundPlane.rotation);
+        // Side placement based on player position relative to the window
+        if (camera.position.z > backgroundPlane.position.z) {
+            popupModel.position.z -= 2.0; 
         } else {
-            sideOffset.set(4.0, 0, 0).applyEuler(backgroundPlane.rotation);
+            popupModel.position.z += 2.0; 
         }
-        popupModel.position.add(sideOffset);
-        
-        // Ground/plane level alignment
+
         popupModel.position.y = backgroundPlane.position.y - 1.0; 
 
-        // Face the player properly
+        // Face the player
         popupModel.lookAt(camera.position.x, popupModel.position.y, camera.position.z);
-        popupModel.rotateY(Math.PI); // Flips 180 degrees if model faces backward
+        popupModel.rotateY(Math.PI); // Adjust if your model's front is backward
 
+        // Show the model
         popupModel.visible = true;
         document.getElementById('message-box').innerText = "Something is watching you!";
+    } else {
+        // If the player looks away, hide the model again!
+        popupModel.visible = false;
     }
 }
     </script>
