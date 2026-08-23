@@ -1156,24 +1156,25 @@ window.addEventListener('touchcancel', (e) => {
 
     const textureLoader = new THREE.TextureLoader();
     const backgroundVideo = document.createElement('video');
-    backgroundVideo.src = 'widebackground.webm';
+    backgroundVideo.src = 'doublebackground.webm';
     backgroundVideo.loop = true;
     backgroundVideo.muted = true;
     backgroundVideo.autoplay = true;
     backgroundVideo.playsInline = true;
     backgroundVideo.setAttribute('aria-hidden', 'true');
     backgroundVideo.addEventListener('error', () => {
-        console.warn('Could not load widebackground.webm.');
+        console.warn('Could not load doublebackground.webm.');
     });
 
     const backgroundVideoTexture = new THREE.VideoTexture(backgroundVideo);
     backgroundVideoTexture.colorSpace = THREE.SRGBColorSpace;
     backgroundVideo.play().catch((err) => {
-        console.warn(`Could not autoplay widebackground.webm: ${err.message}`);
+        console.warn(`Could not autoplay doublebackground.webm: ${err.message}`);
     });
 
     backgroundVideo.addEventListener('loadeddata', () => {
-        const bgGeometry = new THREE.PlaneGeometry(21, 3.9, 72, 1);
+        // Increased segments to 96 for a super smooth curve
+        const bgGeometry = new THREE.PlaneGeometry(14, 3.9, 96, 1);
         const bgPositions = bgGeometry.attributes.position;
         const bendRadius = 24;
         for (let i = 0; i < bgPositions.count; i++) {
@@ -1187,7 +1188,9 @@ window.addEventListener('touchcancel', (e) => {
         backgroundPlane = new THREE.Mesh(bgGeometry, bgMaterial);
         backgroundPlane.castShadow = false;
         backgroundPlane.receiveShadow = false;
-        backgroundPlane.position.set(5.7, 1.2, 0);
+        
+        // Shifted further right (increased Z from 3.5 to 5.5). Adjust this number if you want it even further right.
+        backgroundPlane.position.set(5.7, 1.2, 1);
         backgroundPlane.rotation.y = -Math.PI / 2; 
         backgroundPlane.userData = {
             name: 'Outside View',
@@ -1200,7 +1203,6 @@ window.addEventListener('touchcancel', (e) => {
         interactables.push(backgroundPlane);
         scene.add(backgroundPlane);
     });
-
 
             textureLoader.load('poster.webp', (texture) => {
                 const posterGeometry = new THREE.PlaneGeometry(0.5, 0.5);
