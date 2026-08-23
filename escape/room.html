@@ -3829,7 +3829,9 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
         if (stareTimer === 0) {
             popupHitPoint.copy(intersects[0].point);
         }
-
+const pushOut = new THREE.Vector3(0, 0, 0.8).applyEuler(backgroundPlane.rotation);
+            popupHitPoint.add(pushOut);
+        }
         // Accumulate time (delta is handled in animate, or we can use a standard performance tick)
         // Since animate runs every frame (~60fps), adding 1/60th of a second per frame:
         stareTimer += 0.016; 
