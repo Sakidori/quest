@@ -673,7 +673,7 @@ body.mobile-device #mobile-performance-btn {
 
         function playRoomMusic() {
             bgMusic.src = roomTrack.src;
-            bgMusic.volume = 1;
+            bgMusic.volume = 0.3;
             bgMusic.play().then(() => {
                 playPauseButton.textContent = '❚❚';
             }).catch(() => {
@@ -2411,7 +2411,7 @@ window.addEventListener('keydown', (event) => {
                 tvModel.add(tvScreenMesh);
                 const tvAction = () => {
                     document.getElementById('message-box').innerText = gameState.tvOn
-                        ? 'Who is this character again?.'
+                        ? 'Who is this character again?'
                         : 'Where is the remote?';
                 };
                 tvScreenMesh.userData = {
