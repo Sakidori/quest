@@ -3854,23 +3854,32 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 
     // HANDLE THE POP-UP ANIMATION (When triggered)
     if (hasPoppedUp) {
-        // Ground level starts lower than the locked crosshair hit point
-        const groundY = popupHitPoint.y - 2.0; 
-        const targetY = popupHitPoint.y;     
+        // Make sure it's visible
+        popupModel.visible = true;
 
-        // Smoothly animate (pop up) from below to the locked crosshair location
+        // Ground level starts 2 units below the exact crosshair hit point
+        const groundY = popupHitPoint.y - 2.0; 
+        const targetY = popupHitPoint.y;     // Rises directly to where your crosshairs were!
+
+        // Smoothly animate (pop up) from below every single frame
         if (popupAnimationProgress < 1) {
             popupAnimationProgress += 0.05; // Speed of the pop-up
         }
 
+        // Calculate current animated position
         let currentPos = popupHitPoint.clone();
         currentPos.y = THREE.MathUtils.lerp(groundY, targetY, popupAnimationProgress);
         
         popupModel.position.copy(currentPos);
 
-        // Face the player directly
-        popupModel.lookAt(camera.position.x, camera.position.y, camera.position.z);
-        popupModel.rotateY(Math.PI); // Flips it if your model's front is inverted
+        // --- FIXED FACING DIRECTION ---
+        // Look directly at the camera/player
+        popupModel.lookAt(camera.position.x, popupModel.position.y, camera.position.z);
+        
+        // If it's still facing backward or sideways, change Math.PI to 0, Math.PI / 2, or -Math.PI / 2 
+        // depending on how your model was exported. Let's try matching the background rotation 
+        // combined with a clean lookAt, or adjust the offset below:
+        popupModel.rotateY(Math.PI); 
     }
 }
     </script>
