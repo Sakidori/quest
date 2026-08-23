@@ -3043,7 +3043,16 @@ if (child.isMesh && nameLower === 'lockerdoor') {
                         const isGlobePart = /^cylinder056$/i.test(child.name);
                         const isPenCasePart = /^cylinder025$/i.test(child.name);
 
-                        if (nameLower.includes('bus') || isBusAtKnownPosition) {
+                        if (child.name.toLowerCase() === 'blue_book') {
+                            child.userData = {
+                                name: 'Blue Book',
+                                type: 'roomInfo',
+                                action: () => {
+                                    document.getElementById('message-box').innerText = "Don't stand by the window and look outside for 5 seconds...";
+                                }
+                            };
+                            interactables.push(child);
+                        } else if (nameLower.includes('bus') || isBusAtKnownPosition) {
                             child.userData = {
                                 name: 'Toy Bus',
                                 type: 'roomInfo',
