@@ -3791,7 +3791,7 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 function checkPopupTrigger() {
     if (!popupModel || !backgroundPlane) return;
 
-    // 1. Distance check: Is the player close enough to the background?
+    // 1. Distance check to the background
     const distance = camera.position.distanceTo(backgroundPlane.position);
     if (distance > 3.5) {
         stareTimer = 0;
@@ -3801,12 +3801,11 @@ function checkPopupTrigger() {
         return;
     }
 
-    // 2. Direct Crosshair Check: Is the background centered in the screen?
+    // 2. Crosshair check on the background
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
     const intersects = raycaster.intersectObject(backgroundPlane, true);
     const isLookingAtBackground = (intersects.length > 0 && intersects[0].distance <= 3.5);
 
-    // IF IT ALREADY POPPED UP: Stay locked there until you look away
     if (hasPoppedUp) {
         if (!isLookingAtBackground) {
             popupModel.visible = false;
@@ -3814,21 +3813,24 @@ function checkPopupTrigger() {
         return;
     }
 
-    // IF IT HAS NOT POPPED UP YET: Handle the 5-second stare timer
+    // 3. Stare Timer
     if (isLookingAtBackground) {
-        // On the very first frame of looking, lock the position right in front of the crosshairs
         if (stareTimer === 0) {
-            const camDir = new THREE.Vector3();
-            camera.getWorldDirection(camDir);
+            // DIRECT SCREEN-CENTER PLACEMENT:
+            // Get the camera's position, forward direction, and down vector
+            const forward = new THREE.Vector3();
+            const down = new THREE.Vector3(0, -1, 0);
+            camera.getWorldDirection(forward);
 
-            // Place it precisely along the crosshair view vector, very close (1.2 units away)
-            popupHitPoint.copy(camera.position).add(camDir.multiplyScalar(1.2));
+            // Calculate a point 1.2 units strictly in front of the player's face, shifted slightly down
+            popupHitPoint.copy(camera.position)
+                .add(forward.multiplyScalar(1.2)) // 1.2 units forward (right in your crosshairs)
+                .add(down.multiplyScalar(0.4));   // Slightly below center so it can pop up
         }
 
         stareTimer += 0.016; 
         document.getElementById('message-box').innerText = `Staring... (${Math.ceil(5 - stareTimer)}s)`;
 
-        // After 5 seconds: Trigger the pop-up
         if (stareTimer >= 5.0) {
             hasPoppedUp = true;
             popupModel.visible = true;
@@ -3839,15 +3841,14 @@ function checkPopupTrigger() {
         document.getElementById('message-box').innerText = "";
     }
 
-    // HANDLE THE POP-UP ANIMATION FROM BELOW
+    // 4. Pop-up animation
     if (hasPoppedUp) {
         popupModel.visible = true;
 
-        // Ground level starts lower than the locked crosshair point
-        const groundY = popupHitPoint.y - 1.5; 
+        // Ground/start position is lower than the locked target point
+        const groundY = popupHitPoint.y - 1.0; 
         const targetY = popupHitPoint.y;     
 
-        // Smoothly animate upward
         if (popupAnimationProgress < 1) {
             popupAnimationProgress += 0.08; 
         }
@@ -3857,9 +3858,9 @@ function checkPopupTrigger() {
         
         popupModel.position.copy(currentPos);
 
-        // Make sure it faces the player directly
-        popupModel.lookAt(camera.position.x, popupModel.position.y, camera.position.z);
-        popupModel.rotateY(Math.PI); // Flips model if it faces backward
+        // Face the player
+        popupModel.lookAt(camera.position.x, camera.position.y, camera.position.z);
+        popupModel.rotateY(Math.PI); 
     }
 }
     </script>
