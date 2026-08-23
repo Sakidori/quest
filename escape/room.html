@@ -673,7 +673,7 @@ body.mobile-device #mobile-performance-btn {
 
         function playRoomMusic() {
             bgMusic.src = roomTrack.src;
-            bgMusic.volume = 0.3;
+            bgMusic.volume = 0.2;
             bgMusic.play().then(() => {
                 playPauseButton.textContent = '❚❚';
             }).catch(() => {
@@ -861,6 +861,7 @@ let popupTargetLocked = false;
 const popupMinimumHeadY = 1.1;
 const windowOpeningHalfWidth = 6.5;
 const windowOpeningHalfHeight = 1.25;
+let cheatActivated = false;
 
         let inspectRaycaster = new THREE.Raycaster();
         let isDragging = false;
@@ -1031,6 +1032,7 @@ loader.load('nobita.glb', (gltf) => {
 });
 
 function activateAllKeys() {
+    cheatActivated = true;
     gameState.hasKeyA = true;
     gameState.hasKeyB = true;
     gameState.hasKeyC = true;
@@ -1376,6 +1378,7 @@ blocker.addEventListener('click', async (event) => {
 
 window.addEventListener('keydown', (event) => {
     if (event.code === 'KeyP') {
+        if (!cheatActivated) return;
         const raycaster = new THREE.Raycaster();
         const centerPoint = new THREE.Vector2(0, 0);
 
@@ -1456,7 +1459,7 @@ window.addEventListener('keydown', (event) => {
                         zoomOutFromSafe();
                     }
                     if (e.code === 'KeyC') {
-                        logAndCopySafeHitboxPosition();
+                        if (cheatActivated) logAndCopySafeHitboxPosition();
                     }
                     return;
                 }
@@ -1488,32 +1491,8 @@ window.addEventListener('keydown', (event) => {
                     case 'ShiftLeft': case 'ShiftRight': 
                         isCrouching = !isCrouching; 
                         break;
-                    case 'KeyH': toggleHitboxes(); break;
-                    case 'KeyC': logCrosshairCoordinates(); break;
-                    case 'KeyU':
-                        if (!gameState.hasKeyA) {
-                            gameState.hasKeyA = true;
-                            document.getElementById('slot-0').innerHTML = '🔑A';
-                            document.getElementById('slot-0').classList.add('active');
-                            document.getElementById('message-box').innerText = "You obtained Key A!";
-                        }
-                        break;
-                    case 'KeyI':
-                        if (!gameState.hasKeyB) {
-                            gameState.hasKeyB = true;
-                            document.getElementById('slot-1').innerHTML = '🔑B';
-                            document.getElementById('slot-1').classList.add('active');
-                            document.getElementById('message-box').innerText = "You obtained Key B!";
-                        }
-                        break;
-                    case 'KeyO':
-                        if (!gameState.hasKeyC) {
-                            gameState.hasKeyC = true;
-                            document.getElementById('slot-2').innerHTML = '🔑C';
-                            document.getElementById('slot-2').classList.add('active');
-                            document.getElementById('message-box').innerText = "You obtained Key C!";
-                        }
-                        break;
+                    case 'KeyH': if (cheatActivated) toggleHitboxes(); break;
+                    case 'KeyC': if (cheatActivated) logCrosshairCoordinates(); break;
                     case 'KeyE':
                         if (controls.isLocked) {
                             triggerInteraction();
@@ -2654,6 +2633,7 @@ window.addEventListener('keydown', (event) => {
             clearTimeout(cryptexExitTimer);
             clearTimeout(escapeWinTimer);
             cryptexAnimationComplete = false;
+            cheatActivated = false;
             gsap.killTweensOf(camera.position);
 
             if (controls.isLocked) controls.unlock();
