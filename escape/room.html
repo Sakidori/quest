@@ -3807,21 +3807,10 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 function checkPopupTrigger() {
     if (!popupModel || !backgroundPlane) return;
 
-    // 1. Distance check to the background
-    const distance = camera.position.distanceTo(backgroundPlane.position);
-    if (distance > 3.5) {
-        stareTimer = 0;
-        hasPoppedUp = false;
-        popupModel.visible = false;
-        popupAnimationProgress = 0;
-        popupModel.position.set(0, -1.2, -1.2);
-        return;
-    }
-
-    // 2. Crosshair check on the background
+    // The ray hit is more reliable than checking the plane's center distance.
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
     const intersects = raycaster.intersectObject(backgroundPlane, true);
-    const isLookingAtBackground = (intersects.length > 0 && intersects[0].distance <= 3.5);
+    const isLookingAtBackground = intersects.length > 0;
 
     if (hasPoppedUp) {
         if (!isLookingAtBackground) {
