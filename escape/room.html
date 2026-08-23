@@ -3788,33 +3788,48 @@ raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
             function checkPopupTrigger() {
     if (!popupModel || hasTriggeredPopup || !backgroundPlane) return;
 
-    // 1. Distance check (e.g., within 3 units of the background plane)
+    // 1. Distance check: Is the player close to the background?
     const distance = camera.position.distanceTo(backgroundPlane.position);
-    if (distance > 5.0) return;
+    if (distance > 3.5) return;
 
-    // 2. Gaze check: Are we looking roughly toward the background?
-    // Get camera's forward direction vector
+    // 2. Check player's view relative to the background plane
     const cameraDirection = new THREE.Vector3();
     camera.getWorldDirection(cameraDirection);
 
-    // Get vector from camera to the background plane
     const toBackground = new THREE.Vector3();
     toBackground.subVectors(backgroundPlane.position, camera.position).normalize();
 
-    // Dot product close to 1 means the camera is facing directly at it
     const dotProduct = cameraDirection.dot(toBackground);
+    const crossY = cameraDirection.x * toBackground.z - cameraDirection.z * toBackground.x;
 
-    if (dotProduct > 0.7) { // 0.7 means looking within roughly a 45-degree cone
+    // Trigger when the player is close and looking away / out of view of the background
+    if (dotProduct < 0.3) {
         hasTriggeredPopup = true;
-        popupModel.visible = true; // Reveal the model!
+
+        // Start with the background's exact position
+        popupModel.position.copy(backgroundPlane.position);
+
+        // Shift it to the left or right side OF THE BACKGROUND depending on player view
+        const sideOffset = new THREE.Vector3();
+        if (crossY > 0) {
+            // Place it on one side of the background
+            sideOffset.set(-2.0, 0, 0).applyEuler(backgroundPlane.rotation);
+        } else {
+            // Place it on the other side of the background
+            sideOffset.set(2.0, 0, 0).applyEuler(backgroundPlane.rotation);
+        }
+        popupModel.position.add(sideOffset);
+
+        // Make the model face toward the player so it looks right at them
+        popupModel.lookAt(camera.position.x, popupModel.position.y, camera.position.z);
         
-        // Optional: Play a sound effect or trigger a message
-        //playSfx('popup'); // Assuming you have a sound effect function
-        document.getElementById('message-box').innerText = "Something appeared!";
+        // Uncomment the line below if your model's face is still pointing backward:
+        // popupModel.rotateY(Math.PI); 
+
+        popupModel.visible = true;
+        document.getElementById('message-box').innerText = "Something appeared by the window!";
     }
 }
-
-
     </script>
 </body>
 </html>
