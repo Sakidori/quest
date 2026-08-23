@@ -659,16 +659,25 @@ body.mobile-device #mobile-performance-btn {
         const sfxPools = {};
         let resumeMusicAfterPageReturn = false;
         let hasStartedGame = false;
+        let sfxReadyPromise;
 
-        Object.entries(sfxSources).forEach(([name, source]) => {
-            sfxPools[name] = Array.from({ length: 3 }, () => {
-                const audio = new Audio(source);
-                audio.preload = 'auto';
-                audio.volume = sfxVolumes[name] || 0.5;
-                audio.playbackRate = sfxPlaybackRates[name] || 1;
+        sfxReadyPromise = Promise.all(Object.entries(sfxSources).map(([name, source]) => {
+            const audio = new Audio(source);
+            audio.preload = 'auto';
+            audio.volume = sfxVolumes[name] || 0.5;
+            audio.playbackRate = sfxPlaybackRates[name] || 1;
+            sfxPools[name] = [audio];
+
+            return new Promise((resolve) => {
+                const settle = () => resolve();
+                audio.addEventListener('canplaythrough', settle, { once: true });
+                audio.addEventListener('error', settle, { once: true });
                 audio.load();
-                return audio;
             });
+        }));
+
+        sfxReadyPromise.catch(() => {
+            console.warn('Some sound effects could not be preloaded.');
         });
 
         function playRoomMusic() {
@@ -1370,7 +1379,7 @@ blocker.addEventListener('click', async (event) => {
     if (!assetsReady || gameState.escaped || inspecting || isZoomedToSafe || isAnimatingUnlock) return;
 
     isStartingGame = true;
-    await triggerFullscreen();
+    await Promise.all([triggerFullscreen(), sfxReadyPromise]);
     if (!controls.isLocked) {
         controls.lock();
     }
