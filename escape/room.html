@@ -1301,7 +1301,7 @@ window.addEventListener('touchcancel', (e) => {
     textureLoader.load('chalk.webp', (chalkTexture) => {
         chalkTexture.colorSpace = THREE.SRGBColorSpace;
         chalkTexture.flipY = false;
-        chalkTexture.repeat.set(1, -1);
+        chalkTexture.repeat.set(1, -1.2);
         chalkTexture.offset.set(0, 1);
         chalkDrawingMesh = new THREE.Mesh(
             new THREE.PlaneGeometry(2.4, 1.35),
