@@ -1301,8 +1301,8 @@ window.addEventListener('touchcancel', (e) => {
     textureLoader.load('chalk.webp', (chalkTexture) => {
         chalkTexture.colorSpace = THREE.SRGBColorSpace;
         chalkTexture.flipY = false;
-        chalkTexture.repeat.set(-1, -1);
-        chalkTexture.offset.set(1, 1);
+        chalkTexture.repeat.set(1, -1);
+        chalkTexture.offset.set(0, 1);
         chalkDrawingMesh = new THREE.Mesh(
             new THREE.PlaneGeometry(2.4, 1.35),
             new THREE.MeshBasicMaterial({
@@ -1312,8 +1312,8 @@ window.addEventListener('touchcancel', (e) => {
                 side: THREE.DoubleSide
             })
         );
-        chalkDrawingMesh.position.set(0.15, 1.7, 4.545);
-        chalkDrawingMesh.scale.setScalar(0.9);
+        chalkDrawingMesh.position.set(0.15, 1.7, 4.585);
+        chalkDrawingMesh.scale.setScalar(0.765);
         chalkDrawingMesh.rotation.y = Math.PI;
         chalkDrawingMesh.renderOrder = 2;
         chalkDrawingMesh.visible = false;
