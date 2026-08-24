@@ -637,7 +637,9 @@ body.mobile-device #mobile-performance-btn {
             wrong: 'sfx/wrong.mp3',
             safeopen: 'sfx/safeopen.mp3',
             keypickup: 'sfx/keypickup.mp3',
-            complete: 'sfx/flag.mp3'
+            complete: 'sfx/flag.mp3',
+            chalk: 'sfx/chalk.mp3',
+            erase: 'sfx/erase.mp3'
         };
         const sfxVolumes = {
             walking: 0.25,
@@ -837,6 +839,7 @@ backgroundGltfLoader.setDRACOLoader(dracoLoader);
         const chimeAudio = new Audio('chime.mp3');
         let tvScreenMesh = null; 
         let tvScreenTexture = null;
+        let chalkDrawingMesh = null;
         
         const raycaster = new THREE.Raycaster();
         let lastMousePos = { x: 0, y: 0 };
@@ -1293,6 +1296,25 @@ window.addEventListener('touchcancel', (e) => {
 
     backgroundVideo.addEventListener('loadeddata', () => {
             createBackgroundPlane(backgroundVideoTexture);
+    });
+
+    textureLoader.load('chalk.webp', (chalkTexture) => {
+        chalkTexture.colorSpace = THREE.SRGBColorSpace;
+        chalkTexture.flipY = false;
+        chalkDrawingMesh = new THREE.Mesh(
+            new THREE.PlaneGeometry(2.4, 1.35),
+            new THREE.MeshBasicMaterial({
+                map: chalkTexture,
+                transparent: true,
+                depthWrite: false,
+                side: THREE.DoubleSide
+            })
+        );
+        chalkDrawingMesh.position.set(0.15, 1.7, 4.575);
+        chalkDrawingMesh.rotation.y = Math.PI;
+        chalkDrawingMesh.renderOrder = 2;
+        chalkDrawingMesh.visible = false;
+        scene.add(chalkDrawingMesh);
     });
 
             textureLoader.load('poster.webp', (texture) => {
@@ -3033,6 +3055,32 @@ if (child.isMesh && nameLower === 'lockerdoor') {
                         const isChimeObject = /^cube043(?:_1)?$/i.test(child.name);
                         const isGlobePart = /^cylinder056$/i.test(child.name);
                         const isPenCasePart = /^cylinder025$/i.test(child.name);
+                        const isChalkPiece = /^cylinder(011|012|013)$/i.test(child.name);
+                        const isChalkEraser = /^cube038$/i.test(child.name);
+                        const registerChalkHitbox = (target, userData) => {
+                            target.userData = userData;
+                            target.userData.highlightTarget = target;
+                            target.frustumCulled = false;
+                            interactables.push(target);
+
+                            const bounds = new THREE.Box3().setFromObject(target);
+                            const size = bounds.getSize(new THREE.Vector3()).multiplyScalar(3);
+                            const hitbox = new THREE.Mesh(
+                                new THREE.BoxGeometry(
+                                    Math.max(size.x, 0.04),
+                                    Math.max(size.y, 0.04),
+                                    Math.max(size.z, 0.04)
+                                ),
+                                new THREE.MeshBasicMaterial({ visible: false })
+                            );
+                            hitbox.position.copy(bounds.getCenter(new THREE.Vector3()));
+                            hitbox.userData = {
+                                ...userData,
+                                highlightTarget: target
+                            };
+                            scene.add(hitbox);
+                            interactables.push(hitbox);
+                        };
 
                         if (child.name.toLowerCase() === 'blue_book') {
                             child.userData = {
@@ -3043,6 +3091,24 @@ if (child.isMesh && nameLower === 'lockerdoor') {
                                 }
                             };
                             interactables.push(child);
+                        } else if (isChalkPiece) {
+                            registerChalkHitbox(child, {
+                                name: 'Chalk',
+                                type: 'chalk',
+                                action: () => {
+                                    if (chalkDrawingMesh) chalkDrawingMesh.visible = true;
+                                    playSfx('chalk');
+                                }
+                            });
+                        } else if (isChalkEraser) {
+                            registerChalkHitbox(child, {
+                                name: 'Chalkboard Eraser',
+                                type: 'chalkEraser',
+                                action: () => {
+                                    if (chalkDrawingMesh) chalkDrawingMesh.visible = false;
+                                    playSfx('erase');
+                                }
+                            });
                         } else if (nameLower.includes('bus') || isBusAtKnownPosition) {
                             child.userData = {
                                 name: 'Toy Bus',
