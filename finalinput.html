@@ -89,13 +89,13 @@
             margin-top: 20px;
         }
 
-        /* Mobile specific sizing overrides (slightly enlarged to fill empty spaces) */
+        /* Mobile specific sizing overrides (adjusted aspect ratio to match height properly) */
         @media screen and (max-width: 1024px) {
             .book-container-sizer {
-                width: 85vw;
-                max-width: 85vw;
-                max-height: 92vh;
-                aspect-ratio: 16 / 10;
+                width: 82vw;
+                max-width: 82vw;
+                max-height: 85vh;
+                aspect-ratio: 16 / 9.5;
                 margin-top: 0;
             }
             .left-page h1 { font-size: 0.95rem !important; margin-bottom: 4px !important; }
@@ -668,7 +668,7 @@
             introVideo.play().catch(e => console.log("Video play error:", e));
         }
 
-        // When the video reaches the final frame, pause it and trigger the zoom transition cleanly
+        // When the video reaches the final frame, shrink and lock precisely to the HTML book layout bounds
         introVideo.addEventListener('timeupdate', () => {
             if (introVideo.duration && !zoomStarted) {
                 const timeLeft = introVideo.duration - introVideo.currentTime;
@@ -676,7 +676,6 @@
                     zoomStarted = true;
                     introVideo.pause();
                     
-                    // Match intro container bounds precisely to the stable sizer dimensions
                     const rect = bookSizer.getBoundingClientRect();
                     introContainer.style.top = rect.top + 'px';
                     introContainer.style.left = rect.left + 'px';
