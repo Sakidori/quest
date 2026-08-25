@@ -89,37 +89,37 @@
             margin-top: 20px;
         }
 
-        /* Mobile specific sizing overrides (width reduced by ~20%) */
+        /* Mobile specific sizing overrides (slightly enlarged to fill empty spaces) */
         @media screen and (max-width: 1024px) {
             .book-container-sizer {
-                width: 80vw;
-                max-width: 80vw;
-                max-height: 90vh;
-                aspect-ratio: 5 / 3;
+                width: 85vw;
+                max-width: 85vw;
+                max-height: 92vh;
+                aspect-ratio: 16 / 10;
                 margin-top: 0;
             }
-            .left-page h1 { font-size: 0.85rem !important; margin-bottom: 3px !important; }
-            .left-page p { font-size: 0.45rem !important; line-height: 1.15 !important; }
-            .left-treasure-box { width: 45px !important; height: 45px !important; margin-top: 2px !important; }
+            .left-page h1 { font-size: 0.95rem !important; margin-bottom: 4px !important; }
+            .left-page p { font-size: 0.52rem !important; line-height: 1.2 !important; }
+            .left-treasure-box { width: 52px !important; height: 52px !important; margin-top: 4px !important; }
             
-            .right-page { padding-left: 20px !important; padding-right: 2px !important; }
-            h2 { font-size: 0.65rem !important; margin-bottom: 2px !important; }
-            .challenge-section { gap: 1px !important; }
-            .input-row label { width: 85px !important; font-size: 0.5rem !important; }
-            .input-row input { max-width: 80px !important; height: 18px !important; padding: 1px 3px !important; font-size: 0.58rem !important; }
+            .right-page { padding-left: 24px !important; padding-right: 4px !important; }
+            h2 { font-size: 0.72rem !important; margin-bottom: 3px !important; }
+            .challenge-section { gap: 2px !important; }
+            .input-row label { width: 95px !important; font-size: 0.55rem !important; }
+            .input-row input { max-width: 90px !important; height: 20px !important; padding: 2px 4px !important; font-size: 0.64rem !important; }
             
-            .button-area { margin-top: 2px !important; gap: 2px !important; }
-            .button-group { max-width: 160px !important; gap: 4px !important; }
-            button { padding: 2px 6px !important; font-size: 0.55rem !important; }
-            button.return-btn { max-width: 80px !important; padding: 2px 4px !important; font-size: 0.5rem !important; }
+            .button-area { margin-top: 3px !important; gap: 3px !important; }
+            .button-group { max-width: 180px !important; gap: 6px !important; }
+            button { padding: 3px 8px !important; font-size: 0.6rem !important; }
+            button.return-btn { max-width: 90px !important; padding: 2px 6px !important; font-size: 0.55rem !important; }
             
-            #fixed-reward-slot { max-width: 160px !important; margin-top: 2px !important; }
-            #reward-box { height: 38px !important; padding: 2px !important; }
-            .reward-line-1 { font-size: 0.48rem !important; }
-            .reward-line-2 { font-size: 0.42rem !important; }
-            .highlight-reward { font-size: 0.65rem !important; padding: 1px 3px !important; }
+            #fixed-reward-slot { max-width: 180px !important; margin-top: 3px !important; }
+            #reward-box { height: 42px !important; padding: 3px !important; }
+            .reward-line-1 { font-size: 0.52rem !important; }
+            .reward-line-2 { font-size: 0.46rem !important; }
+            .highlight-reward { font-size: 0.72rem !important; padding: 1px 4px !important; }
             
-            .book-container { padding: 5% 7% !important; }
+            .book-container { padding: 6% 8% !important; }
         }
 
         /* Intro Video Overlay initially covers the entire viewport */
@@ -668,7 +668,7 @@
             introVideo.play().catch(e => console.log("Video play error:", e));
         }
 
-        // When the video reaches the final frame, pause it and trigger the zoom transition
+        // When the video reaches the final frame, pause it and trigger the zoom transition cleanly
         introVideo.addEventListener('timeupdate', () => {
             if (introVideo.duration && !zoomStarted) {
                 const timeLeft = introVideo.duration - introVideo.currentTime;
@@ -676,12 +676,13 @@
                     zoomStarted = true;
                     introVideo.pause();
                     
+                    // Match intro container bounds precisely to the stable sizer dimensions
                     const rect = bookSizer.getBoundingClientRect();
                     introContainer.style.top = rect.top + 'px';
                     introContainer.style.left = rect.left + 'px';
                     introContainer.style.width = rect.width + 'px';
                     introContainer.style.height = rect.height + 'px';
-                    introContainer.style.transform = 'scale(0.9)'; 
+                    introContainer.style.transform = 'scale(1)'; 
                     introContainer.style.borderRadius = '6px';
                     introContainer.style.backgroundColor = 'transparent';
                     
