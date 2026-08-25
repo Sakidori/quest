@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Notebook of Truth</title>
+    <title>6-Word Challenge - Book Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -25,60 +25,6 @@
 
         body.ready {
             background-color: #1a1a1a;
-        }
-
-        /* --- Rotate Device Splash Screen Styles --- */
-        #orientation-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #111111;
-            color: #fdfbf7;
-            z-index: 9999999;
-            display: none; /* Hidden by default */
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 30px;
-            font-family: Georgia, serif;
-        }
-
-        #orientation-overlay .rotate-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            animation: rotatePulse 2s infinite ease-in-out;
-        }
-
-        #orientation-overlay h2 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            color: #bfa181;
-            text-align: center;
-            white-space: normal;
-        }
-
-        #orientation-overlay p {
-            font-size: 1rem;
-            color: #c5bba8;
-            max-width: 320px;
-            line-height: 1.5;
-            font-style: italic;
-        }
-
-        @keyframes rotatePulse {
-            0% { transform: rotate(0deg); }
-            50% { transform: rotate(90deg); }
-            100% { transform: rotate(0deg); }
-        }
-
-        /* Show orientation overlay ONLY on mobile devices when in portrait mode */
-        @media screen and (max-width: 1024px) and (orientation: portrait) {
-            #orientation-overlay {
-                display: flex;
-            }
         }
 
         /* Shared Sizer Wrapper set to a 16:10 aspect ratio */
@@ -504,13 +450,6 @@
 </head>
 <body>
 
-    <!-- Rotate Device Splash Screen Overlay -->
-    <div id="orientation-overlay">
-        <div class="rotate-icon">📱</div>
-        <h2>Please Rotate Your Device</h2>
-        <p>This experience is designed for landscape mode. Please turn your phone sideways to continue.</p>
-    </div>
-
     <!-- Shared Sizer Wrapper matching the dimensions of the book container -->
     <div class="book-container-sizer" id="book-sizer">
         
@@ -541,7 +480,7 @@
                     <div class="book-page left-page">
                         <div class="left-content-top">
                             <h1>The Endgame</h1>
-                            <p>"冒険で見つけた単語を、右のページに一つずつ入力してください。スペルをもう一度よく確認してください。すべて正しければ、<b>固有</b>のコードが表示されます。そのコードは秘密にしておき、自分の名前とクラスを添えて、カルビン先生かブランコ先生に伝えてください。その秘密なコードはご自身で教えてください。友達と一緒にクエストをプレイした場合は、全員が各自で答えを入力し、それぞれ固有のコードを受け取る必要があります。"</p>
+                            <p>"冒険で見つけた単語を、右のページに一つずつ入力してください。スペルをもう一度よく確認してください。すべて正しければ、<b>固有</b>のコードが表示されます。そのコードは秘密にしておき、自分の名前とクラスを添えて、カルビンかブランコに伝えてください。その秘密なコードはご自身で教えてください。友達と一緒にクエストをプレイした場合は、全員が各自で答えを入力し、それぞれ固有のコードを受け取る必要があります。"</p>
                             <br>
                             <p>「見つけた単語」は次のようなものです：</p>
                         </div>
@@ -808,7 +747,7 @@
                 const placeholder = document.getElementById('reward-placeholder');
                 const rewardContent = document.getElementById('reward-content');
                 const rewardSpan = document.getElementById('reward-code-span');
-                    rewardSpan.textContent = '';
+                rewardSpan.textContent = '';
                 rewardContent.classList.remove('visible');
                 placeholder.classList.remove('hidden');
             };
