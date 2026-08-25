@@ -90,16 +90,21 @@
         }
 
         /* Mobile specific sizing overrides: made taller and thinner */
-        @media screen and (max-width: 1024px) {
-            #intro-video {
+       @media screen and (max-width: 1024px) {
+    #intro-video {
         object-fit: fill !important;
+        width: 100% !important;
+        height: 100% !important;
+        transform: translateY(-0.5%); 
     }
-            .book-container-sizer {
-                width: 68vw;
-                max-width: 68vw;
-                max-height: 91.8vh;
-                aspect-ratio: 3.8 / 3.8;
-                margin-top: 0;
+    .book-container-sizer {
+        width: 68vw;
+        max-width: 68vw;
+        /* Remove aspect-ratio temporarily and set an explicit proportional height */
+        height: calc(68vw * 0.90); /* Adjust this 0.95 multiplier up or down to change the height smoothly */
+        max-height: 91.8vh;
+        aspect-ratio: unset; 
+        margin-top: 0;
             }
             .left-page h1 { font-size: 0.95rem !important; margin-bottom: 4px !important; }
             .left-page p { font-size: 0.52rem !important; line-height: 1.2 !important; }
