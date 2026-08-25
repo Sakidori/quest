@@ -20,7 +20,7 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            padding: 10px;
+            padding: 5px;
             transition: background-color 1s ease-in-out;
             touch-action: manipulation;
         }
@@ -44,27 +44,27 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 30px;
+            padding: 20px;
             font-family: Georgia, serif;
         }
 
         #orientation-overlay .rotate-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
+            font-size: 3.5rem;
+            margin-bottom: 15px;
             animation: rotatePulse 2s infinite ease-in-out;
         }
 
         #orientation-overlay h2 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
+            font-size: 1.3rem;
+            margin-bottom: 8px;
             color: #bfa181;
         }
 
         #orientation-overlay p {
-            font-size: 1rem;
+            font-size: 0.9rem;
             color: #c5bba8;
-            max-width: 320px;
-            line-height: 1.5;
+            max-width: 300px;
+            line-height: 1.4;
             font-style: italic;
         }
 
@@ -80,11 +80,12 @@
             }
         }
 
-        /* Shared Sizer Wrapper set to a 16:10 aspect ratio */
+        /* Shared Sizer Wrapper set to a 16:10 aspect ratio, constrained by viewport height */
         .book-container-sizer {
             position: relative;
-            width: 1000px;
+            width: 950px;
             max-width: 98vw;
+            max-height: 96vh;
             aspect-ratio: 16 / 10;
         }
 
@@ -118,7 +119,7 @@
             left: 0;
             transform: translateY(-50%);
             width: 100%;
-            padding: 35px 0;
+            padding: 30px 0;
             background: rgba(0, 0, 0, 0.65);
             backdrop-filter: blur(8px);
             display: flex;
@@ -132,15 +133,14 @@
             background-color: #8b5a2b;
             color: white;
             border: 2px solid #bfa181;
-            padding: 16px 42px;
-            font-size: 1.3rem;
+            padding: 14px 38px;
+            font-size: 1.2rem;
             font-family: Georgia, serif;
             letter-spacing: 0.5px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 700;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: transform 0.2s ease, background-color 0.2s ease;
         }
 
         #start-btn:active {
@@ -161,7 +161,7 @@
             opacity: 1;
         }
 
-        /* Book container */
+        /* Book container with tighter inner padding to keep elements inside */
         .book-container {
             position: relative;
             width: 100%;
@@ -172,7 +172,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 6% 8%; 
+            padding: 5% 7%; 
         }
 
         .book-spread {
@@ -184,17 +184,17 @@
 
         .book-page {
             flex: 1;
-            padding: 10px 15px;
+            padding: 5px 10px;
             display: flex;
             flex-direction: column;
         }
 
-        /* Left page - Safely spaced from spine */
+        /* Left page */
         .left-page {
             text-align: center;
             justify-content: flex-start;
             align-items: center;
-            padding-right: 35px; /* Keeps content away from the spine center */
+            padding-right: 30px; 
         }
 
         .left-content-top {
@@ -202,34 +202,34 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            margin-top: 5px;
+            margin-top: 2px;
         }
 
         .left-page h1 {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             color: #3b2314;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             font-family: Georgia, serif;
             font-weight: 700;
         }
 
         .left-page p {
-            font-size: 0.78rem;
+            font-size: 0.72rem;
             color: #5c4033;
-            line-height: 1.35;
+            line-height: 1.3;
             font-style: italic;
         }
 
         .left-treasure-box {
-            width: 120px;
-            height: 120px;
+            width: 100px;
+            height: 100px;
             background-color: transparent;
             border: none;
             display: flex;
             justify-content: center;
             align-items: center;
             align-self: center;
-            margin-top: 10px;
+            margin-top: 6px;
         }
 
         .left-treasure-box img {
@@ -238,9 +238,9 @@
             object-fit: contain;
         }
 
-        /* Right page - Padded away from spine */
+        /* Right page */
         .right-page {
-            padding-left: 45px; /* Pushed right to avoid center spine overlap */
+            padding-left: 40px; 
             padding-right: 5px;
             justify-content: flex-start; 
         }
@@ -248,12 +248,12 @@
         .challenge-section {
             display: flex;
             flex-direction: column;
-            gap: 5px; 
+            gap: 3px; 
         }
 
         h2 {
-            font-size: 1.1rem;
-            margin-bottom: 6px;
+            font-size: 1rem;
+            margin-bottom: 4px;
             color: #2b1a0e;
             font-family: Georgia, serif;
             text-align: left;
@@ -269,9 +269,9 @@
         }
 
         .input-row label {
-            width: 150px; 
+            width: 140px; 
             text-align: left;
-            font-size: 0.82rem;
+            font-size: 0.75rem;
             font-weight: 800;
             color: #3b2314;
             flex-shrink: 0; 
@@ -279,16 +279,15 @@
 
         .input-row input {
             flex-grow: 1; 
-            max-width: 140px;
-            height: 32px; /* Tighter touch-friendly height */
-            padding: 4px 8px;
-            font-size: 0.9rem; /* Prevent auto-zoom on iOS Safari */
+            max-width: 130px;
+            height: 28px; 
+            padding: 2px 6px;
+            font-size: 0.85rem; 
             border: 2px solid #bfa181;
             background-color: #fdfbf7;
             border-radius: 4px;
             text-align: center;
             outline: none;
-            transition: all 0.2s ease;
             color: #2c221e;
         }
 
@@ -308,18 +307,18 @@
 
         /* Button area */
         .button-area {
-            margin-top: 8px;
+            margin-top: 5px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
             align-items: center;
         }
 
         .button-group {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             width: 100%;
-            max-width: 290px;
+            max-width: 270px;
         }
 
         button {
@@ -327,8 +326,8 @@
             background-color: #8b5a2b;
             color: white;
             border: none;
-            padding: 8px 12px;
-            font-size: 0.9rem;
+            padding: 6px 10px;
+            font-size: 0.85rem;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
@@ -342,34 +341,34 @@
         button.return-btn {
             background-color: #6b4423;
             width: 100%;
-            max-width: 140px;
-            padding: 5px 10px;
-            font-size: 0.8rem;
+            max-width: 130px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
             margin: 0 auto;
         }
 
         /* Fixed Reward Slot */
         #fixed-reward-slot {
-            margin-top: 4px;
+            margin-top: 2px;
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            max-width: 290px;
+            max-width: 270px;
         }
 
         #reward-box {
-            padding: 6px;
+            padding: 4px;
             border-radius: 4px;
             background-color: #fef3c7;
             border: 1px solid #d97706; 
             width: 100%;
-            height: 75px;
+            height: 60px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 2px;
+            gap: 1px;
             text-align: center;
         }
 
@@ -390,7 +389,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 2px;
+            gap: 1px;
             width: 100%;
             height: 100%;
         }
@@ -400,13 +399,13 @@
         }
 
         .reward-line-1 {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             color: #78350f;
             font-weight: 600;
         }
 
         .reward-line-2 {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: #78350f;
             font-weight: 500;
         }
@@ -415,9 +414,9 @@
             display: inline-block;
             color: #dc2626;
             font-weight: bold;
-            font-size: 1.1rem; 
+            font-size: 0.95rem; 
             background-color: #fee2e2;
-            padding: 1px 8px;
+            padding: 1px 6px;
             border-radius: 4px;
             letter-spacing: 0.5px;
         }
@@ -425,16 +424,16 @@
         /* Music Widget Custom Styles */
         #music-widget {
             position: fixed;
-            top: 15px;
-            right: 15px;
+            top: 10px;
+            right: 10px;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 6px 14px;
-            border-radius: 30px;
+            padding: 4px 10px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             z-index: 10000;
             color: white;
             font-family: sans-serif;
@@ -456,7 +455,7 @@
             background: none;
             border: none;
             color: white;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             padding: 0;
             display: flex;
@@ -468,7 +467,7 @@
         }
 
         #track-title {
-            font-size: 13px;
+            font-size: 11px;
             white-space: nowrap;
             line-height: 1;
         }
@@ -586,13 +585,12 @@
         let zoomStarted = false;
 
         function startExperience() {
-            // Force Fullscreen mode on first user click
             const elem = document.documentElement;
             if (elem.requestFullscreen) {
                 elem.requestFullscreen().catch(err => console.log("Fullscreen blocked or unavailable"));
-            } else if (elem.webkitRequestFullscreen) { /* Safari */
+            } else if (elem.webkitRequestFullscreen) {
                 elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) { /* IE11 */
+            } else if (elem.msRequestFullscreen) {
                 elem.msRequestFullscreen();
             }
 
