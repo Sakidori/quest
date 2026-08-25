@@ -179,13 +179,15 @@
             z-index: 20;
             opacity: 0;
             transition: opacity 1.2s ease;
+            padding-bottom: 30px; /* Gives some breathing room at the bottom for mobile */
+            box-sizing: border-box;
         }
 
         #game-screen h2 {
             font-size: 40px;
             color: #ffe600;
             text-shadow: 4px 4px 0px #000;
-            margin: 0 0 15px 0;
+            margin: 0 0 10px 0;
             transform: rotate(-3deg);
         }
 
@@ -195,7 +197,7 @@
             border: 6px solid #ffe600;
             border-radius: 12px;
             box-shadow: 0 8px 0px #000;
-            margin-bottom: 25px;
+            margin-bottom: 15px; /* Reduced margin to pull buttons up */
             overflow: hidden;
             background: #000;
             display: flex;
@@ -214,26 +216,26 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
             width: 100%;
         }
 
         .button-row {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
         }
 
         #game-screen a.game-btn, #game-screen button.game-btn {
             display: inline-block;
-            padding: 15px 30px;
+            padding: 14px 24px;
             border: 4px solid #000;
             border-radius: 50px;
             font-weight: 900;
             cursor: pointer;
             color: #000;
-            font-size: 20px;
+            font-size: 18px;
             text-decoration: none;
             transition: 0.1s;
             text-align: center;
@@ -298,12 +300,12 @@
         @media (max-width: 768px) {
             h1 { font-size: 24px; }
             p { font-size: 13px; }
-            #game-preview-container { width: 90vw; height: 56vw; }
-            #game-screen h2 { font-size: 28px; }
-            #game-screen a.game-btn, #game-screen button.game-btn { padding: 12px 20px; font-size: 16px; }
+            #game-preview-container { width: 85vw; height: 50vw; max-height: 240px; margin-bottom: 12px; }
+            #game-screen h2 { font-size: 24px; margin-bottom: 5px; }
+            #game-screen a.game-btn, #game-screen button.game-btn { padding: 10px 16px; font-size: 14px; }
             .carousel-nav-btn { width: 55px; height: 90px; font-size: 30px; }
             #fullscreen-btn { width: 42px; height: 42px; font-size: 18px; right: 15px; top: 15px; }
-            .button-row { gap: 10px; }
+            .button-row { gap: 8px; }
         }
 
         @media (max-width: 768px) and (orientation: portrait) {
@@ -353,11 +355,11 @@
             <img id="game-preview-img" src="" alt="Game Preview">
         </div>
         <div class="button-container">
-            <!-- All three buttons in a single row -->
+            <!-- All three buttons in a single row, adjusted for mobile height -->
             <div class="button-row">
-                <a id="game-link" href="#" class="game-btn" target="_blank" style="background:#ff0055; color:#fff; box-shadow: 0 6px 0px #88002b; text-shadow: 2px 2px 0px #000;">PLAY</a>
-                <a id="go-to-area-link" href="#" class="game-btn" target="_blank" style="background:#00ffff; box-shadow: 0 6px 0px #008888;">GO TO AREA</a>
-                <button class="game-btn" onclick="exitGame()" style="background:#ffe600; box-shadow: 0 6px 0px #b89f00;">BACK TO HUB</button>
+                <a id="game-link" href="#" class="game-btn" target="_blank" style="background:#ff0055; color:#fff; box-shadow: 0 5px 0px #88002b; text-shadow: 2px 2px 0px #000;">PLAY</a>
+                <a id="go-to-area-link" href="#" class="game-btn" target="_blank" style="background:#00ffff; box-shadow: 0 5px 0px #008888;">GO TO AREA</a>
+                <button class="game-btn" onclick="exitGame()" style="background:#ffe600; box-shadow: 0 5px 0px #b89f00;">BACK TO HUB</button>
             </div>
         </div>
     </div>
