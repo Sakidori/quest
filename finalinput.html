@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Notebook of Truth</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #000000;
+            color: #2c221e;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 20px;
+            transition: background-color 1s ease-in-out;
+        }
+
+        body.ready {
+            background-color: #1a1a1a;
+        }
+
+        /* Shared Sizer Wrapper set to a 16:10 aspect ratio */
+        .book-container-sizer {
+            position: relative;
+            width: 1000px;
+            max-width: 95vw;
+            aspect-ratio: 16 / 10;
+            margin-top: 20px;
+        }
+
+        /* Intro Video Overlay initially covers the entire viewport */
+        #intro-video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            transition: all 2s cubic-bezier(0.25, 1, 0.5, 1);
+            opacity: 1;
+            transform: scale(1);
+            transform-origin: center center;
+        }
+
+        #intro-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Centered, Wider Transparent Horizontal Strip & Start Button Overlay */
+        #start-overlay {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            width: 100%;
+            padding: 35px 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000000;
+            transition: opacity 0.5s ease;
+        }
+
+        #start-btn {
+            background-color: #8b5a2b;
+            color: white;
+            border: 2px solid #bfa181;
+            padding: 14px 38px;
+            font-size: 1.2rem;
+            font-family: Georgia, serif;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        #start-btn:hover {
+            background-color: #6f441e;
+            transform: scale(1.05);
+        }
+
+        /* Main App Initial Hidden State for Fade-In */
+        .app-wrapper {
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .app-wrapper.visible {
+            opacity: 1;
+        }
+
+        /* Book container */
+        .book-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-image: url('emptybook.webp'); 
+            background-size: 100% 100%; 
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 7% 9%; 
+        }
+
+        .book-spread {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; 
+        }
+
+        .book-page {
+            flex: 1;
+            padding: 10px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Left page */
+        .left-page {
+            text-align: center;
+            justify-content: flex-start;
+            align-items: center;
+            padding-right: 20px;
+            padding-bottom: 10px;
+        }
+
+        .left-content-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            margin-top: 10px;
+        }
+
+        .left-page h1 {
+            font-size: 1.75rem;
+            color: #3b2314;
+            margin-bottom: 15px;
+            font-family: Georgia, serif;
+            font-weight: 700;
+        }
+
+        .left-page p {
+            font-size: 0.9rem;
+            color: #5c4033;
+            line-height: 1.4;
+            font-style: italic;
+        }
+
+        .left-treasure-box {
+            width: 160px;
+            height: 160px;
+            background-color: transparent;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            align-self: center;
+            margin-top: 15px;
+            padding: 4px;
+        }
+
+        .left-treasure-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* Right page */
+        .right-page {
+            padding-left: 75px; 
+            padding-right: 10px;
+            justify-content: flex-start; 
+        }
+
+        .challenge-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px; 
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+            color: #2b1a0e;
+            font-family: Georgia, serif;
+            text-align: left;
+            font-weight: 800;
+            white-space: nowrap; 
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; 
+            width: 100%;
+        }
+
+        .input-row label {
+            width: 170px; 
+            text-align: left;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #3b2314;
+            flex-shrink: 0; 
+        }
+
+        .input-row input {
+            flex-grow: 1; 
+            max-width: 150px;
+            padding: 5px 10px;
+            font-size: 0.9rem;
+            border: 2px solid #bfa181;
+            background-color: #fdfbf7;
+            border-radius: 4px;
+            text-align: center;
+            outline: none;
+            transition: all 0.2s ease;
+            color: #2c221e;
+        }
+
+        input.correct {
+            border-color: #10b981;
+            background-color: #ecfdf5;
+            color: #065f46;
+            font-weight: 600;
+        }
+
+        input.incorrect {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+            color: #991b1b;
+            font-weight: 600;
+        }
+
+        /* Button area */
+        .button-area {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 310px;
+        }
+
+        button {
+            flex: 1;
+            background-color: #8b5a2b;
+            color: white;
+            border: none;
+            padding: 7px 16px;
+            font-size: 0.95rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            background-color: #6f441e;
+        }
+
+        button.reset-btn {
+            background-color: #8c7355;
+        }
+
+        button.reset-btn:hover {
+            background-color: #6d573c;
+        }
+
+        button.return-btn {
+            background-color: #6b4423;
+            width: 100%;
+            max-width: 160px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            margin: 0 auto;
+        }
+
+        button.return-btn:hover {
+            background-color: #543419;
+        }
+
+        /* Fixed Reward Slot */
+        #fixed-reward-slot {
+            margin-top: 8px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 310px;
+        }
+
+        #reward-box {
+            padding: 10px 10px;
+            border-radius: 4px;
+            background-color: #fef3c7;
+            border: 1px solid #d97706; 
+            width: 100%;
+            height: 95px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            text-align: center;
+        }
+
+        #reward-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #reward-placeholder.hidden {
+            display: none;
+        }
+
+        #reward-content {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            width: 100%;
+            height: 100%;
+        }
+
+        #reward-content.visible {
+            display: flex;
+        }
+
+        .reward-line-1 {
+            font-size: 0.95rem;
+            color: #78350f;
+            font-weight: 600;
+        }
+
+        .reward-line-2 {
+            font-size: 0.9rem;
+            color: #78350f;
+            font-weight: 500;
+        }
+
+        .highlight-reward {
+            display: inline-block;
+            color: #dc2626;
+            font-weight: bold;
+            font-size: 1.35rem; 
+            background-color: #fee2e2;
+            padding: 2px 10px;
+            border-radius: 4px;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Music Widget Custom Styles with Initial Opacity 0 for Fade-In */
+        #music-widget {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10000;
+            color: white;
+            font-family: sans-serif;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            pointer-events: auto !important;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        #music-widget.visible {
+            opacity: 1;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .music-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            line-height: 1;
+            margin: 0;
+            border-radius: 0;
+        }
+        .music-btn:hover { 
+            transform: scale(1.15); 
+            opacity: 0.8; 
+            background: none;
+        }
+
+        #track-title {
+            font-size: 14px;
+            white-space: nowrap;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Shared Sizer Wrapper matching the dimensions of the book container -->
+    <div class="book-container-sizer" id="book-sizer">
+        
+        <!-- Intro Video Overlay (Fullscreen initially) -->
+        <div id="intro-video-container">
+            <video id="intro-video" src="intro.mp4" playsinline></video>
+            <!-- Centered, wider transparent strip containing the start button -->
+            <div id="start-overlay">
+                <button id="start-btn" onclick="startExperience()">Look through book</button>
+            </div>
+        </div>
+
+        <!-- Main App Container -->
+        <div class="app-wrapper" id="app-wrapper">
+            <!-- Background Music & Widget -->
+            <audio id="bg-music" preload="auto" loop></audio>
+
+            <div id="music-widget">
+                <span id="track-title">13.Journey</span>
+                <div class="controls-group">
+                    <button class="music-btn" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">▶</button>
+                </div>
+            </div>
+
+            <div class="book-container">
+                <div class="book-spread">
+                    <!-- Left Page -->
+                    <div class="book-page left-page">
+                        <div class="left-content-top">
+                            <h1>The Endgame</h1>
+                            <p>"冒険で見つけた単語を、右のページに一つずつ入力してください。スペルをもう一度よく確認してください。すべて正しければ、<b>固有</b>のコードが表示されます。そのコードは秘密にしておき、自分の名前とクラスを添えて、カルビン先生かブランコ先生に伝えてください。その秘密なコードはご自身で教えてください。友達と一緒にクエストをプレイした場合は、全員が各自で答えを入力し、それぞれ固有のコードを受け取る必要があります。"</p>
+                            <br>
+                            <p>「見つけた単語」は次のようなものです：</p>
+                        </div>
+                        <div class="left-treasure-box">
+                            <img src="treasure.webp" alt="Treasure">
+                        </div>
+                    </div>
+
+                    <!-- Right Page -->
+                    <div class="book-page right-page">
+                        <div class="challenge-section">
+                            <h2>Enter the 6 Treasure Words</h2>
+                            
+                            <div class="input-row">
+                                <label for="input-0">1. Forest RPG:</label>
+                                <input type="text" id="input-0" autocomplete="off">
+                            </div>
+                            <div class="input-row">
+                                <label for="input-1">2. Desert Maze:</label>
+                                <input type="text" id="input-1" autocomplete="off">
+                            </div>
+                            <div class="input-row">
+                                <label for="input-2">3. Underwater Puzzle:</label>
+                                <input type="text" id="input-2" autocomplete="off">
+                            </div>
+                            <div class="input-row">
+                                <label for="input-3">4. Space Survival:</label>
+                                <input type="text" id="input-3" autocomplete="off">
+                            </div>
+                            <div class="input-row">
+                                <label for="input-4">5. A Snowy Adventure:</label>
+                                <input type="text" id="input-4" autocomplete="off">
+                            </div>
+                            <div class="input-row">
+                                <label for="input-5">6. Classroom Escape:</label>
+                                <input type="text" id="input-5" oninput="checkCheatCode(this)" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <div class="button-area">
+                            <div class="button-group">
+                                <button onclick="checkWords()">Check</button>
+                                <button class="reset-btn" onclick="resetForm()">Reset</button>
+                            </div>
+                            
+                            <div id="fixed-reward-slot">
+                                <div id="reward-box">
+                                    <div id="reward-placeholder"></div>
+                                    <div id="reward-content">
+                                        <div class="reward-line-1">🎉 Good Job!</div>
+                                        <div class="reward-line-2">Your code is:</div>
+                                        <div><span class="highlight-reward" id="reward-code-span"></span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Return Button -->
+                            <button class="return-btn" onclick="returnToUrl()">Return</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const introVideo = document.getElementById('intro-video');
+        const introContainer = document.getElementById('intro-video-container');
+        const startOverlay = document.getElementById('start-overlay');
+        const bookSizer = document.getElementById('book-sizer');
+        const appWrapper = document.getElementById('app-wrapper');
+        const musicWidget = document.getElementById('music-widget');
+
+        let zoomStarted = false;
+
+        // Triggered when user clicks "Look through book"
+        function startExperience() {
+            startOverlay.style.opacity = '0';
+            setTimeout(() => { startOverlay.style.display = 'none'; }, 500);
+
+            introVideo.muted = false;
+            introVideo.play().catch(e => console.log("Video play error:", e));
+        }
+
+        // When the video reaches the final frame, pause it and trigger the zoom transition
+        introVideo.addEventListener('timeupdate', () => {
+            if (introVideo.duration && !zoomStarted) {
+                const timeLeft = introVideo.duration - introVideo.currentTime;
+                if (timeLeft <= 0.15) {
+                    zoomStarted = true;
+                    
+                    introVideo.pause();
+                    
+                    const rect = bookSizer.getBoundingClientRect();
+                    
+                    introContainer.style.top = rect.top + 'px';
+                    introContainer.style.left = rect.left + 'px';
+                    introContainer.style.width = rect.width + 'px';
+                    introContainer.style.height = rect.height + 'px';
+                    introContainer.style.transform = 'scale(0.9)'; 
+                    introContainer.style.borderRadius = '6px';
+                    introContainer.style.backgroundColor = 'transparent';
+                    
+                    appWrapper.classList.add('visible');
+
+                    // Remove video container after transition completes (2s), then fade body background back and fade in music
+                    setTimeout(() => {
+                        introContainer.style.opacity = '0';
+                        setTimeout(() => {
+                            introContainer.remove();
+                            document.body.classList.add('ready'); // Fades page background from black to #1a1a1a
+                            
+                            // Fade in music widget and audio right after video is completely gone
+                            musicWidget.classList.add('visible');
+                            fadeInMusic();
+                        }, 500);
+                    }, 2000);
+                }
+            }
+        });
+
+        // --- Simple Return Link Logic ---
+        function returnToUrl() {
+            window.location.href = "https://tour.panoee.net/6a59cd8d10863f0008ada757/the-school-entrance"; // <-- Change this to your link
+        }
+
+        // --- Playlist Configuration & Music Player Logic ---
+        const playlist = [
+            { name: "13.Journey", src: "music/umioiku.mp3" }
+        ];
+        let currentTrackIndex = 0;
+        const bgMusic = document.getElementById('bg-music');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const trackTitleDisplay = document.getElementById('track-title');
+        const targetVolume = 0.5;
+
+        function playCurrentTrack() {
+            bgMusic.src = playlist[currentTrackIndex].src;
+            trackTitleDisplay.textContent = playlist[currentTrackIndex].name;
+            bgMusic.play().catch(e => console.log("Audio play waiting for interaction"));
+        }
+
+        function fadeInMusic() {
+            bgMusic.volume = 0;
+            playCurrentTrack();
+            playPauseBtn.textContent = "❚❚"; 
+            
+            let fadeInterval = setInterval(() => {
+                if (bgMusic.volume < targetVolume - 0.05) {
+                    bgMusic.volume = Math.min(targetVolume, bgMusic.volume + 0.05);
+                } else {
+                    bgMusic.volume = targetVolume;
+                    clearInterval(fadeInterval);
+                }
+            }, 150); 
+        }
+
+        bgMusic.addEventListener('ended', () => {
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            playCurrentTrack();
+        });
+
+        function togglePlayPause() {
+            if (bgMusic.paused) {
+                if (!bgMusic.src) {
+                    playCurrentTrack();
+                } else {
+                    bgMusic.play();
+                }
+                playPauseBtn.textContent = "❚❚";
+            } else {
+                bgMusic.pause();
+                playPauseBtn.textContent = "▶"; 
+            }
+        }
+
+        // --- Challenge Validation & Game Script ---
+        (function() {
+            const _0x18e811 = ['YmVsaWV2ZQ==', 'cGVyc2lzdA==', 'Y2hhbmdl', 'YnJhdmU=', 'ZXhwbG9yZQ==', 'bGVhcm4='];
+            const _0x2289f6 = ['YXBwbGU=', 'YmFuYW5h', 'b3Jhbmdl', 'Z3JhcGU=', 'cGVhY2g=', 'cGVhcg==', 'cGx1bW0=', 'a2lpdQ==', 'bWFuZ28=', 'bGVtb24=', 'bGltZQ==', 'bWVsb24=', 'YmVycnk=', 'Y2hlcnJ5', 'Y29jb251dA=='];
+            
+            const _0x217d84 = arr => arr.map(item => atob(item).toLowerCase());
+            const _0x4d6a1b = arr => arr.map(item => atob(item));
+
+            function _0x15d038(seed) {
+                let t = seed += 0x6d2b79f5;
+                t = Math.imul(t ^ t >>> 15, t | 1);
+                t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+                return ((t ^ t >>> 14) >>> 0) / 0x100000000;
+            }
+
+            function _0x310f84() {
+                const fruits = _0x4d6a1b(_0x2289f6);
+                let list = [];
+                let seed = parseInt(atob('MTMzNw=='));
+                while (list.length < 50000) {
+                    seed++;
+                    let fruit = fruits[Math.floor(_0x15d038(seed) * fruits.length)];
+                    let num = Math.floor(_0x15d038(seed + 1) * 9000) + 1000;
+                    let code = `${fruit}${num}`;
+                    if (!list.includes(code)) {
+                        list.push(code);
+                    }
+                }
+                return list;
+            }
+
+            window.checkWords = function() {
+                const inputs = document.querySelectorAll('.challenge-section input');
+                const answers = _0x217d84(_0x18e811);
+                let allCorrect = true;
+
+                inputs.forEach((input, idx) => {
+                    const userVal = input.value.trim().toLowerCase();
+                    const correctVal = answers[idx];
+                    input.classList.remove('correct', 'incorrect');
+                    if (userVal === correctVal) {
+                        input.classList.add('correct');
+                    } else {
+                        input.classList.add('incorrect');
+                        allCorrect = false;
+                    }
+                });
+
+                const placeholder = document.getElementById('reward-placeholder');
+                const rewardContent = document.getElementById('reward-content');
+                const rewardSpan = document.getElementById('reward-code-span');
+
+                if (allCorrect) {
+                    let reward = localStorage.getItem('userReward');
+                    if (!reward) {
+                        let indices = JSON.parse(localStorage.getItem('availableIndices'));
+                        const allRewards = _0x310f84();
+                        if (!indices) {
+                            indices = Array.from({length: allRewards.length}, (_, i) => i);
+                        }
+                        if (indices.length === 0) {
+                            reward = 'All rewards claimed!';
+                        } else {
+                            const randIdx = Math.floor(Math.random() * indices.length);
+                            const chosen = indices.splice(randIdx, 1)[0];
+                            localStorage.setItem('availableIndices', JSON.stringify(indices));
+                            reward = allRewards[chosen];
+                            localStorage.setItem('userReward', reward);
+                        }
+                    }
+                    rewardSpan.textContent = reward;
+                    placeholder.classList.add('hidden');
+                    rewardContent.classList.add('visible');
+                } else {
+                    rewardSpan.textContent = '';
+                    rewardContent.classList.remove('visible');
+                    placeholder.classList.remove('hidden');
+                }
+            };
+
+            window.resetForm = function() {
+                const inputs = document.querySelectorAll('.challenge-section input');
+                inputs.forEach(input => {
+                    input.value = '';
+                    input.classList.remove('correct', 'incorrect');
+                });
+                const placeholder = document.getElementById('reward-placeholder');
+                const rewardContent = document.getElementById('reward-content');
+                const rewardSpan = document.getElementById('reward-code-span');
+                rewardSpan.textContent = '';
+                rewardContent.classList.remove('visible');
+                placeholder.classList.remove('hidden');
+            };
+
+            window.checkCheatCode = function(inputElem) {
+                if (inputElem.value.trim().toLowerCase() === atob('c2FraWRvcmk=')) {
+                    const answers = _0x217d84(_0x18e811);
+                    const inputs = document.querySelectorAll('.challenge-section input');
+                    inputs.forEach((input, idx) => {
+                        input.value = answers[idx];
+                    });
+                }
+            };
+        })();
+    </script>
+</body>
+</html>
