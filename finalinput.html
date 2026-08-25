@@ -49,21 +49,21 @@
         }
 
         #orientation-overlay .rotate-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
+            font-size: 2.8rem;
+            margin-bottom: 8px;
             animation: rotatePulse 2s infinite ease-in-out;
         }
 
         #orientation-overlay h2 {
-            font-size: 1.2rem;
-            margin-bottom: 6px;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
             color: #bfa181;
         }
 
         #orientation-overlay p {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #c5bba8;
-            max-width: 280px;
+            max-width: 260px;
             line-height: 1.3;
             font-style: italic;
         }
@@ -80,13 +80,13 @@
             }
         }
 
-        /* Shared Sizer Wrapper matching a tighter aspect ratio */
+        /* Shared Sizer Wrapper matched strictly to a narrow 16:9 video scale */
         .book-container-sizer {
             position: relative;
-            width: 880px;
-            max-width: 96vw;
-            max-height: 94vh;
-            aspect-ratio: 16 / 11;
+            width: 780px;
+            max-width: 95vw;
+            max-height: 90vh;
+            aspect-ratio: 16 / 9;
         }
 
         /* Intro Video Overlay */
@@ -119,7 +119,7 @@
             left: 0;
             transform: translateY(-50%);
             width: 100%;
-            padding: 30px 0;
+            padding: 20px 0;
             background: rgba(0, 0, 0, 0.65);
             backdrop-filter: blur(8px);
             display: flex;
@@ -133,8 +133,8 @@
             background-color: #8b5a2b;
             color: white;
             border: 2px solid #bfa181;
-            padding: 12px 34px;
-            font-size: 1.1rem;
+            padding: 10px 30px;
+            font-size: 1rem;
             font-family: Georgia, serif;
             letter-spacing: 0.5px;
             border-radius: 6px;
@@ -161,7 +161,7 @@
             opacity: 1;
         }
 
-        /* Book container with balanced padding */
+        /* Book container with optimized padding to stay well within boundaries */
         .book-container {
             position: relative;
             width: 100%;
@@ -172,7 +172,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 6% 9%; 
+            padding: 7% 10%; 
         }
 
         .book-spread {
@@ -184,7 +184,7 @@
 
         .book-page {
             flex: 1;
-            padding: 4px 8px;
+            padding: 2px 6px;
             display: flex;
             flex-direction: column;
         }
@@ -194,7 +194,7 @@
             text-align: center;
             justify-content: flex-start;
             align-items: center;
-            padding-right: 25px; 
+            padding-right: 20px; 
         }
 
         .left-content-top {
@@ -206,30 +206,30 @@
         }
 
         .left-page h1 {
-            font-size: 1.2rem;
+            font-size: 1.05rem;
             color: #3b2314;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             font-family: Georgia, serif;
             font-weight: 700;
         }
 
         .left-page p {
-            font-size: 0.65rem;
+            font-size: 0.58rem;
             color: #5c4033;
-            line-height: 1.25;
+            line-height: 1.2;
             font-style: italic;
         }
 
         .left-treasure-box {
-            width: 75px;
-            height: 75px;
+            width: 60px;
+            height: 60px;
             background-color: transparent;
             border: none;
             display: flex;
             justify-content: center;
             align-items: center;
             align-self: center;
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
         .left-treasure-box img {
@@ -240,20 +240,20 @@
 
         /* Right page */
         .right-page {
-            padding-left: 32px; 
-            padding-right: 4px;
+            padding-left: 26px; 
+            padding-right: 2px;
             justify-content: flex-start; 
         }
 
         .challenge-section {
             display: flex;
             flex-direction: column;
-            gap: 2px; 
+            gap: 1px; 
         }
 
         h2 {
-            font-size: 0.9rem;
-            margin-bottom: 3px;
+            font-size: 0.8rem;
+            margin-bottom: 2px;
             color: #2b1a0e;
             font-family: Georgia, serif;
             text-align: left;
@@ -269,9 +269,9 @@
         }
 
         .input-row label {
-            width: 125px; 
+            width: 110px; 
             text-align: left;
-            font-size: 0.68rem;
+            font-size: 0.62rem;
             font-weight: 800;
             color: #3b2314;
             flex-shrink: 0; 
@@ -279,11 +279,11 @@
 
         .input-row input {
             flex-grow: 1; 
-            max-width: 115px;
-            height: 24px; 
-            padding: 1px 4px;
-            font-size: 0.78rem; 
-            border: 1.5px solid #bfa181;
+            max-width: 100px;
+            height: 22px; 
+            padding: 1px 3px;
+            font-size: 0.72rem; 
+            border: 1px solid #bfa181;
             background-color: #fdfbf7;
             border-radius: 3px;
             text-align: center;
@@ -307,18 +307,18 @@
 
         /* Button area */
         .button-area {
-            margin-top: 3px;
+            margin-top: 2px;
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 2px;
             align-items: center;
         }
 
         .button-group {
             display: flex;
-            gap: 5px;
+            gap: 4px;
             width: 100%;
-            max-width: 240px;
+            max-width: 210px;
         }
 
         button {
@@ -326,12 +326,12 @@
             background-color: #8b5a2b;
             color: white;
             border: none;
-            padding: 4px 8px;
-            font-size: 0.75rem;
+            padding: 3px 6px;
+            font-size: 0.7rem;
             border-radius: 3px;
             cursor: pointer;
             font-weight: 600;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
         button.reset-btn {
@@ -341,9 +341,9 @@
         button.return-btn {
             background-color: #6b4423;
             width: 100%;
-            max-width: 115px;
-            padding: 3px 6px;
-            font-size: 0.68rem;
+            max-width: 100px;
+            padding: 2px 4px;
+            font-size: 0.62rem;
             margin: 0 auto;
         }
 
@@ -354,21 +354,21 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            max-width: 240px;
+            max-width: 210px;
         }
 
         #reward-box {
-            padding: 2px 4px;
+            padding: 2px;
             border-radius: 3px;
             background-color: #fef3c7;
             border: 1px solid #d97706; 
             width: 100%;
-            height: 48px;
+            height: 40px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 1px;
+            gap: 0px;
             text-align: center;
         }
 
@@ -389,7 +389,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 1px;
+            gap: 0px;
             width: 100%;
             height: 100%;
         }
@@ -399,13 +399,13 @@
         }
 
         .reward-line-1 {
-            font-size: 0.68rem;
+            font-size: 0.6rem;
             color: #78350f;
             font-weight: 600;
         }
 
         .reward-line-2 {
-            font-size: 0.63rem;
+            font-size: 0.55rem;
             color: #78350f;
             font-weight: 500;
         }
@@ -414,26 +414,26 @@
             display: inline-block;
             color: #dc2626;
             font-weight: bold;
-            font-size: 0.85rem; 
+            font-size: 0.75rem; 
             background-color: #fee2e2;
-            padding: 1px 5px;
-            border-radius: 3px;
+            padding: 0px 4px;
+            border-radius: 2px;
             letter-spacing: 0.5px;
         }
 
         /* Music Widget Custom Styles */
         #music-widget {
             position: fixed;
-            top: 10px;
-            right: 10px;
+            top: 8px;
+            right: 8px;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 4px 10px;
+            padding: 3px 8px;
             border-radius: 20px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             z-index: 10000;
             color: white;
             font-family: sans-serif;
@@ -455,7 +455,7 @@
             background: none;
             border: none;
             color: white;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             padding: 0;
             display: flex;
@@ -467,7 +467,7 @@
         }
 
         #track-title {
-            font-size: 11px;
+            font-size: 10px;
             white-space: nowrap;
             line-height: 1;
         }
