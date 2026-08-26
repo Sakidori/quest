@@ -99,14 +99,13 @@
     }
     
 .book-container-sizer {
-        width: 68vw !important;
-        max-width: 68vw !important;
-        /* Change this height value to make the book taller or shorter */
-        height: 58vw !important; 
-        max-height: 85vh !important;
-        aspect-ratio: unset !important;
-        margin-top: 0 !important;
-    }
+    width: 68vw !important;
+    max-width: 68vw !important;
+    height: auto !important;
+    max-height: none !important;
+    /* Adjust this ratio (Width / Height). Lower second number = taller book */
+    aspect-ratio: 4 / 3 !important; 
+}
 
     /* Force the inner container to strictly fill that exact height */
     .book-container {
