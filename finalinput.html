@@ -93,19 +93,20 @@
        @media screen and (max-width: 1024px) {
     #intro-video {
         width: 100% !important;
-        height: 105% !important;
+        height: 102% !important;
         object-fit: contain !important;
         background-color: #000000;
     }
 .book-container-sizer {
-        width: 68vw;
-        max-width: 68vw;
-        max-height: 90.8vh;
-        /* Increase the height multiplier slightly (e.g., from 0.95 up to 1.0 or 1.05) */
-        height: calc(68vw * 0.9); 
-        aspect-ratio: unset; 
-        margin-top: 0;
-    }
+    width: 68vw;
+    max-width: 68vw;
+    /* Prevents it from ever getting taller than 90.8vh or smaller than a baseline, 
+       while scaling fluidly based on calc(68vw * 0.9) */
+    height: clamp(300px, calc(68vw * 0.9), 90.8vh);
+    aspect-ratio: unset;
+    margin-top: 0;
+    box-sizing: border-box; /* Ensures padding doesn't break the layout */
+}
 
             .left-page h1 { font-size: 0.95rem !important; margin-bottom: 4px !important; }
             .left-page p { font-size: 0.52rem !important; line-height: 1.2 !important; }
