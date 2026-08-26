@@ -91,8 +91,11 @@
 
         /* Mobile specific sizing overrides: made taller and thinner */
 @media screen and (max-width: 1024px) {
-    #intro-video {
-        object-fit: fill !important;
+#intro-video {
+        width: 100% !important;
+        height: 100% !important; /* Shrinks the video height slightly inside the container */
+        object-fit: contain !important; /* Reverts to contain so it leaves a tiny gap instead of forcing stretch */
+        background-color: #000000;
     }
     
     .book-container-sizer {
