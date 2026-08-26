@@ -101,10 +101,13 @@
 .book-container-sizer {
     width: 68vw !important;
     max-width: 68vw !important;
-    height: auto !important;
-    max-height: none !important;
-    /* Adjust this ratio (Width / Height). Lower second number = taller book */
-    aspect-ratio: 4 / 2.9 !important; 
+    
+    /* Tie height directly to a stable container or smaller step */
+    height: 70% !important; /* Adjust this by 1% to 2% at a time for fine-tuning */
+    max-height: 800px !important;
+    
+    aspect-ratio: unset !important;
+    margin-top: 0 !important;
 }
 
     /* Force the inner container to strictly fill that exact height */
