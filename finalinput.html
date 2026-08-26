@@ -91,12 +91,28 @@
 
         /* Mobile specific sizing overrides: made taller and thinner */
 @media screen and (max-width: 1024px) {
-#intro-video {
+#intro-video-container {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
         width: 100% !important;
-        height: 100% !important; /* Shrinks the video height slightly inside the container */
-        object-fit: contain !important; /* Reverts to contain so it leaves a tiny gap instead of forcing stretch */
-        background-color: #000000;
+        height: 100% !important;
+        overflow: hidden !important;
     }
+
+    /* Force the video to fill the flex container cleanly without drifting */
+    #intro-video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: fill !important;
+        margin: auto !important; /* 'margin: auto' in a flex container forces dead-center alignment */
+        position: static !important; /* Removes absolute positioning drift */
+        transform: none !important;  /* Clears out any old pixel/percentage offsets */
+    }
+
     
     .book-container-sizer {
         width: 68vw;
