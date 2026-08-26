@@ -97,14 +97,16 @@
         object-fit: contain !important;
         background-color: #000000;
     }
-    .book-container-sizer {
+.book-container-sizer {
         width: 68vw;
         max-width: 68vw;
-        height: calc(68vw * 0.80); /* Adjust this 0.95 multiplier up or down to change the height smoothly */        
-
+        max-height: 91.8vh;
+        /* Increase the height multiplier slightly (e.g., from 0.95 up to 1.0 or 1.05) */
+        height: calc(68vw * 1.02); 
         aspect-ratio: unset; 
         margin-top: 0;
-            }
+    }
+}
             .left-page h1 { font-size: 0.95rem !important; margin-bottom: 4px !important; }
             .left-page p { font-size: 0.52rem !important; line-height: 1.2 !important; }
             .left-treasure-box { width: 52px !important; height: 52px !important; margin-top: 4px !important; }
