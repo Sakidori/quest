@@ -91,42 +91,28 @@
 
         /* Mobile specific sizing overrides: made taller and thinner */
 @media screen and (max-width: 1024px) {
-#intro-video-container {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
+#intro-video {
         width: 100% !important;
-        height: 100% !important;
-        overflow: hidden !important;
+        height: 100% !important; /* Shrinks the video height slightly inside the container */
+        object-fit: contain !important; /* Reverts to contain so it leaves a tiny gap instead of forcing stretch */
+        background-color: #000000;
     }
-
-    /* Force the video to fill the flex container cleanly without drifting */
-    #intro-video {
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: fill !important;
-        margin: auto !important; /* 'margin: auto' in a flex container forces dead-center alignment */
-        position: static !important; /* Removes absolute positioning drift */
-        transform: none !important;  /* Clears out any old pixel/percentage offsets */
-    }
-
     
-    .book-container-sizer {
-        width: 68vw;
-        max-width: 68vw;
-        /* Force a strict height using calc without letting flexbox collapse it */
-        height: 45vw !important; /* Change this '52vw' multiplier directly to control the exact height */
-        max-height: 90.8svh;
+.book-container-sizer {
+        width: 68vw !important;
+        max-width: 68vw !important;
+        /* Change this height value to make the book taller or shorter */
+        height: 48vw !important; 
+        max-height: 85vh !important;
         aspect-ratio: unset !important;
-        margin-top: 0;
+        margin-top: 0 !important;
     }
 
+    /* Force the inner container to strictly fill that exact height */
     .book-container {
         width: 100% !important;
         height: 100% !important;
+        position: relative !important;
     }
 
             .left-page h1 { font-size: 0.95rem !important; margin-bottom: 4px !important; }
