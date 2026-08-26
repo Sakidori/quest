@@ -90,23 +90,25 @@
         }
 
         /* Mobile specific sizing overrides: made taller and thinner */
-       @media screen and (max-width: 1024px) {
+@media screen and (max-width: 1024px) {
     #intro-video {
-        width: 100% !important;
-        height: 110% !important;
-        object-fit: contain !important;
-        background-color: #000000;
+        object-fit: fill !important;
     }
-.book-container-sizer {
-    width: 68vw;
-    max-width: 68vw;
-    /* Prevents it from ever getting taller than 90.8vh or smaller than a baseline, 
-       while scaling fluidly based on calc(68vw * 0.9) */
-    height: clamp(300px, calc(68vw * 0.75), 91vh);
-    aspect-ratio: unset;
-    margin-top: 0;
-    box-sizing: border-box; /* Ensures padding doesn't break the layout */
-}
+    
+    .book-container-sizer {
+        width: 68vw;
+        max-width: 68vw;
+        /* Force a strict height using calc without letting flexbox collapse it */
+        height: 52vw !important; /* Change this '52vw' multiplier directly to control the exact height */
+        max-height: 90.8vh;
+        aspect-ratio: unset !important;
+        margin-top: 0;
+    }
+
+    .book-container {
+        width: 100% !important;
+        height: 100% !important;
+    }
 
             .left-page h1 { font-size: 0.95rem !important; margin-bottom: 4px !important; }
             .left-page p { font-size: 0.52rem !important; line-height: 1.2 !important; }
