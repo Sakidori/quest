@@ -949,7 +949,9 @@ function openRules() {
     document.getElementById("rules-modal").style.display = "block";
     document.querySelector(".start-btn").classList.add("start-visible");
     document.querySelector(".hub-btn").classList.add("hub-visible");
-    // Removed #credits-btn from here so it doesn't show too early
+    
+    // ADD THIS LINE: Make the credits button appear along with start and hub
+    document.getElementById("credits-btn").classList.add("credits-visible");
     
     bgMusic.volume = 0.3;
 
@@ -962,7 +964,7 @@ function openRules() {
 function closeRules() { 
     document.getElementById("rules-modal").style.display = "none";
     
-    // Make the credits button appear alongside start and hub buttons once rules are closed
+    // Both start/hub stay visible, and credits stays visible too
     document.getElementById("credits-btn").classList.add("credits-visible");
     
     bgMusic.volume = 1.0;
