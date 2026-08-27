@@ -606,11 +606,20 @@
             transform: scale(1.08);
         }
 
+        /* Video fade-in helper (Keep this OUTSIDE or clean inside the media block) */
+        .seq-video, #intro-video {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .seq-video.video-ready, #intro-video.video-ready {
+            opacity: 1;
+        }
+
         @media screen and (max-width: 1024px) {
             #intro-video {
                 width: 100% !important;
                 height: 100% !important;
-                object-fit: contain !important;
+                object-fit: cover !important; /* Changed back to cover so it doesn't shrink awkwardly */
                 background-color: #000000;
             }
 
@@ -647,13 +656,11 @@
             }
 
             #goodjob-img {
-                max-width: 40vw !important;
-                max-height: 30vh !important;
+                max-width: 50vw !important;
+                max-height: 40vh !important;
                 width: auto !important;
                 height: auto !important;
             }
-
-            
         }
     </style>
 </head>
