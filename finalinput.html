@@ -766,6 +766,26 @@
     object-fit: contain;
     border-radius: 8px;
 }
+
+/* Responsive fixes for mobile phones */
+@media screen and (max-width: 768px) {
+    /* 1. Reduce the visual novel text box size to fit like PC */
+    #vn-dialogue-box, .vn-textbox, .text-box-container { /* Update selector to match your exact dialogue box ID/class */
+        max-width: 90% !important;
+        width: 600px !important; /* Match your PC width */
+        font-size: 14px !important; /* Scale down text size slightly if needed */
+    }
+
+    /* 2. Make the return to school button bigger and push it slightly lower */
+    .custom-final-return-btn {
+        font-size: 1.2rem !important;
+        padding: 14px 28px !important;
+    }
+    
+    #final-return-container {
+        bottom: 20px !important; /* Lower it on mobile screens */
+    }
+}
     </style>
 </head>
 <body>
