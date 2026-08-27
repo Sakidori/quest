@@ -1257,7 +1257,7 @@ function closeRules() {
             }, stepTime);
         }
 
-       function runStepBlink() {
+        function runStepBlink() {
     fadeOutJourneyMusic(1000);
     fadeInVNMusic(0.4, 2500);
 
@@ -1269,7 +1269,7 @@ function closeRules() {
     
     videoBlink.play().then(() => {
         // 2. Add video-ready once playing smoothly
-        videoBlink.classList.add('video-ready');[cite: 5]
+        videoBlink.classList.add('video-ready');
     }).catch(e => {
         console.log("Auto-play prevented, skipping to VN", e);
         endStepBlink();
@@ -1282,7 +1282,7 @@ function closeRules() {
 
 function endStepBlink() {
     const videoBlink = document.getElementById('video-blink');
-    videoBlink.classList.remove('video-ready');[cite: 5]
+    videoBlink.classList.remove('video-ready');
     document.getElementById('screen-blink').classList.remove('active');
     runVisualNovel();
 }
@@ -1367,7 +1367,7 @@ function endStepBlink() {
     screenEnding.classList.add('active');
 
     videoEnding.play().then(() => {
-        videoEnding.classList.add('video-ready');[cite: 5]
+        videoEnding.classList.add('video-ready');
     }).catch(e => {
         console.log("Auto-play prevented, skipping to credits", e);
         endStepEnding();
@@ -1380,12 +1380,13 @@ function endStepBlink() {
 
 function endStepEnding() {
     const videoEnding = document.getElementById('video-ending');
-    videoEnding.classList.remove('video-ready');[cite: 5]
+    videoEnding.classList.remove('video-ready');
     
     // Fades out smoothly before rolling credits
     document.getElementById('screen-ending').classList.remove('active');
     runCreditRoll();
 }
+
         let isCreditsActive = false;
         let creditAnimFrame = null;
         let currentTopPercent = 100; 
