@@ -766,6 +766,9 @@
                     <h2>Lead Developers</h2>
                     <p>Calvin & Blanco</p>
                     <br>
+                    <h2>Website Design by</h2>
+                    <p>Calvin</p>
+                    <br>
                     <h2>360 Experience by</h2>
                     <p>Blanco</p>
                     <br>
@@ -1251,31 +1254,31 @@ function closeRules() {
         }
 
         function runStepBlink() {
-            fadeOutJourneyMusic(1000);
-            fadeInVNMusic(0.4, 2500);
+    fadeOutJourneyMusic(1000);
+    fadeInVNMusic(0.4, 2500);
 
-            const screenBlink = document.getElementById('screen-blink');
-            const videoBlink = document.getElementById('video-blink');
-            screenBlink.classList.add('active');
-            
-            videoBlink.play().then(() => {
-                videoBlink.classList.add('video-ready'); // ADD THIS
-            }).catch(e => {
-                console.log("Auto-play prevented, skipping to VN", e);
-                endStepBlink();
-            });
+    const screenBlink = document.getElementById('screen-blink');
+    const videoBlink = document.getElementById('video-blink');
+    screenBlink.classList.add('active');
+    
+    videoBlink.play().then(() => {
+        videoBlink.classList.add('video-ready'); // <-- Add this line
+    }).catch(e => {
+        console.log("Auto-play prevented, skipping to VN", e);
+        endStepBlink();
+    });
 
-            videoBlink.onended = () => {
-                endStepBlink();
-            };
-        }
+    videoBlink.onended = () => {
+        endStepBlink();
+    };
+}
 
-        function endStepBlink() {
-            const videoBlink = document.getElementById('video-blink');
-            videoBlink.classList.remove('video-ready'); // ADD THIS
-            document.getElementById('screen-blink').classList.remove('active');
-            runVisualNovel();
-        }
+function endStepBlink() {
+    const videoBlink = document.getElementById('video-blink');
+    videoBlink.classList.remove('video-ready'); // <-- Add this line to clean up
+    document.getElementById('screen-blink').classList.remove('active');
+    runVisualNovel();
+}
         const vnScript = [
             ["Me", "Huh? What just happened?..."],
             ["Me", "Was it just a dream?"],
@@ -1349,30 +1352,30 @@ function closeRules() {
             runStepEnding();
         }
 
-        function runStepEnding() {
-            const screenEnding = document.getElementById('screen-ending');
-            const videoEnding = document.getElementById('video-ending');
-            screenEnding.classList.add('active');
+       function runStepEnding() {
+    const screenEnding = document.getElementById('screen-ending');
+    const videoEnding = document.getElementById('video-ending');
+    screenEnding.classList.add('active');
 
-            videoEnding.play().then(() => {
-                videoEnding.classList.add('video-ready'); // ADD THIS
-            }).catch(e => {
-                console.log("Auto-play prevented, skipping to credits", e);
-                endStepEnding();
-            });
+    videoEnding.play().then(() => {
+        videoEnding.classList.add('video-ready'); // <-- Add this line
+    }).catch(e => {
+        console.log("Auto-play prevented, skipping to credits", e);
+        endStepEnding();
+    });
 
-            videoEnding.onended = () => {
-                endStepEnding();
-            };
-        }
+    videoEnding.onended = () => {
+        endStepEnding();
+    };
+}
 
-        function endStepEnding() {
-            const videoEnding = document.getElementById('video-ending');
-            videoEnding.classList.remove('video-ready'); // ADD THIS
-            document.getElementById('screen-credits').classList.remove('active'); // Wait, keep existing screen toggle
-            document.getElementById('screen-ending').classList.remove('active');
-            runCreditRoll();
-        }
+function endStepEnding() {
+    const videoEnding = document.getElementById('video-ending');
+    videoEnding.classList.remove('video-ready'); // <-- Add this line to clean up
+    document.getElementById('screen-ending').classList.remove('active');
+    runCreditRoll();
+}
+
         let isCreditsActive = false;
         let creditAnimFrame = null;
         let currentTopPercent = 100; 
