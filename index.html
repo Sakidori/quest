@@ -1288,10 +1288,14 @@ function closeRules() {
             };
         }
 
-        function endStepBlink() {
+       function endStepBlink() {
             const videoBlink = document.getElementById('video-blink');
-            videoBlink.classList.remove('video-ready'); // ADD THIS
+            videoBlink.classList.remove('video-ready');
+            
+            // Fade out blink screen
             document.getElementById('screen-blink').classList.remove('active');
+            
+            // Immediately start VN with a tiny overlap sync
             runVisualNovel();
         }
         const vnScript = [
@@ -1309,7 +1313,16 @@ function closeRules() {
         const vnSceneEl = document.getElementById("vn-scene");
 
         function runVisualNovel() {
-            document.getElementById('screen-vn').classList.add('active');
+            const screenVN = document.getElementById('screen-vn');
+            const vnSceneEl = document.getElementById('vn-scene');
+            
+            screenVN.classList.add('active');
+            
+            // Allow background image (still.webp) a moment to render before fading in
+            setTimeout(() => {
+                vnSceneEl.classList.add('vn-ready');
+            }, 50);
+
             vnIndex = 0;
             typeWriterVN(vnScript[0][0], vnScript[0][1]);
             vnSceneEl.onclick = nextVNDialogue;
@@ -1351,6 +1364,8 @@ function closeRules() {
 
         function endVisualNovel() {
             const vnAudio = document.getElementById('vn-music');
+            const vnSceneEl = document.getElementById('vn-scene');
+            
             let fadeVol = 0.4;
             let fadeInterval = setInterval(() => {
                 if (fadeVol > 0.05) {
@@ -1363,17 +1378,25 @@ function closeRules() {
                 }
             }, 100);
 
-            document.getElementById('screen-vn').classList.remove('active');
-            runStepEnding();
+            // Fade out VN container first
+            vnSceneEl.classList.remove('vn-ready');
+            
+            setTimeout(() => {
+                document.getElementById('screen-vn').classList.remove('active');
+                runStepEnding();
+            }, 400); // Wait for fade out to complete before starting ending video
         }
 
-        function runStepEnding() {
+       function runStepEnding() {
             const screenEnding = document.getElementById('screen-ending');
             const videoEnding = document.getElementById('video-ending');
+            
             screenEnding.classList.add('active');
 
             videoEnding.play().then(() => {
-                videoEnding.classList.add('video-ready'); // ADD THIS
+                setTimeout(() => {
+                    videoEnding.classList.add('video-ready');
+                }, 50);
             }).catch(e => {
                 console.log("Auto-play prevented, skipping to credits", e);
                 endStepEnding();
@@ -1386,8 +1409,8 @@ function closeRules() {
 
         function endStepEnding() {
             const videoEnding = document.getElementById('video-ending');
-            videoEnding.classList.remove('video-ready'); // ADD THIS
-            document.getElementById('screen-credits').classList.remove('active'); // Wait, keep existing screen toggle
+            videoEnding.classList.remove('video-ready');
+            
             document.getElementById('screen-ending').classList.remove('active');
             runCreditRoll();
         }
