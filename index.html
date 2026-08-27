@@ -1263,13 +1263,10 @@ function closeRules() {
 
     const screenBlink = document.getElementById('screen-blink');
     const videoBlink = document.getElementById('video-blink');
-    
-    // 1. Make the screen container active (fades in opacity)
     screenBlink.classList.add('active');
     
     videoBlink.play().then(() => {
-        // 2. Add video-ready once playing smoothly
-        videoBlink.classList.add('video-ready');
+        videoBlink.classList.add('video-ready'); // <-- Add this line
     }).catch(e => {
         console.log("Auto-play prevented, skipping to VN", e);
         endStepBlink();
@@ -1282,7 +1279,7 @@ function closeRules() {
 
 function endStepBlink() {
     const videoBlink = document.getElementById('video-blink');
-    videoBlink.classList.remove('video-ready');
+    videoBlink.classList.remove('video-ready'); // <-- Add this line to clean up
     document.getElementById('screen-blink').classList.remove('active');
     runVisualNovel();
 }
@@ -1359,15 +1356,13 @@ function endStepBlink() {
             runStepEnding();
         }
 
-      function runStepEnding() {
+       function runStepEnding() {
     const screenEnding = document.getElementById('screen-ending');
     const videoEnding = document.getElementById('video-ending');
-    
-    // Fades in smoothly using the opacity transition on .seq-screen.active
     screenEnding.classList.add('active');
 
     videoEnding.play().then(() => {
-        videoEnding.classList.add('video-ready');
+        videoEnding.classList.add('video-ready'); // <-- Add this line
     }).catch(e => {
         console.log("Auto-play prevented, skipping to credits", e);
         endStepEnding();
@@ -1380,9 +1375,7 @@ function endStepBlink() {
 
 function endStepEnding() {
     const videoEnding = document.getElementById('video-ending');
-    videoEnding.classList.remove('video-ready');
-    
-    // Fades out smoothly before rolling credits
+    videoEnding.classList.remove('video-ready'); // <-- Add this line to clean up
     document.getElementById('screen-ending').classList.remove('active');
     runCreditRoll();
 }
