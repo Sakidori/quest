@@ -414,7 +414,7 @@
         }
 
         /* --- Sequence Overlay Styling --- */
-        #sequence-layer {
+#sequence-layer {
             position: fixed;
             top: 0;
             left: 0;
@@ -434,13 +434,17 @@
             left: 0;
             width: 100%;
             height: 100%;
-            display: none;
+            display: flex; /* Keep flex active so layout is preserved */
             justify-content: center;
             align-items: center;
+            opacity: 0;
+            pointer-events: none; /* Disable interaction when hidden */
+            transition: opacity 0.5s ease; /* Smooth cross-fade duration */
         }
 
         .seq-screen.active {
-            display: flex;
+            opacity: 1;
+            pointer-events: auto; /* Re-enable interaction when active */
         }
 
         .seq-video {
@@ -448,6 +452,12 @@
             height: 100%;
             object-fit: cover;
             background: #000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .seq-video.video-ready {
+            opacity: 1;
         }
 
         /* Visual Novel Styles inside Sequence Layer */
@@ -461,8 +471,13 @@
             background-size: cover;
             background-position: center;
             cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.5s ease; /* Smooth fade for Visual Novel */
         }
 
+        .vn-container.vn-ready {
+            opacity: 1;
+        }
         .dialogue-box {
             position: absolute;
             bottom: 25px;
