@@ -638,7 +638,7 @@
             }
 
             .dialogue-text {
-                font-size: 1.4rem !important;
+                font-size: 1.3rem !important;
                 line-height: 1.4 !important;
             }
 
@@ -977,7 +977,7 @@ function closeRules() {
     bgMusic.volume = 1.0;
 }
 
-        function preloadPanoeeFrame() {
+function preloadPanoeeFrame() {
             var wrapper = document.createElement("div");
             wrapper.className = "panoee-container";
             wrapper.id = "panoee-wrapper";
@@ -989,6 +989,12 @@ function closeRules() {
             
             wrapper.appendChild(iframe);
             document.body.appendChild(wrapper);
+
+            // ---> HIDE THE CREDITS BUTTON WHENEVER PANOEE LOADS <---
+            const creditsBtn = document.getElementById('credits-btn');
+            if (creditsBtn) {
+                creditsBtn.style.display = 'none';
+            }
         }
 
         function fadeOutMusic(duration = 3000) {
