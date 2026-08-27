@@ -632,17 +632,18 @@
     opacity: 1;
 }
         /* Visual Novel Styles inside Sequence Layer */
-        .vn-container {
-            position: relative;
-            width: 1280px;
-            height: 720px;
-            max-width: 100%;
-            max-height: 100vh;
-            background-image: url('still.webp');
-            background-size: cover;
-            background-position: center;
-            cursor: pointer;
-        }
+.vn-container {
+    position: relative;
+    width: 100vw;  /* <--- Fill full viewport width */
+    height: 100vh; /* <--- Fill full viewport height */
+    max-width: none;
+    max-height: none;
+    background-image: url('still.webp');
+    background-size: cover; /* <--- Fills the whole screen */
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
 
         /* Updated Visual Novel Dialogue Box Styles */
         .dialogue-box {
