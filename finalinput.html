@@ -1584,6 +1584,20 @@ const imgContainer = document.getElementById('goodjob-img-container');
                 }
             };
         })();
+
+        window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('play') === 'sequence') {
+        // Hide the introductory overlay container immediately
+        const introContainer = document.getElementById('intro-video-container');
+        if (introContainer) introContainer.remove();
+
+        // Directly kick off the sequence starting from blink.mp4
+        if (typeof startSequence === 'function') {
+            startSequence();
+        }
+    }
+});
     </script>
 </body>
 </html>

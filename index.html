@@ -35,6 +35,7 @@
         html.auto-panoee body { background: #000; }
         html.auto-panoee #splash-screen,
         html.auto-panoee #update-box,
+        html.auto-panoee #credits-btn,
         html.auto-panoee #sparkle-container,
         html.auto-panoee .item-container,
         html.auto-panoee .button-group,
@@ -47,9 +48,39 @@
         }
 
         /* Ensure interactive controls maintain pointer responsiveness */
-        .button-group, #music-widget, .modal, #skip-video-btn {
+        .button-group, #music-widget, .modal, #skip-video-btn, #credits-btn {
             pointer-events: auto !important;
         }
+
+        /* Credits Button Styling (Mirrors bottom-left update-notes minimized style) */
+        .credits-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-family: sans-serif;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            z-index: 10001;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            pointer-events: auto;
+            width: 44px;
+            height: 44px;
+            display: none; /* Hidden by default, appears with start/hub */
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 20px;
+            transition: transform 0.2s ease, background 0.2s ease;
+            cursor: pointer;
+        }
+        .credits-button:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .credits-visible { display: flex !important; }
 
         /* Update Notes Box Styling with smooth minimize transition */
         .update-notes {
@@ -163,7 +194,7 @@
             #rotate-msg { display: block !important; }
             #enter-container { display: none !important; }
             
-            .update-notes { display: none; }
+            .update-notes, #credits-btn { display: none; }
         }
 
         .enter-btn { 
@@ -376,9 +407,205 @@
             white-space: nowrap;
             line-height: 1;
         }
+
+        /* --- Sequence Overlay Styling --- */
+        #sequence-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+            z-index: 99999999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .seq-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .seq-screen.active {
+            display: flex;
+        }
+
+        .seq-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+        }
+
+        /* Visual Novel Styles inside Sequence Layer */
+        .vn-container {
+            position: relative;
+            width: 1280px;
+            height: 720px;
+            max-width: 100%;
+            max-height: 100vh;
+            background-image: url('still.webp');
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+        }
+
+        .dialogue-box {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            height: 210px;
+            background: rgba(15, 15, 25, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+            padding: 30px 35px;
+            box-sizing: border-box;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+        }
+
+        .speaker-name {
+            position: absolute;
+            top: -22px;
+            left: 25px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: #fff;
+            padding: 6px 22px;
+            font-weight: bold;
+            font-size: 1.25rem;
+            border-radius: 4px;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .dialogue-text {
+            color: #f0f0f0;
+            font-size: 1.5rem;
+            line-height: 1.6;
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        .next-indicator {
+            position: absolute;
+            bottom: 15px;
+            right: 25px;
+            font-size: 1rem;
+            color: #4a90e2;
+            animation: bounce 1.5s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+        }
+
+        /* Credits Roll Styles */
+        .credits-container {
+            width: 100%;
+            height: 100%;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            position: relative;
+            text-align: center;
+            font-family: Georgia, serif;
+            cursor: pointer;
+        }
+
+        .credits-scroll {
+            position: absolute;
+            width: 100%;
+            top: 100%; 
+            padding-bottom: 100vh;
+            will-change: transform;
+        }
+
+        .credits-scroll h1 {
+            font-size: 2.5rem;
+            color: #bfa181;
+            margin-bottom: 20px;
+        }
+
+        .credits-scroll h2 {
+            font-size: 1.5rem;
+            color: #8b5a2b;
+            margin-top: 40px;
+            margin-bottom: 10px;
+            text-align: center;
+            white-space: normal;
+        }
+
+        .credits-scroll p {
+            font-size: 1.1rem;
+            color: #ccc;
+            margin: 8px 0;
+        }
+
+        #ff-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            padding: 6px 16px;
+            border-radius: 20px;
+            color: #ccc;
+            font-size: 0.85rem;
+            font-family: sans-serif;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        #final-return-container {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999999999;
+            display: none;
+        }
+
+        .custom-final-return-btn {
+            background: linear-gradient(135deg, #bfa181, #8b5a2b);
+            color: #fff;
+            border: 2px solid #fdfbf7;
+            padding: 14px 42px;
+            font-size: 1.1rem;
+            font-family: Georgia, serif;
+            letter-spacing: 1px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .custom-final-return-btn:hover {
+            background: linear-gradient(135deg, #cea982, #6f441e);
+            transform: scale(1.08);
+        }
     </style>
 </head>
 <body>
+
+    <!-- Credits Button (Top Left) -->
+    <a href="#" id="credits-btn" class="credits-button" onclick="startSequence(); return false;" title="Credits">🏆</a>
 
     <!-- Update Notes Box with toggle capability -->
     <div id="update-box" class="update-notes" onclick="toggleUpdateNotes(event)" title="Click to expand update notes">
@@ -444,6 +671,89 @@
         </div>
     </div>
 
+    <!-- Sequence Container Layer -->
+    <div id="sequence-layer">
+        <!-- Step 1: blink.mp4 -->
+        <div class="seq-screen" id="screen-blink">
+            <video class="seq-video" id="video-blink" src="blink.mp4" playsinline></video>
+        </div>
+
+        <!-- Step 2: Visual Novel -->
+        <div class="seq-screen" id="screen-vn">
+            <div class="vn-container" id="vn-scene">
+                <div class="dialogue-box">
+                    <div class="speaker-name" id="vn-speaker">Protagonist</div>
+                    <p class="dialogue-text" id="vn-dialogue"></p>
+                    <div class="next-indicator">▼</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: ending.mp4 -->
+        <div class="seq-screen" id="screen-ending">
+            <video class="seq-video" id="video-ending" src="ending.mp4" playsinline></video>
+        </div>
+
+        <!-- Step 4: Credit Roll -->
+        <div class="seq-screen" id="screen-credits">
+            <div class="credits-container" id="credits-clickable-area">
+                <div class="credits-scroll" id="credits-scroll">
+                    <h1>Summer Quest</h1>
+                    <p>A Special Adventure Experience</p>
+                    <br>
+                    <h2>Lead Developers</h2>
+                    <p>Calvin & Blanco</p>
+                    <br>
+                    <h2>360 Experience by</h2>
+                    <p>Blanco</p>
+                    <br>
+                    <h2>Story & Information by</h2>
+                    <p>Blanco</p>
+                    <br>
+                    <h2>Forest RPG</h2>
+                    <p>Made by Calvin</p>
+                    <br>
+                    <h2>Desert Maze</h2>
+                    <p>Made by Calvin</p>
+                    <br>
+                    <h2>Underwater Puzzle</h2>
+                    <p>Made by Blanco</p>
+                    <br>
+                    <h2>Space Survival</h2>
+                    <p>Made by Calvin</p>
+                    <br>
+                    <h2>A Snowy Adventure</h2>
+                    <p>Made by Calvin</p>
+                    <br>
+                    <h2>Classroom Escape</h2>
+                    <p>Made by Calvin</p>
+                    <br>
+                    <h2>Special Thanks</h2>
+                    <p>To you for your time!</p>
+                    <br>
+                    <h2>Made with</h2>
+                    <p>HTML5, JavaScript, Insta306, Panoee & Gemini</p>
+                    <br><br>
+                    <h1 style="font-size: 3rem; color: #bfa181;">Thank you for playing!</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Good Job Image Container -->
+    <div id="goodjob-img-container" style="display: none; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 999999999; text-align: center;">
+        <img id="goodjob-img" src="goodjob.webp" alt="Good Job" style="max-width: 500px; max-height: 350px; object-fit: contain; border-radius: 8px;">
+    </div>
+
+    <!-- Final Return Button Container -->
+    <div id="final-return-container" style="display: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 999999999; text-align: center;">
+        <button class="custom-final-return-btn" onclick="returnToUrl()">Return to Homepage</button>
+    </div>
+
+    <!-- Audio Elements for Sequence -->
+    <audio id="credits-music" src="music/funenotabi.mp3" preload="auto" loop></audio>
+    <audio id="vn-music" src="music/ashitaetudukusora.mp3" preload="auto" loop></audio>
+
 <script>
         const container = document.getElementById('sparkle-container');
         for(let i = 0; i < 40; i++) {
@@ -471,7 +781,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             startMinimizeTimer();
-            preloadPanoeeFrame(); // Preload it invisibly in the background right away
+            preloadPanoeeFrame();
 
             const splash = document.getElementById('splash-screen');
 
@@ -572,23 +882,28 @@
             playCurrentTrack();
         }
 
-        function openRules() { 
-            document.getElementById("rules-modal").style.display = "block";
-            document.querySelector(".start-btn").classList.add("start-visible");
-            document.querySelector(".hub-btn").classList.add("hub-visible");
-            
-            bgMusic.volume = 0.3;
+function openRules() { 
+    document.getElementById("rules-modal").style.display = "block";
+    document.querySelector(".start-btn").classList.add("start-visible");
+    document.querySelector(".hub-btn").classList.add("hub-visible");
+    // Removed #credits-btn from here so it doesn't show too early
+    
+    bgMusic.volume = 0.3;
 
-            const bookSound = document.getElementById("book-sound");
-            bookSound.volume = 1.0;
-            bookSound.currentTime = 0;
-            bookSound.play().catch(e => console.log("Audio play blocked"));
-        }
+    const bookSound = document.getElementById("book-sound");
+    bookSound.volume = 1.0;
+    bookSound.currentTime = 0;
+    bookSound.play().catch(e => console.log("Audio play blocked"));
+}
 
-        function closeRules() { 
-            document.getElementById("rules-modal").style.display = "none";
-            bgMusic.volume = 1.0;
-        }
+function closeRules() { 
+    document.getElementById("rules-modal").style.display = "none";
+    
+    // Make the credits button appear alongside start and hub buttons once rules are closed
+    document.getElementById("credits-btn").classList.add("credits-visible");
+    
+    bgMusic.volume = 1.0;
+}
 
         function preloadPanoeeFrame() {
             var wrapper = document.createElement("div");
@@ -636,13 +951,10 @@
 
         function handleVideoInput(e) {
             if (!isVideoPlaying || videoHasFinishedOrSkipped) return;
-
-            // Don't trigger if the user clicked directly on the skip button itself
             if (e && e.target && e.target.id === 'skip-video-btn') return;
 
             const skipBtn = document.getElementById('skip-video-btn');
 
-            // If the button is already visible, any new input resets the 2-second hide countdown
             if (skipBtn.classList.contains('visible')) {
                 clearTimeout(hideSkipTimer);
                 hideSkipTimer = setTimeout(() => {
@@ -651,26 +963,20 @@
                 return;
             }
 
-            // If we are already waiting for the 2-second show delay, ignore additional inputs to keep the initial timer steady
             if (isWaitingForShow) return;
-
             isWaitingForShow = true;
 
-            // 1. Wait 2 seconds after input, then show the button
             showSkipTimer = setTimeout(() => {
                 isWaitingForShow = false;
                 if (!isVideoPlaying || videoHasFinishedOrSkipped) return;
-                
                 skipBtn.classList.add('visible');
 
-                // 2. Keep it visible for 2 seconds, then hide it if not interacted with
                 hideSkipTimer = setTimeout(() => {
                     skipBtn.classList.remove('visible');
                 }, 2000);
             }, 2000);
         }
 
-        // Listen on the video container element for inputs
         const videoContainerEl = document.getElementById('intro-video-container');
         videoContainerEl.addEventListener('mousemove', handleVideoInput);
         videoContainerEl.addEventListener('touchstart', handleVideoInput);
@@ -699,9 +1005,8 @@
             videoContainer.style.opacity = '0';
             setTimeout(() => {
                 videoContainer.style.display = 'none';
-            }, 1000); // Matched with CSS transition time
+            }, 1000);
 
-            // Move to the next track and play at full volume
             currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
             playCurrentTrack();
         }
@@ -735,25 +1040,20 @@
             isVideoPlaying = true;
             isWaitingForShow = false;
 
-            // 1. Instantly show the video container (opacity 0) and start playing the video smoothly underneath
             videoContainer.style.display = 'flex';
             
-            // 2. Play the video immediately
             introVideo.play().catch(e => {
                 console.log("Video auto-play blocked, skipping to panoee");
                 finishVideoSequence();
             });
 
-            // 3. Fade in the video overlay container smoothly over 1 second
             setTimeout(() => {
                 videoContainer.style.opacity = '1';
             }, 50);
 
-            // 4. Fade out background music slower (3 seconds) concurrently with the video fade-in
             await fadeOutMusic(3000);
             playPauseBtn.textContent = "▶";
 
-            // 5. When the video naturally ends
             introVideo.onended = () => {
                 finishVideoSequence();
             };
@@ -782,11 +1082,363 @@
                     bgMusic.play().then(() => {
                         playPauseBtn.textContent = "❚❚";
                     }).catch(e => console.log("Auto-resume blocked"));
-                    
                     wasPlayingBeforeGame = false; 
                 }
             }
         });
+
+        // --- Web Audio API Reverb & Sequence Handlers ---
+        let vnAudioCtx = null;
+        let vnSourceNode = null;
+        let vnGainNode = null;
+        let vnConvolverNode = null;
+
+        function initVNReverbAudio() {
+            const vnAudio = document.getElementById('vn-music');
+            if (!vnAudioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                vnAudioCtx = new AudioContext();
+
+                vnSourceNode = vnAudioCtx.createMediaElementSource(vnAudio);
+                vnGainNode = vnAudioCtx.createGain();
+                vnGainNode.gain.value = 0.0;
+                vnConvolverNode = vnAudioCtx.createConvolver();
+                
+                const rate = vnAudioCtx.sampleRate;
+                const length = rate * 2.0; 
+                const impulse = vnAudioCtx.createBuffer(2, length, rate);
+                const leftChannel = impulse.getChannelData(0);
+                const rightChannel = impulse.getChannelData(1);
+
+                for (let i = 0; i < length; i++) {
+                    let decay = Math.exp(-i / (rate * 0.4));
+                    leftChannel[i] = (Math.random() * 2 - 1) * decay;
+                    rightChannel[i] = (Math.random() * 2 - 1) * decay;
+                }
+                vnConvolverNode.buffer = impulse;
+
+                const filterNode = vnAudioCtx.createBiquadFilter();
+                filterNode.type = 'lowpass';
+                filterNode.frequency.value = 1200;
+
+                vnSourceNode.connect(filterNode);
+                filterNode.connect(vnConvolverNode);
+                vnConvolverNode.connect(vnGainNode);
+                vnGainNode.connect(vnAudioCtx.destination);
+            }
+
+            if (vnAudioCtx.state === 'suspended') {
+                vnAudioCtx.resume();
+            }
+        }
+
+        function fadeInVNMusic(targetVol = 0.4, duration = 3000) {
+            initVNReverbAudio();
+            const vnAudio = document.getElementById('vn-music');
+            vnAudio.currentTime = 0;
+            vnAudio.play().catch(e => console.log("VN audio play error:", e));
+
+            if (vnGainNode) vnGainNode.gain.value = 0.0;
+
+            let currentVol = 0.0;
+            let stepTime = 100;
+            let steps = duration / stepTime;
+            let volumeStep = targetVol / steps;
+
+            let fadeInInterval = setInterval(() => {
+                if (currentVol < targetVol - volumeStep) {
+                    currentVol += volumeStep;
+                    if (vnGainNode) vnGainNode.gain.value = currentVol;
+                } else {
+                    currentVol = targetVol;
+                    if (vnGainNode) vnGainNode.gain.value = currentVol;
+                    clearInterval(fadeInInterval);
+                }
+            }, stepTime);
+        }
+
+        function startSequence() {
+            const seqLayer = document.getElementById('sequence-layer');
+            seqLayer.style.display = 'flex';
+            runStepBlink();
+        }
+
+        function fadeOutJourneyMusic(duration) {
+            if (bgMusic.paused) return;
+            let startVolume = bgMusic.volume;
+            let stepTime = 100;
+            let steps = duration / stepTime;
+            let volumeStep = startVolume / steps;
+
+            let fadeInterval = setInterval(() => {
+                if (bgMusic.volume > volumeStep) {
+                    bgMusic.volume -= volumeStep;
+                } else {
+                    bgMusic.volume = 0;
+                    bgMusic.pause();
+                    clearInterval(fadeInterval);
+                }
+            }, stepTime);
+        }
+
+        function runStepBlink() {
+            fadeOutJourneyMusic(1000);
+            fadeInVNMusic(0.4, 2500);
+
+            const screenBlink = document.getElementById('screen-blink');
+            const videoBlink = document.getElementById('video-blink');
+            screenBlink.classList.add('active');
+            
+            videoBlink.play().catch(e => {
+                console.log("Auto-play prevented, skipping to VN", e);
+                endStepBlink();
+            });
+
+            videoBlink.onended = () => {
+                endStepBlink();
+            };
+        }
+
+        function endStepBlink() {
+            document.getElementById('screen-blink').classList.remove('active');
+            runVisualNovel();
+        }
+
+        const vnScript = [
+            ["Me", "Huh? What just happened?..."],
+            ["Me", "Was it just a dream?"],
+            ["Me", "Maybe I've been studying too long, I need some fresh air."]
+        ];
+        let vnIndex = 0;
+        let vnCharIndex = 0;
+        let vnIsTyping = false;
+        let vnTimeout = null;
+
+        const speakerEl = document.getElementById("vn-speaker");
+        const dialogueEl = document.getElementById("vn-dialogue");
+        const vnSceneEl = document.getElementById("vn-scene");
+
+        function runVisualNovel() {
+            document.getElementById('screen-vn').classList.add('active');
+            vnIndex = 0;
+            typeWriterVN(vnScript[0][0], vnScript[0][1]);
+            vnSceneEl.onclick = nextVNDialogue;
+        }
+
+        function typeWriterVN(speaker, text) {
+            vnIsTyping = true;
+            speakerEl.textContent = speaker;
+            dialogueEl.textContent = "";
+            vnCharIndex = 0;
+
+            function type() {
+                if (vnCharIndex < text.length) {
+                    dialogueEl.textContent += text.charAt(vnCharIndex);
+                    vnCharIndex++;
+                    vnTimeout = setTimeout(type, 35);
+                } else {
+                    vnIsTyping = false;
+                }
+            }
+            type();
+        }
+
+        function nextVNDialogue() {
+            if (vnIsTyping) {
+                clearTimeout(vnTimeout);
+                dialogueEl.textContent = vnScript[vnIndex][1];
+                vnIsTyping = false;
+            } else {
+                vnIndex++;
+                if (vnIndex < vnScript.length) {
+                    typeWriterVN(vnScript[vnIndex][0], vnScript[vnIndex][1]);
+                } else {
+                    vnSceneEl.onclick = null;
+                    endVisualNovel();
+                }
+            }
+        }
+
+        function endVisualNovel() {
+            const vnAudio = document.getElementById('vn-music');
+            let fadeVol = 0.4;
+            let fadeInterval = setInterval(() => {
+                if (fadeVol > 0.05) {
+                    fadeVol -= 0.05;
+                    if (vnGainNode) vnGainNode.gain.value = fadeVol;
+                } else {
+                    vnAudio.pause();
+                    clearInterval(fadeInterval);
+                    if (vnGainNode) vnGainNode.gain.value = 0.4;
+                }
+            }, 100);
+
+            document.getElementById('screen-vn').classList.remove('active');
+            runStepEnding();
+        }
+
+        function runStepEnding() {
+            const screenEnding = document.getElementById('screen-ending');
+            const videoEnding = document.getElementById('video-ending');
+            screenEnding.classList.add('active');
+
+            videoEnding.play().catch(e => {
+                console.log("Auto-play prevented, skipping to credits", e);
+                endStepEnding();
+            });
+
+            videoEnding.onended = () => {
+                endStepEnding();
+            };
+        }
+
+        function endStepEnding() {
+            document.getElementById('screen-ending').classList.remove('active');
+            runCreditRoll();
+        }
+
+        let isCreditsActive = false;
+        let creditAnimFrame = null;
+        let currentTopPercent = 100; 
+        let creditSpeedNormal = 0.035;
+        let currentSpeed = creditSpeedNormal;
+        let isFastForwarding = false;
+
+        const scrollEl = document.getElementById('credits-scroll');
+        const creditsMusic = document.getElementById('credits-music');
+
+        window.addEventListener('keydown', (e) => {
+            if (isCreditsActive && e.code === 'Space') {
+                isFastForwarding = true;
+                if (creditsMusic) creditsMusic.playbackRate = 4.0;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                isFastForwarding = false;
+                if (creditsMusic) creditsMusic.playbackRate = 1.0;
+            }
+        });
+
+        window.addEventListener('mousedown', (e) => {
+            if (isCreditsActive && e.button === 0) {
+                isFastForwarding = true;
+                if (creditsMusic) creditsMusic.playbackRate = 4.0;
+            }
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (e.button === 0 && isFastForwarding) {
+                isFastForwarding = false;
+                if (creditsMusic) creditsMusic.playbackRate = 1.0;
+            }
+        });
+
+        window.addEventListener('touchstart', (e) => {
+            if (isCreditsActive) {
+                isFastForwarding = true;
+                if (creditsMusic) creditsMusic.playbackRate = 4.0;
+            }
+        });
+
+        window.addEventListener('touchend', (e) => {
+            if (isFastForwarding) {
+                isFastForwarding = false;
+                if (creditsMusic) creditsMusic.playbackRate = 1.0;
+            }
+        });
+
+        function runCreditRoll() {
+            isCreditsActive = true;
+            const screenCredits = document.getElementById('screen-credits');
+            screenCredits.classList.add('active');
+
+            currentTopPercent = 100;
+            currentSpeed = creditSpeedNormal;
+            isFastForwarding = false;
+
+            const actionButton = document.getElementById('final-return-container');
+            if (actionButton) actionButton.style.display = 'none';
+
+            const imgContainer = document.getElementById('goodjob-img-container');
+            if (imgContainer) imgContainer.style.display = 'none';
+            
+            const ffHint = document.getElementById('ff-hint');
+            if (ffHint) ffHint.style.display = 'block';
+
+            creditsMusic.volume = 0.5;
+            creditsMusic.playbackRate = 1.0;
+            creditsMusic.play().catch(err => console.log("Credits audio play blocked or missing file"));
+
+            let lastTime = performance.now();
+
+            function step(timestamp) {
+                if (!isCreditsActive) return;
+                
+                let deltaTime = timestamp - lastTime;
+                lastTime = timestamp;
+
+                currentSpeed = isFastForwarding ? creditSpeedNormal * 5 : creditSpeedNormal;
+                let movement = currentSpeed * (deltaTime / 16.66);
+                currentTopPercent -= movement;
+
+                if (currentTopPercent <= 0) {
+                    currentTopPercent = 0;
+                    scrollEl.style.transform = `translateY(${currentTopPercent - 100}%)`;
+                    endCreditRoll();
+                    return;
+                }
+
+                scrollEl.style.transform = `translateY(${currentTopPercent - 100}%)`;
+                creditAnimFrame = requestAnimationFrame(step);
+            }
+
+            creditAnimFrame = requestAnimationFrame(step);
+        }
+
+        function endCreditRoll() {
+            if (!isCreditsActive) return;
+            isCreditsActive = false;
+            if (creditAnimFrame) cancelAnimationFrame(creditAnimFrame);
+            
+            fadeOutCreditsMusic(2000);
+            
+            const ffHint = document.getElementById('ff-hint');
+            if (ffHint) ffHint.style.display = 'none';
+            
+            const imgContainer = document.getElementById('goodjob-img-container');
+            if (imgContainer) {
+                imgContainer.style.display = 'block';
+            }
+
+            const finalContainer = document.getElementById('final-return-container');
+            if (finalContainer) {
+                finalContainer.style.display = 'block';
+            }
+        }
+
+        function fadeOutCreditsMusic(duration) {
+            if (creditsMusic.paused) return;
+            let startVolume = creditsMusic.volume;
+            let stepTime = 100;
+            let steps = duration / stepTime;
+            let volumeStep = startVolume / steps;
+
+            let fadeInterval = setInterval(() => {
+                if (creditsMusic.volume > volumeStep) {
+                    creditsMusic.volume -= volumeStep;
+                } else {
+                    creditsMusic.volume = 0;
+                    creditsMusic.pause();
+                    clearInterval(fadeInterval);
+                }
+            }, stepTime);
+        }
+
+        function returnToUrl() {
+            window.location.href = "https://sakidori.github.io/quest/index.html";
+        }
     </script>
 </body>
 </html>
