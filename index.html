@@ -739,9 +739,9 @@
     <!-- Sequence Container Layer -->
     <div id="sequence-layer">
         <!-- Step 1: blink.mp4 -->
-        <div class="seq-screen" id="screen-blink">
-            <video class="seq-video" id="video-blink" src="blink.mp4" playsinline></video>
-        </div>
+   <div class="seq-screen" id="screen-blink">
+    <video class="seq-video" id="video-blink" src="blink.mp4" playsinline muted></video>
+   </div>
 
         <!-- Step 2: Visual Novel -->
         <div class="seq-screen" id="screen-vn">
@@ -1265,19 +1265,18 @@ function closeRules() {
             
             screenBlink.classList.add('active');
             
-            videoBlink.play().then(() => {
-                // ---> ADD THIS LINE SO THE BLINK VIDEO ACTUALLY SHOWS UP <---
-                videoBlink.classList.add('video-ready');
-            }).catch(e => {
+            // Force the opacity-ready class immediately so it doesn't stay invisible if play is delayed
+            videoBlink.classList.add('video-ready');[cite: 7]
+
+            videoBlink.play().catch(e => {
                 console.log("Auto-play prevented, skipping to VN", e);
                 endStepBlink();
             });
 
             // Trigger the cross-fade INTO the visual novel slightly BEFORE the video ends
             videoBlink.ontimeupdate = () => {
-                // If we are within 0.4 seconds of the end, start fading in the next screen early
                 if (videoBlink.duration && videoBlink.currentTime >= videoBlink.duration - 0.4) {
-                    videoBlink.ontimeupdate = null; // Run only once
+                    videoBlink.ontimeupdate = null; 
                     preloadAndShowVN();
                 }
             };
@@ -1286,7 +1285,7 @@ function closeRules() {
                 endStepBlink();
             };
         }
-
+        
         function preloadAndShowVN() {
             const screenVN = document.getElementById('screen-vn');
             // Turn on VN screen while blink video is finishing its last few frames
