@@ -1290,11 +1290,15 @@ function closeRules() {
             screenVN.classList.add('active');
         }
 
-  function endStepBlink() {
+function endStepBlink() {
             const screenBlink = document.getElementById('screen-blink');
             // Now safe to hide the old blink screen after overlap
             screenBlink.classList.remove('active');
+            
+            // ---> ADD THIS LINE TO START THE VISUAL NOVEL <---
+            runVisualNovel();
         }
+        
         const vnScript = [
             ["Me", "Huh? What just happened?..."],
             ["Me", "Was it just a dream?"],
