@@ -1265,7 +1265,10 @@ function closeRules() {
             
             screenBlink.classList.add('active');
             
-            videoBlink.play().catch(e => {
+            videoBlink.play().then(() => {
+                // ---> ADD THIS LINE SO THE BLINK VIDEO ACTUALLY SHOWS UP <---
+                videoBlink.classList.add('video-ready');
+            }).catch(e => {
                 console.log("Auto-play prevented, skipping to VN", e);
                 endStepBlink();
             });
@@ -1292,13 +1295,16 @@ function closeRules() {
 
 function endStepBlink() {
             const screenBlink = document.getElementById('screen-blink');
+            const videoBlink = document.getElementById('video-blink');
+            
+            // ---> ADD THIS LINE TO RESET THE VIDEO OPACITY <---
+            videoBlink.classList.remove('video-ready');
+            
             // Now safe to hide the old blink screen after overlap
             screenBlink.classList.remove('active');
-            
-            // ---> ADD THIS LINE TO START THE VISUAL NOVEL <---
             runVisualNovel();
         }
-        
+
         const vnScript = [
             ["Me", "Huh? What just happened?..."],
             ["Me", "Was it just a dream?"],
