@@ -585,43 +585,52 @@
             line-height: 1;
         }
 
-        /* --- Sequence Overlay Styling --- */
-        #sequence-layer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #000;
-            z-index: 99999999;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
+/* --- Sequence Overlay Styling --- */
+#sequence-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    z-index: 99999999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
 
-        .seq-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
+.seq-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease; /* Smooth cross-fade window */
+}
 
-        .seq-screen.active {
-            display: flex;
-        }
+.seq-screen.active {
+    opacity: 1;
+    pointer-events: auto;
+}
 
-        .seq-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            background: #000;
-        }
+.seq-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
 
+.seq-video.video-ready {
+    opacity: 1;
+}
         /* Visual Novel Styles inside Sequence Layer */
         .vn-container {
             position: relative;
@@ -909,77 +918,77 @@
     </div>
 
     <!-- Sequence Container Layer -->
-    <div id="sequence-layer">
-        <!-- Step 1: blink.mp4 -->
-        <div class="seq-screen" id="screen-blink">
-            <video class="seq-video" id="video-blink" src="blink.mp4" playsinline></video>
-        </div>
+<div id="sequence-layer">
+    <!-- Step 1: blink.mp4 -->
+    <div class="seq-screen" id="screen-blink">
+        <video class="seq-video" id="video-blink" src="blink.mp4" playsinline muted></video>
+    </div>
 
-        <!-- Step 2: Visual Novel -->
-        <div class="seq-screen" id="screen-vn">
-            <div class="vn-container" id="vn-scene">
-                <div class="dialogue-box">
-                    <div class="speaker-name" id="vn-speaker">Protagonist</div>
-                    <p class="dialogue-text" id="vn-dialogue"></p>
-                    <div class="next-indicator">▼</div>
-                </div>
+    <!-- Step 2: Visual Novel -->
+    <div class="seq-screen" id="screen-vn">
+        <div class="vn-container" id="vn-scene">
+            <div class="dialogue-box">
+                <div class="speaker-name" id="vn-speaker">Protagonist</div>
+                <p class="dialogue-text" id="vn-dialogue"></p>
+                <div class="next-indicator">▼</div>
             </div>
         </div>
+    </div>
 
-        <!-- Step 3: ending.mp4 -->
-        <div class="seq-screen" id="screen-ending">
-            <video class="seq-video" id="video-ending" src="ending.mp4" playsinline></video>
-        </div>
+    <!-- Step 3: ending.mp4 -->
+    <div class="seq-screen" id="screen-ending">
+        <video class="seq-video" id="video-ending" src="ending.mp4" playsinline></video>
+    </div>
 
-<!-- Step 4: Credit Roll -->
-        <div class="seq-screen" id="screen-credits">
-            <div class="credits-container" id="credits-clickable-area">
-                <div class="credits-scroll" id="credits-scroll">
-                    <h1>Summer Quest</h1>
-                    <p>A Special Adventure Experience</p>
-                    <br>
-                    <h2>Lead Developers</h2>
-                    <p>Calvin & Blanco</p>
-                    <br>
-                    <h2>Website Design by</h2>
-                    <p>Calvin</p>
-                    <br>
-                    <h2>360 Experience by</h2>
-                    <p>Blanco</p>
-                    <br>
-                    <h2>Story & Information by</h2>
-                    <p>Blanco</p>
-                    <br>
-                    <h2>Forest RPG</h2>
-                    <p>Made by Calvin</p>
-                    <br>
-                    <h2>Desert Maze</h2>
-                    <p>Made by Calvin</p>
-                    <br>
-                    <h2>Underwater Puzzle</h2>
-                    <p>Made by Blanco</p>
-                    <br>
-                    <h2>Space Survival</h2>
-                    <p>Made by Calvin</p>
-                    <br>
-                    <h2>A Snowy Adventure</h2>
-                    <p>Made by Calvin</p>
-                    <br>
-                    <h2>Classroom Escape</h2>
-                    <p>Made by Calvin</p>
-                    <br>
-                    <h2>Special Thanks</h2>
-                    <p>To you for your time!</p>
-                    <br>
-                    <h2>Made with</h2>
-                    <p>HTML5, JavaScript, Insta306, Panoee & Gemini</p>
-                    <br><br>
-                    <h1 style="font-size: 3rem; color: #bfa181;">Thank you for playing!</h1>
-                </div>
-                <div id="ff-hint">Hold Space or Click to Fast Forward</div>
+    <!-- Step 4: Credit Roll -->
+    <div class="seq-screen" id="screen-credits">
+        <div class="credits-container" id="credits-clickable-area">
+            <div class="credits-scroll" id="credits-scroll">
+                <h1>Summer Quest</h1>
+                <p>A Special Adventure Experience</p>
+                <br>
+                <h2>Lead Developers</h2>
+                <p>Calvin & Blanco</p>
+                <br>
+                <h2>Website Design by</h2>
+                <p>Calvin</p>
+                <br>
+                <h2>360 Experience by</h2>
+                <p>Blanco</p>
+                <br>
+                <h2>Story & Information by</h2>
+                <p>Blanco</p>
+                <br>
+                <h2>Forest RPG</h2>
+                <p>Made by Calvin</p>
+                <br>
+                <h2>Desert Maze</h2>
+                <p>Made by Calvin</p>
+                <br>
+                <h2>Underwater Puzzle</h2>
+                <p>Made by Blanco</p>
+                <br>
+                <h2>Space Survival</h2>
+                <p>Made by Calvin</p>
+                <br>
+                <h2>A Snowy Adventure</h2>
+                <p>Made by Calvin</p>
+                <br>
+                <h2>Classroom Escape</h2>
+                <p>Made by Calvin</p>
+                <br>
+                <h2>Special Thanks</h2>
+                <p>To you for your time!</p>
+                <br>
+                <h2>Made with</h2>
+                <p>HTML5, JavaScript, Insta306, Panoee & Gemini</p>
+                <br><br>
+                <h1 style="font-size: 3rem; color: #bfa181;">Thank you for playing!</h1>
             </div>
+            <div id="ff-hint">Hold Space or Click to Fast Forward</div>
         </div>
-    </div> <!-- Closes #sequence-layer -->
+    </div>
+</div>
 
     <!-- 1. The Image Container (Placed OUTSIDE the sequence layer) -->
     <div id="goodjob-img-container" style="display: none; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 999999999; text-align: center;">
@@ -1161,28 +1170,47 @@
         }
 
         // 1. Play blink.mp4 (With VN music fading in simultaneously right as Journey fades out)
-        function runStepBlink() {
-            fadeOutJourneyMusic(1000);
-            fadeInVNMusic(0.4, 2500);
+       function runStepBlink() {
+    fadeOutJourneyMusic(1000);
+    fadeInVNMusic(0.4, 2500);
 
-            const screenBlink = document.getElementById('screen-blink');
-            const videoBlink = document.getElementById('video-blink');
-            screenBlink.classList.add('active');
-            
-            videoBlink.play().catch(e => {
-                console.log("Auto-play prevented, skipping to VN", e);
-                endStepBlink();
-            });
+    const screenBlink = document.getElementById('screen-blink');
+    const videoBlink = document.getElementById('video-blink');
+    
+    screenBlink.classList.add('active');
+    videoBlink.classList.add('video-ready');
 
-            videoBlink.onended = () => {
-                endStepBlink();
-            };
+    videoBlink.play().catch(e => {
+        console.log("Auto-play prevented, skipping to VN", e);
+        endStepBlink();
+    });
+
+    // Preload and cross-fade into the visual novel slightly BEFORE the blink video ends
+    videoBlink.ontimeupdate = () => {
+        if (videoBlink.duration && videoBlink.currentTime >= videoBlink.duration - 0.4) {
+            videoBlink.ontimeupdate = null; 
+            preloadAndShowVN();
         }
+    };
 
-        function endStepBlink() {
-            document.getElementById('screen-blink').classList.remove('active');
-            runVisualNovel();
-        }
+    videoBlink.onended = () => {
+        endStepBlink();
+    };
+}
+
+function preloadAndShowVN() {
+    const screenVN = document.getElementById('screen-vn');
+    screenVN.classList.add('active'); // Cross-fades VN in while blink is finishing its last frames
+}
+
+function endStepBlink() {
+    const screenBlink = document.getElementById('screen-blink');
+    const videoBlink = document.getElementById('video-blink');
+    
+    videoBlink.classList.remove('video-ready');
+    screenBlink.classList.remove('active');
+    runVisualNovel();
+}
 
         // 2. Visual Novel Function with "still.webp"
         const vnScript = [
@@ -1242,43 +1270,60 @@
         }
 
         function endVisualNovel() {
-            const vnAudio = document.getElementById('vn-music');
-            let fadeVol = 0.4;
-            let fadeInterval = setInterval(() => {
-                if (fadeVol > 0.05) {
-                    fadeVol -= 0.05;
-                    if (vnGainNode) vnGainNode.gain.value = fadeVol;
-                } else {
-                    vnAudio.pause();
-                    clearInterval(fadeInterval);
-                    if (vnGainNode) vnGainNode.gain.value = 0.4;
-                }
-            }, 100);
-
-            document.getElementById('screen-vn').classList.remove('active');
-            runStepEnding();
+    const vnAudio = document.getElementById('vn-music');
+    let fadeVol = 0.4;
+    let fadeInterval = setInterval(() => {
+        if (fadeVol > 0.05) {
+            fadeVol -= 0.05;
+            if (vnGainNode) vnGainNode.gain.value = fadeVol;
+        } else {
+            vnAudio.pause();
+            clearInterval(fadeInterval);
+            if (vnGainNode) vnGainNode.gain.value = 0.4;
         }
+    }, 100);
+
+    document.getElementById('screen-vn').classList.remove('active');
+    runStepEnding();
+}
 
         // 3. Play ending.mp4
-        function runStepEnding() {
-            const screenEnding = document.getElementById('screen-ending');
-            const videoEnding = document.getElementById('video-ending');
-            screenEnding.classList.add('active');
+      function runStepEnding() {
+    const screenEnding = document.getElementById('screen-ending');
+    const videoEnding = document.getElementById('video-ending');
+    
+    screenEnding.classList.add('active');
 
-            videoEnding.play().catch(e => {
-                console.log("Auto-play prevented, skipping to credits", e);
-                endStepEnding();
-            });
+    videoEnding.play().then(() => {
+        videoEnding.classList.add('video-ready');
+    }).catch(e => {
+        console.log("Auto-play prevented, skipping to credits", e);
+        endStepEnding();
+    });
 
-            videoEnding.onended = () => {
-                endStepEnding();
-            };
+    // Cross-fade into credits slightly before the ending video finishes
+    videoEnding.ontimeupdate = () => {
+        if (videoEnding.duration && videoEnding.currentTime >= videoEnding.duration - 0.4) {
+            videoEnding.ontimeupdate = null;
+            preloadAndShowCredits();
         }
+    };
 
-        function endStepEnding() {
-            document.getElementById('screen-ending').classList.remove('active');
-            runCreditRoll();
-        }
+    videoEnding.onended = () => {
+        endStepEnding();
+    };
+}
+      function preloadAndShowCredits() {
+    const screenCredits = document.getElementById('screen-credits');
+    screenCredits.classList.add('active');
+}
+
+function endStepEnding() {
+    const videoEnding = document.getElementById('video-ending');
+    videoEnding.classList.remove('video-ready');
+    document.getElementById('screen-ending').classList.remove('active');
+    runCreditRoll();
+}
 
         // --- JavaScript-Driven Smooth Credits Roll & Fast Forward ---
         let isCreditsActive = false;
