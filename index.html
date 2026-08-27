@@ -1059,6 +1059,10 @@ function closeRules() {
             const panoeeWrapper = document.getElementById('panoee-wrapper');
 
             introVideo.pause();
+            
+            // ADD THIS LINE: Reset the video ready state for next time
+            introVideo.classList.remove('video-ready'); 
+
             skipBtn.classList.remove('visible');
 
             if (panoeeWrapper) {
@@ -1104,7 +1108,10 @@ function closeRules() {
 
             videoContainer.style.display = 'flex';
             
-            introVideo.play().catch(e => {
+    introVideo.play().then(() => {
+                // ADD THIS LINE: Make the video visible once it starts playing
+                introVideo.classList.add('video-ready');
+            }).catch(e => {
                 console.log("Video auto-play blocked, skipping to panoee");
                 finishVideoSequence();
             });
