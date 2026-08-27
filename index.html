@@ -1266,7 +1266,7 @@ function closeRules() {
             screenBlink.classList.add('active');
             
             // Force the opacity-ready class immediately so it doesn't stay invisible if play is delayed
-            videoBlink.classList.add('video-ready');[cite: 7]
+            videoBlink.classList.add('video-ready');
 
             videoBlink.play().catch(e => {
                 console.log("Auto-play prevented, skipping to VN", e);
@@ -1285,7 +1285,7 @@ function closeRules() {
                 endStepBlink();
             };
         }
-        
+
         function preloadAndShowVN() {
             const screenVN = document.getElementById('screen-vn');
             // Turn on VN screen while blink video is finishing its last few frames
