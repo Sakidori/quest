@@ -1060,7 +1060,7 @@ function preloadPanoeeFrame() {
         videoContainerEl.addEventListener('touchstart', handleVideoInput);
         videoContainerEl.addEventListener('click', handleVideoInput);
 
-       function finishVideoSequence() {
+      function finishVideoSequence() {
             if (videoHasFinishedOrSkipped) return;
             videoHasFinishedOrSkipped = true;
             isVideoPlaying = false;
@@ -1075,14 +1075,15 @@ function preloadPanoeeFrame() {
             const panoeeWrapper = document.getElementById('panoee-wrapper');
 
             introVideo.pause();
-            
             introVideo.classList.remove('video-ready'); 
-
             skipBtn.classList.remove('visible');
 
-            // ---> ADD THIS LINE TO HIDE THE CREDITS BUTTON WHEN PANOEE SHOWS <---
+            // ---> HIDE THE CREDITS BUTTON ALONG WITH START/HUB <---
             const creditsBtn = document.getElementById('credits-btn');
-            if (creditsBtn) creditsBtn.style.display = 'none';
+            if (creditsBtn) {
+                creditsBtn.classList.remove('credits-visible');
+                creditsBtn.style.display = 'none';
+            }
 
             if (panoeeWrapper) {
                 panoeeWrapper.style.display = "block";
@@ -1113,9 +1114,17 @@ function preloadPanoeeFrame() {
                 console.warn('Could not read game completion state:', error);
             }
 
-            if (continueToPanoee) {
+        if (continueToPanoee) {
                 introVideo.pause();
                 videoContainer.style.display = 'none';
+                
+                // ---> HIDE CREDITS HERE TOO <---
+                const creditsBtn = document.getElementById('credits-btn');
+                if (creditsBtn) {
+                    creditsBtn.classList.remove('credits-visible');
+                    creditsBtn.style.display = 'none';
+                }
+
                 if (panoeeWrapper) panoeeWrapper.style.display = 'block';
                 playCurrentTrack();
                 return;
