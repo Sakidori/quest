@@ -664,6 +664,10 @@
                 width: auto !important;
                 height: auto !important;
             }
+
+            body.panoee-active #credits-btn {
+    display: none !important;
+}
         }
     </style>
 </head>
@@ -1050,7 +1054,7 @@ function closeRules() {
         videoContainerEl.addEventListener('touchstart', handleVideoInput);
         videoContainerEl.addEventListener('click', handleVideoInput);
 
-        function finishVideoSequence() {
+       function finishVideoSequence() {
             if (videoHasFinishedOrSkipped) return;
             videoHasFinishedOrSkipped = true;
             isVideoPlaying = false;
@@ -1066,10 +1070,13 @@ function closeRules() {
 
             introVideo.pause();
             
-            // ADD THIS LINE: Reset the video ready state for next time
             introVideo.classList.remove('video-ready'); 
 
             skipBtn.classList.remove('visible');
+
+            // ---> ADD THIS LINE TO HIDE THE CREDITS BUTTON WHEN PANOEE SHOWS <---
+            const creditsBtn = document.getElementById('credits-btn');
+            if (creditsBtn) creditsBtn.style.display = 'none';
 
             if (panoeeWrapper) {
                 panoeeWrapper.style.display = "block";
