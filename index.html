@@ -414,7 +414,7 @@
         }
 
         /* --- Sequence Overlay Styling --- */
-#sequence-layer {
+        #sequence-layer {
             position: fixed;
             top: 0;
             left: 0;
@@ -434,17 +434,17 @@
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex; /* Keep flex active so layout is preserved */
+            display: flex;
             justify-content: center;
             align-items: center;
             opacity: 0;
-            pointer-events: none; /* Disable interaction when hidden */
-            transition: opacity 0.5s ease; /* Smooth cross-fade duration */
+            pointer-events: none;
+            transition: opacity 0.6s ease; /* Smoother cross-fade window */
         }
 
         .seq-screen.active {
             opacity: 1;
-            pointer-events: auto; /* Re-enable interaction when active */
+            pointer-events: auto;
         }
 
         .seq-video {
@@ -452,12 +452,6 @@
             height: 100%;
             object-fit: cover;
             background: #000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .seq-video.video-ready {
-            opacity: 1;
         }
 
         /* Visual Novel Styles inside Sequence Layer */
@@ -471,14 +465,8 @@
             background-size: cover;
             background-position: center;
             cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.5s ease; /* Smooth fade for Visual Novel */
         }
-
-        .vn-container.vn-ready {
-            opacity: 1;
-        }
-        .dialogue-box {
+                .dialogue-box {
             position: absolute;
             bottom: 25px;
             left: 50%;
@@ -1274,29 +1262,38 @@ function closeRules() {
 
             const screenBlink = document.getElementById('screen-blink');
             const videoBlink = document.getElementById('video-blink');
+            
             screenBlink.classList.add('active');
             
-            videoBlink.play().then(() => {
-                videoBlink.classList.add('video-ready'); // ADD THIS
-            }).catch(e => {
+            videoBlink.play().catch(e => {
                 console.log("Auto-play prevented, skipping to VN", e);
                 endStepBlink();
             });
+
+            // Trigger the cross-fade INTO the visual novel slightly BEFORE the video ends
+            videoBlink.ontimeupdate = () => {
+                // If we are within 0.4 seconds of the end, start fading in the next screen early
+                if (videoBlink.duration && videoBlink.currentTime >= videoBlink.duration - 0.4) {
+                    videoBlink.ontimeupdate = null; // Run only once
+                    preloadAndShowVN();
+                }
+            };
 
             videoBlink.onended = () => {
                 endStepBlink();
             };
         }
 
-       function endStepBlink() {
-            const videoBlink = document.getElementById('video-blink');
-            videoBlink.classList.remove('video-ready');
-            
-            // Fade out blink screen
-            document.getElementById('screen-blink').classList.remove('active');
-            
-            // Immediately start VN with a tiny overlap sync
-            runVisualNovel();
+        function preloadAndShowVN() {
+            const screenVN = document.getElementById('screen-vn');
+            // Turn on VN screen while blink video is finishing its last few frames
+            screenVN.classList.add('active');
+        }
+
+  function endStepBlink() {
+            const screenBlink = document.getElementById('screen-blink');
+            // Now safe to hide the old blink screen after overlap
+            screenBlink.classList.remove('active');
         }
         const vnScript = [
             ["Me", "Huh? What just happened?..."],
@@ -1312,17 +1309,8 @@ function closeRules() {
         const dialogueEl = document.getElementById("vn-dialogue");
         const vnSceneEl = document.getElementById("vn-scene");
 
-        function runVisualNovel() {
-            const screenVN = document.getElementById('screen-vn');
-            const vnSceneEl = document.getElementById('vn-scene');
-            
-            screenVN.classList.add('active');
-            
-            // Allow background image (still.webp) a moment to render before fading in
-            setTimeout(() => {
-                vnSceneEl.classList.add('vn-ready');
-            }, 50);
-
+       function runVisualNovel() {
+            // VN screen is already active from the overlap! Just start dialogue.
             vnIndex = 0;
             typeWriterVN(vnScript[0][0], vnScript[0][1]);
             vnSceneEl.onclick = nextVNDialogue;
@@ -1362,10 +1350,8 @@ function closeRules() {
             }
         }
 
-        function endVisualNovel() {
+  function endVisualNovel() {
             const vnAudio = document.getElementById('vn-music');
-            const vnSceneEl = document.getElementById('vn-scene');
-            
             let fadeVol = 0.4;
             let fadeInterval = setInterval(() => {
                 if (fadeVol > 0.05) {
@@ -1378,36 +1364,45 @@ function closeRules() {
                 }
             }, 100);
 
-            // Fade out VN container first
-            vnSceneEl.classList.remove('vn-ready');
-            
-            setTimeout(() => {
-                document.getElementById('screen-vn').classList.remove('active');
-                runStepEnding();
-            }, 400); // Wait for fade out to complete before starting ending video
+            // Hide VN screen after starting the ending step
+            document.getElementById('screen-vn').classList.remove('active');
+            runStepEnding();
         }
 
        function runStepEnding() {
             const screenEnding = document.getElementById('screen-ending');
             const videoEnding = document.getElementById('video-ending');
             
+            // Fade in ending video layer seamlessly over the black canvas/previous layer
             screenEnding.classList.add('active');
 
             videoEnding.play().then(() => {
-                setTimeout(() => {
-                    videoEnding.classList.add('video-ready');
-                }, 50);
+                videoEnding.classList.add('video-ready');
             }).catch(e => {
                 console.log("Auto-play prevented, skipping to credits", e);
                 endStepEnding();
             });
+
+            // Trigger cross-fade into credits slightly before the ending video finishes
+            videoEnding.ontimeupdate = () => {
+                if (videoEnding.duration && videoEnding.currentTime >= videoEnding.duration - 0.4) {
+                    videoEnding.ontimeupdate = null;
+                    preloadAndShowCredits();
+                }
+            };
 
             videoEnding.onended = () => {
                 endStepEnding();
             };
         }
 
-        function endStepEnding() {
+        function preloadAndShowCredits() {
+            // Turn on credits screen layer early for a smooth cross-fade
+            const screenCredits = document.getElementById('screen-credits');
+            screenCredits.classList.add('active');
+        }
+
+  function endStepEnding() {
             const videoEnding = document.getElementById('video-ending');
             videoEnding.classList.remove('video-ready');
             
