@@ -1258,7 +1258,9 @@ function closeRules() {
             const videoBlink = document.getElementById('video-blink');
             screenBlink.classList.add('active');
             
-            videoBlink.play().catch(e => {
+            videoBlink.play().then(() => {
+                videoBlink.classList.add('video-ready'); // ADD THIS
+            }).catch(e => {
                 console.log("Auto-play prevented, skipping to VN", e);
                 endStepBlink();
             });
@@ -1269,10 +1271,11 @@ function closeRules() {
         }
 
         function endStepBlink() {
+            const videoBlink = document.getElementById('video-blink');
+            videoBlink.classList.remove('video-ready'); // ADD THIS
             document.getElementById('screen-blink').classList.remove('active');
             runVisualNovel();
         }
-
         const vnScript = [
             ["Me", "Huh? What just happened?..."],
             ["Me", "Was it just a dream?"],
@@ -1351,7 +1354,9 @@ function closeRules() {
             const videoEnding = document.getElementById('video-ending');
             screenEnding.classList.add('active');
 
-            videoEnding.play().catch(e => {
+            videoEnding.play().then(() => {
+                videoEnding.classList.add('video-ready'); // ADD THIS
+            }).catch(e => {
                 console.log("Auto-play prevented, skipping to credits", e);
                 endStepEnding();
             });
@@ -1362,10 +1367,12 @@ function closeRules() {
         }
 
         function endStepEnding() {
+            const videoEnding = document.getElementById('video-ending');
+            videoEnding.classList.remove('video-ready'); // ADD THIS
+            document.getElementById('screen-credits').classList.remove('active'); // Wait, keep existing screen toggle
             document.getElementById('screen-ending').classList.remove('active');
             runCreditRoll();
         }
-
         let isCreditsActive = false;
         let creditAnimFrame = null;
         let currentTopPercent = 100; 
