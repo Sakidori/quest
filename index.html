@@ -428,20 +428,24 @@
             overflow: hidden;
         }
 
-        .seq-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
+seq-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex; /* Always flex so they stay in layout */
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none; /* Prevent clicks when hidden */
+    transition: opacity 0.4s ease;
+}
 
-        .seq-screen.active {
-            display: flex;
-        }
+.seq-screen.active {
+    opacity: 1;
+    pointer-events: auto; /* Re-enable clicks when active */
+}
 
         .seq-video {
             width: 100%;
@@ -1253,16 +1257,19 @@ function closeRules() {
             }, stepTime);
         }
 
-        function runStepBlink() {
+       function runStepBlink() {
     fadeOutJourneyMusic(1000);
     fadeInVNMusic(0.4, 2500);
 
     const screenBlink = document.getElementById('screen-blink');
     const videoBlink = document.getElementById('video-blink');
+    
+    // 1. Make the screen container active (fades in opacity)
     screenBlink.classList.add('active');
     
     videoBlink.play().then(() => {
-        videoBlink.classList.add('video-ready'); // <-- Add this line
+        // 2. Add video-ready once playing smoothly
+        videoBlink.classList.add('video-ready');[cite: 5]
     }).catch(e => {
         console.log("Auto-play prevented, skipping to VN", e);
         endStepBlink();
@@ -1275,7 +1282,7 @@ function closeRules() {
 
 function endStepBlink() {
     const videoBlink = document.getElementById('video-blink');
-    videoBlink.classList.remove('video-ready'); // <-- Add this line to clean up
+    videoBlink.classList.remove('video-ready');[cite: 5]
     document.getElementById('screen-blink').classList.remove('active');
     runVisualNovel();
 }
@@ -1352,13 +1359,15 @@ function endStepBlink() {
             runStepEnding();
         }
 
-       function runStepEnding() {
+      function runStepEnding() {
     const screenEnding = document.getElementById('screen-ending');
     const videoEnding = document.getElementById('video-ending');
+    
+    // Fades in smoothly using the opacity transition on .seq-screen.active
     screenEnding.classList.add('active');
 
     videoEnding.play().then(() => {
-        videoEnding.classList.add('video-ready'); // <-- Add this line
+        videoEnding.classList.add('video-ready');[cite: 5]
     }).catch(e => {
         console.log("Auto-play prevented, skipping to credits", e);
         endStepEnding();
@@ -1371,11 +1380,12 @@ function endStepBlink() {
 
 function endStepEnding() {
     const videoEnding = document.getElementById('video-ending');
-    videoEnding.classList.remove('video-ready'); // <-- Add this line to clean up
+    videoEnding.classList.remove('video-ready');[cite: 5]
+    
+    // Fades out smoothly before rolling credits
     document.getElementById('screen-ending').classList.remove('active');
     runCreditRoll();
 }
-
         let isCreditsActive = false;
         let creditAnimFrame = null;
         let currentTopPercent = 100; 
