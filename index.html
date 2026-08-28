@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+    <link rel="manifest" href="./manifest.json">
+
+<!-- Mobile theme color -->
+<meta name="theme-color" content="#000000">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => console.log('Service worker registered!', reg))
+        .catch((err) => console.log('Service worker registration failed:', err));
+    });
+  }
+</script>
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-D943JMSC2L"></script>
 <script>
@@ -231,7 +246,16 @@
         .text-box { width: 60%; top: 15%; left: 20%; animation: floatIn 1.5s ease-out forwards; }
 
         /* Sword Shine */
-        .sword-box { width: 35%; top: 30%; right: 25%; opacity: 0; animation: swordFly 1s ease-out 1.5s forwards; }
+        .sword-box { 
+    width: 35%; 
+    top: 30%; 
+    right: 25%; 
+    opacity: 0; 
+}
+
+.sword-box.play-sword {
+    animation: swordFly 1s ease-out forwards;
+}
         .sword-wrapper { position: relative; width: 100%; display: inline-block; }
         .sword-shine {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -954,14 +978,22 @@
             playCurrentTrack();
         }
 
-        function enterSite() {
-            var splash = document.getElementById('splash-screen');
-            splash.style.opacity = '0';
-            setTimeout(() => { splash.style.display = 'none'; }, 1000);
-            
-            requestFullscreen();
-            playCurrentTrack();
+function enterSite() {
+    var splash = document.getElementById('splash-screen');
+    splash.style.opacity = '0';
+    setTimeout(() => { 
+        splash.style.display = 'none'; 
+        
+        // Trigger the sword animation to start now that splash is gone
+        const swordBox = document.querySelector('.sword-box');
+        if (swordBox) {
+            swordBox.classList.add('play-sword');
         }
+    }, 1000); // Matches the 1s splash fade transition
+    
+    requestFullscreen();
+    playCurrentTrack();
+}
 
 function openRules() { 
     document.getElementById("rules-modal").style.display = "block";
