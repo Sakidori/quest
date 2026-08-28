@@ -888,6 +888,19 @@
             startMinimizeTimer();
             preloadPanoeeFrame();
 
+            // Check if the app is running in standalone mode (PWA)
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    // If it's the PWA version, minimize the update box immediately on load
+    if (isPWA) {
+        const updateBox = document.getElementById('update-box');
+        if (updateBox) {
+            updateBox.classList.add('minimized');
+        }
+    } else {
+        startMinimizeTimer(); // Keep the auto-hide timer for regular browsers if you like
+    }
+
             const splash = document.getElementById('splash-screen');
 
             let shouldAutoStart = false;
