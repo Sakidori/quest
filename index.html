@@ -984,17 +984,22 @@ function enterSite() {
     setTimeout(() => { 
         splash.style.display = 'none'; 
         
-        // Trigger the sword animation to start now that splash is gone
         const swordBox = document.querySelector('.sword-box');
         if (swordBox) {
             swordBox.classList.add('play-sword');
         }
-    }, 1000); // Matches the 1s splash fade transition
+    }, 1000); 
     
-    requestFullscreen();
+    // Check if the app is running in standalone mode (PWA)
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    // Only request fullscreen if it's NOT running as an installed PWA
+    if (!isPWA) {
+        requestFullscreen();
+    }
+    
     playCurrentTrack();
 }
-
 function openRules() { 
     document.getElementById("rules-modal").style.display = "block";
     document.querySelector(".start-btn").classList.add("start-visible");
