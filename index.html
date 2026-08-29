@@ -247,16 +247,15 @@
 
         /* Sword Shine */
         .sword-box { 
-            width: 35%; 
-            top: 30%; 
-            right: 25%; 
-            opacity: 0; 
-            cursor: pointer;
-        }
+    width: 35%; 
+    top: 30%; 
+    right: 25%; 
+    opacity: 0; 
+}
 
-        .sword-box.play-sword {
-            animation: swordFly 1s ease-out forwards;
-        }
+.sword-box.play-sword {
+    animation: swordFly 1s ease-out forwards;
+}
         .sword-wrapper { position: relative; width: 100%; display: inline-block; }
         .sword-shine {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -283,7 +282,7 @@
             justify-content: center;
             align-items: center;
             z-index: 20000;
-            transition: opacity 1s ease;
+            transition: opacity 1s ease; /* Smoother fade in/out */
         }
         #intro-video-container video {
             width: 100%;
@@ -328,8 +327,8 @@
             height: 100vh;
             overflow: hidden; 
             z-index: 9999;
-            background: #000;
-            display: none;
+            background: #000; /* Prevent background flash */
+            display: none;    /* Hidden by default until ready */
         }
 
         .panoee-container iframe {
@@ -439,7 +438,7 @@
         }
 
         /* --- Sequence Overlay Styling --- */
-        #sequence-layer {
+#sequence-layer {
             position: fixed;
             top: 0;
             left: 0;
@@ -447,13 +446,13 @@
             height: 100vh;
             background-color: #000;
             z-index: 99999999;
-            display: flex;
-            opacity: 0;
-            pointer-events: none;
+            display: flex;             /* Always flex so opacity transition works */
+            opacity: 0;                /* Hidden via opacity */
+            pointer-events: none;      /* Unclickable when hidden */
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            transition: opacity 0.8s ease;
+            transition: opacity 0.8s ease; /* Smooth fade in for the whole layer */
         }
 
         #sequence-layer.active-layer {
@@ -472,7 +471,7 @@
             align-items: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 1.2s ease;
+            transition: opacity 1.2s ease; /* Smoother cross-fade window */
         }
 
         .seq-screen.active {
@@ -488,19 +487,19 @@
         }
 
         /* Visual Novel Styles inside Sequence Layer */
-        .vn-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            max-width: none;
-            max-height: none;
-            background-image: url('still.webp');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            cursor: pointer;
-        }
-        .dialogue-box {
+.vn-container {
+    position: relative;
+    width: 100vw;  /* <--- Fill full viewport width */
+    height: 100vh; /* <--- Fill full viewport height */
+    max-width: none;
+    max-height: none;
+    background-image: url('still.webp');
+    background-size: cover; /* <--- Fills the whole screen */
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+                .dialogue-box {
             position: absolute;
             bottom: 25px;
             left: 50%;
@@ -643,6 +642,7 @@
             transform: scale(1.08);
         }
 
+        /* Video fade-in helper (Keep this OUTSIDE or clean inside the media block) */
         .seq-video, #intro-video {
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -655,10 +655,11 @@
             #intro-video {
                 width: 100% !important;
                 height: 100% !important;
-                object-fit: cover !important;
+                object-fit: cover !important; /* Changed back to cover so it doesn't shrink awkwardly */
                 background-color: #000000;
             }
 
+            /* Proportionate Mobile Visual Novel Dialogue Box */
             .dialogue-box {
                 width: 92% !important;
                 max-width: 100% !important;
@@ -680,6 +681,7 @@
                 top: -18px !important;
             }
 
+            /* Make the Final Return to School Button larger and lower on mobile */
             .custom-final-return-btn {
                 font-size: 1.2rem !important;
                 padding: 14px 32px !important;
@@ -697,8 +699,8 @@
             }
 
             body.panoee-active #credits-btn {
-                display: none !important;
-            }
+    display: none !important;
+}
         }
     </style>
 </head>
@@ -707,8 +709,8 @@
     <!-- Credits Button (Top Left) -->
     <a href="#" id="credits-btn" class="credits-button" onclick="startSequence(); return false;" title="Credits">🏆</a>
 
-    <!-- Update Notes Box (Hidden by default, unlocked via sword clicks) -->
-    <div id="update-box" class="update-notes" style="display: none;" onclick="toggleUpdateNotes(event)" title="Click to expand update notes">
+    <!-- Update Notes Box with toggle capability -->
+    <div id="update-box" class="update-notes" onclick="toggleUpdateNotes(event)" title="Click to expand update notes">
         <div class="update-icon">✨</div>
         <div class="update-body">
             <h3>✨ What's New <span style="font-size: 11px; font-weight: normal; opacity: 0.7;">_</span></h3>
@@ -739,9 +741,7 @@
 
     <div id="sparkle-container"></div>
     <div class="item-container text-box"><img src="text.webp" alt="Title"></div>
-    
-    <!-- Sword with click listener for secret activation (5 clicks) -->
-    <div class="item-container sword-box" id="secret-sword" onclick="handleSecretSwordClick()">
+    <div class="item-container sword-box">
         <div class="sword-wrapper">
             <img src="sword.webp" alt="Sword">
             <div class="sword-shine"></div>
@@ -751,12 +751,10 @@
     <div class="button-group">
         <button class="btn start-btn" onclick="startExperience()">START</button>
         <a href="http://sakidori.github.io/quest/hub/hub.html" class="btn hub-btn">HUB</a>
-        <!-- Rules button hidden by default, revealed via secret click -->
-        <button id="rules-btn-container" class="btn rules-btn" onclick="openRules()" style="display: none;">RULES</button>
+        <button class="btn rules-btn" onclick="openRules()">RULES</button>
     </div>
 
-    <!-- Music Widget (Hidden by default, revealed via secret click) -->
-    <div id="music-widget" style="display: none;">
+    <div id="music-widget">
         <span id="track-title">Track 1</span>
         <div class="controls-group">
             <button class="music-btn" onclick="prevTrack()" title="Previous">⏮</button>
@@ -777,10 +775,12 @@
 
     <!-- Sequence Container Layer -->
     <div id="sequence-layer">
-        <div class="seq-screen" id="screen-blink">
-            <video class="seq-video" id="video-blink" src="blink.mp4" playsinline muted></video>
-        </div>
+        <!-- Step 1: blink.mp4 -->
+   <div class="seq-screen" id="screen-blink">
+    <video class="seq-video" id="video-blink" src="blink.mp4" playsinline muted></video>
+   </div>
 
+        <!-- Step 2: Visual Novel -->
         <div class="seq-screen" id="screen-vn">
             <div class="vn-container" id="vn-scene">
                 <div class="dialogue-box">
@@ -791,10 +791,12 @@
             </div>
         </div>
 
+        <!-- Step 3: ending.mp4 -->
         <div class="seq-screen" id="screen-ending">
             <video class="seq-video" id="video-ending" src="ending.mp4" playsinline></video>
         </div>
 
+        <!-- Step 4: Credit Roll -->
         <div class="seq-screen" id="screen-credits">
             <div class="credits-container" id="credits-clickable-area">
                 <div class="credits-scroll" id="credits-scroll">
@@ -843,14 +845,17 @@
         </div>
     </div>
 
+    <!-- Good Job Image Container -->
     <div id="goodjob-img-container" style="display: none; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 999999999; text-align: center;">
         <img id="goodjob-img" src="goodjob.webp" alt="Good Job" style="max-width: 500px; max-height: 350px; object-fit: contain; border-radius: 8px;">
     </div>
 
+    <!-- Final Return Button Container -->
     <div id="final-return-container" style="display: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 999999999; text-align: center;">
         <button class="custom-final-return-btn" onclick="returnToUrl()">Return to Homepage</button>
     </div>
 
+    <!-- Audio Elements for Sequence -->
     <audio id="credits-music" src="music/funenotabi.mp3" preload="auto" loop></audio>
     <audio id="vn-music" src="music/ashitaetudukusora.mp3" preload="auto" loop></audio>
 
@@ -864,34 +869,6 @@
             s.style.animationDuration = (Math.random() * 3 + 4) + 's';
             s.style.animationDelay = Math.random() * 5 + 's';
             container.appendChild(s);
-        }
-
-        // --- Secret Sword Click Counter Logic ---
-        let swordClickCount = 0;
-        let uiUnlocked = false;
-
-        function handleSecretSwordClick() {
-            if (uiUnlocked) return;
-
-            swordClickCount++;
-            
-            // Give a subtle visual punch/shake feedback on click
-            const swordBox = document.getElementById('secret-sword');
-            swordBox.style.transform = "scale(1.15) rotate(-15deg)";
-            setTimeout(() => {
-                swordBox.style.transform = "";
-            }, 150);
-
-            if (swordClickCount >= 5) {
-                uiUnlocked = true;
-                
-                // Reveal the Update Box, Rules Button, and Music Widget
-                document.getElementById('update-box').style.display = 'block';
-                document.getElementById('rules-btn-container').style.display = 'inline-flex';
-                document.getElementById('music-widget').style.display = 'flex';
-
-                console.log("Secret UI components unlocked!");
-            }
         }
 
         // --- Auto-Minimize Update Notes ---
@@ -910,6 +887,19 @@
         window.addEventListener('DOMContentLoaded', () => {
             startMinimizeTimer();
             preloadPanoeeFrame();
+
+            // Check if the app is running in standalone mode (PWA)
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    // If it's the PWA version, minimize the update box immediately on load
+    if (isPWA) {
+        const updateBox = document.getElementById('update-box');
+        if (updateBox) {
+            updateBox.classList.add('minimized');
+        }
+    } else {
+        startMinimizeTimer(); // Keep the auto-hide timer for regular browsers if you like
+    }
 
             const splash = document.getElementById('splash-screen');
 
@@ -1001,47 +991,52 @@
             playCurrentTrack();
         }
 
-        function enterSite() {
-            var splash = document.getElementById('splash-screen');
-            splash.style.opacity = '0';
-            setTimeout(() => { 
-                splash.style.display = 'none'; 
-                
-                const swordBox = document.getElementById('secret-sword');
-                if (swordBox) {
-                    swordBox.classList.add('play-sword');
-                }
-            }, 1000); 
-            
-            const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-            if (!isPWA) {
-                requestFullscreen();
-            }
-            
-            playCurrentTrack();
+function enterSite() {
+    var splash = document.getElementById('splash-screen');
+    splash.style.opacity = '0';
+    setTimeout(() => { 
+        splash.style.display = 'none'; 
+        
+        const swordBox = document.querySelector('.sword-box');
+        if (swordBox) {
+            swordBox.classList.add('play-sword');
         }
+    }, 1000); 
+    
+    // Check if the app is running in standalone mode (PWA)
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-        function openRules() { 
-            document.getElementById("rules-modal").style.display = "block";
-            document.querySelector(".start-btn").classList.add("start-visible");
-            document.querySelector(".hub-btn").classList.add("hub-visible");
-            
-            bgMusic.volume = 0.3;
+    // Only request fullscreen if it's NOT running as an installed PWA
+    if (!isPWA) {
+        requestFullscreen();
+    }
+    
+    playCurrentTrack();
+}
+function openRules() { 
+    document.getElementById("rules-modal").style.display = "block";
+    document.querySelector(".start-btn").classList.add("start-visible");
+    document.querySelector(".hub-btn").classList.add("hub-visible");
+    // Removed #credits-btn from here so it doesn't show too early
+    
+    bgMusic.volume = 0.3;
 
-            const bookSound = document.getElementById("book-sound");
-            bookSound.volume = 1.0;
-            bookSound.currentTime = 0;
-            bookSound.play().catch(e => console.log("Audio play blocked"));
-        }
+    const bookSound = document.getElementById("book-sound");
+    bookSound.volume = 1.0;
+    bookSound.currentTime = 0;
+    bookSound.play().catch(e => console.log("Audio play blocked"));
+}
 
-        function closeRules() { 
-            document.getElementById("rules-modal").style.display = "none";
-            document.getElementById("credits-btn").classList.add("credits-visible");
-            bgMusic.volume = 1.0;
-        }
+function closeRules() { 
+    document.getElementById("rules-modal").style.display = "none";
+    
+    // Make the credits button appear alongside start and hub buttons once rules are closed
+    document.getElementById("credits-btn").classList.add("credits-visible");
+    
+    bgMusic.volume = 1.0;
+}
 
-        function preloadPanoeeFrame() {
+function preloadPanoeeFrame() {
             var wrapper = document.createElement("div");
             wrapper.className = "panoee-container";
             wrapper.id = "panoee-wrapper";
@@ -1054,6 +1049,7 @@
             wrapper.appendChild(iframe);
             document.body.appendChild(wrapper);
 
+            // ---> HIDE THE CREDITS BUTTON WHENEVER PANOEE LOADS <---
             const creditsBtn = document.getElementById('credits-btn');
             if (creditsBtn) {
                 creditsBtn.style.display = 'none';
@@ -1123,7 +1119,7 @@
         videoContainerEl.addEventListener('touchstart', handleVideoInput);
         videoContainerEl.addEventListener('click', handleVideoInput);
 
-        function finishVideoSequence() {
+      function finishVideoSequence() {
             if (videoHasFinishedOrSkipped) return;
             videoHasFinishedOrSkipped = true;
             isVideoPlaying = false;
@@ -1141,6 +1137,7 @@
             introVideo.classList.remove('video-ready'); 
             skipBtn.classList.remove('visible');
 
+            // ---> HIDE THE CREDITS BUTTON ALONG WITH START/HUB <---
             const creditsBtn = document.getElementById('credits-btn');
             if (creditsBtn) {
                 creditsBtn.classList.remove('credits-visible');
@@ -1176,10 +1173,11 @@
                 console.warn('Could not read game completion state:', error);
             }
 
-            if (continueToPanoee) {
+        if (continueToPanoee) {
                 introVideo.pause();
                 videoContainer.style.display = 'none';
                 
+                // ---> HIDE CREDITS HERE TOO <---
                 const creditsBtn = document.getElementById('credits-btn');
                 if (creditsBtn) {
                     creditsBtn.classList.remove('credits-visible');
@@ -1197,7 +1195,8 @@
 
             videoContainer.style.display = 'flex';
             
-            introVideo.play().then(() => {
+    introVideo.play().then(() => {
+                // ADD THIS LINE: Make the video visible once it starts playing
                 introVideo.classList.add('video-ready');
             }).catch(e => {
                 console.log("Video auto-play blocked, skipping to panoee");
@@ -1244,6 +1243,7 @@
             }
         });
 
+        // --- Web Audio API Reverb & Sequence Handlers ---
         let vnAudioCtx = null;
         let vnSourceNode = null;
         let vnGainNode = null;
@@ -1313,9 +1313,9 @@
             }, stepTime);
         }
 
-        function startSequence() {
+function startSequence() {
             const seqLayer = document.getElementById('sequence-layer');
-            seqLayer.classList.add('active-layer');
+            seqLayer.classList.add('active-layer'); // <--- Smooth fade in instead of display: flex snap
             runStepBlink();
         }
 
@@ -1344,10 +1344,12 @@
             const screenBlink = document.getElementById('screen-blink');
             const videoBlink = document.getElementById('video-blink');
             
+            // Ensure video starts at 0 opacity for a smooth CSS fade
             videoBlink.classList.remove('video-ready');
             screenBlink.classList.add('active');
             
             videoBlink.play().then(() => {
+                // Fade the video in smoothly right as it starts playing
                 setTimeout(() => {
                     videoBlink.classList.add('video-ready');
                 }, 50);
@@ -1356,6 +1358,7 @@
                 endStepBlink();
             });
 
+            // Trigger the cross-fade INTO the visual novel slightly BEFORE the video ends
             videoBlink.ontimeupdate = () => {
                 if (videoBlink.duration && videoBlink.currentTime >= videoBlink.duration - 0.6) {
                     videoBlink.ontimeupdate = null; 
@@ -1370,14 +1373,18 @@
 
         function preloadAndShowVN() {
             const screenVN = document.getElementById('screen-vn');
+            // Turn on VN screen while blink video is finishing its last few frames
             screenVN.classList.add('active');
         }
 
-        function endStepBlink() {
+function endStepBlink() {
             const screenBlink = document.getElementById('screen-blink');
             const videoBlink = document.getElementById('video-blink');
             
+            // ---> ADD THIS LINE TO RESET THE VIDEO OPACITY <---
             videoBlink.classList.remove('video-ready');
+            
+            // Now safe to hide the old blink screen after overlap
             screenBlink.classList.remove('active');
             runVisualNovel();
         }
@@ -1396,7 +1403,8 @@
         const dialogueEl = document.getElementById("vn-dialogue");
         const vnSceneEl = document.getElementById("vn-scene");
 
-        function runVisualNovel() {
+       function runVisualNovel() {
+            // VN screen is already active from the overlap! Just start dialogue.
             vnIndex = 0;
             typeWriterVN(vnScript[0][0], vnScript[0][1]);
             vnSceneEl.onclick = nextVNDialogue;
@@ -1436,7 +1444,7 @@
             }
         }
 
-        function endVisualNovel() {
+  function endVisualNovel() {
             const vnAudio = document.getElementById('vn-music');
             let fadeVol = 0.4;
             let fadeInterval = setInterval(() => {
@@ -1450,14 +1458,16 @@
                 }
             }, 100);
 
+            // Hide VN screen after starting the ending step
             document.getElementById('screen-vn').classList.remove('active');
             runStepEnding();
         }
 
-        function runStepEnding() {
+       function runStepEnding() {
             const screenEnding = document.getElementById('screen-ending');
             const videoEnding = document.getElementById('video-ending');
             
+            // Fade in ending video layer seamlessly over the black canvas/previous layer
             screenEnding.classList.add('active');
 
             videoEnding.play().then(() => {
@@ -1467,6 +1477,7 @@
                 endStepEnding();
             });
 
+            // Trigger cross-fade into credits slightly before the ending video finishes
             videoEnding.ontimeupdate = () => {
                 if (videoEnding.duration && videoEnding.currentTime >= videoEnding.duration - 0.4) {
                     videoEnding.ontimeupdate = null;
@@ -1480,18 +1491,18 @@
         }
 
         function preloadAndShowCredits() {
+            // Turn on credits screen layer early for a smooth cross-fade
             const screenCredits = document.getElementById('screen-credits');
             screenCredits.classList.add('active');
         }
 
-        function endStepEnding() {
+  function endStepEnding() {
             const videoEnding = document.getElementById('video-ending');
             videoEnding.classList.remove('video-ready');
             
             document.getElementById('screen-ending').classList.remove('active');
             runCreditRoll();
         }
-
         let isCreditsActive = false;
         let creditAnimFrame = null;
         let currentTopPercent = 100; 
